@@ -4,11 +4,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"komek/config"
 	"komek/internal/controller/http/v1"
-	wordRepo "komek/internal/repos/word"
-	"komek/internal/service/identity_manager"
-	tokenuc "komek/internal/usecase/token"
-	useruc "komek/internal/usecase/user_managment"
-	worduc "komek/internal/usecase/word"
 	"komek/pkg/httpserver"
 	"komek/pkg/logger"
 	"komek/pkg/postgres"
@@ -29,17 +24,14 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 	defer pg.Close()
 
-	keycloak := cfg.KeyCloak
-	im := identity_manager.New(keycloak.BaseUrl, keycloak.Realm, keycloak.RestApi.ClientId, keycloak.RestApi.ClientSecret)
-
 	// get usecases
-	wordUC := worduc.New(wordRepo.New(pg))
-	userUC := useruc.New(im)
-	tokenUC := tokenuc.New(im)
+	//wordUC := worduc.New(wordRepo.New(pg))
+	//userUC := useruc.New(im)
+	//tokenUC := tokenuc.New(im)
 
 	// start http server
 	r := chi.NewRouter()
-	handler := v1.NewHandler(wordUC, userUC, tokenUC, l, cfg)
+	handler := v1.NewHandler(l, cfg)
 	handler.Register(r)
 	httpServer := httpserver.New(
 		r,

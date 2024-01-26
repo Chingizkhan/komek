@@ -8,11 +8,10 @@ import (
 
 type (
 	Config struct {
-		App      `yaml:"app"`
-		PG       `yaml:"postgres"`
-		HTTP     `yaml:"http"`
-		Log      `yaml:"logger"`
-		KeyCloak `yaml:"keycloak"`
+		App  `yaml:"app"`
+		PG   `yaml:"postgres"`
+		HTTP `yaml:"http"`
+		Log  `yaml:"logger"`
 	}
 
 	App struct {
@@ -36,16 +35,6 @@ type (
 
 	Log struct {
 		Level string `env-required:"true" yaml:"log_level" env:"LOG_LEVEL"`
-	}
-
-	KeyCloak struct {
-		Realm               string `env-required:"true" yaml:"realm" env:"KEYCLOAK_REALM"`
-		BaseUrl             string `env-required:"true" yaml:"base_url" env:"KEYCLOAK_BASE_URL"`
-		RealmRS256PublicKey string `env-required:"true" yaml:"realm_rs256_public_key" env:"KEYCLOAK_REALM_RS256_PUBLIC_KEY"`
-		RestApi             struct {
-			ClientId     string `env-required:"true" yaml:"client_id" env:"KEYCLOAK_REST_API_CLIENT_ID"`
-			ClientSecret string `env-required:"true" yaml:"client_secret" env:"KEYCLOAK_REST_API_CLIENT_SECRET"`
-		} `env-required:"true" yaml:"rest_api" env:"KEYCLOAK_REST_API"`
 	}
 )
 
