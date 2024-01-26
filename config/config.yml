@@ -1,0 +1,26 @@
+app:
+  name: 'memory'
+  version: '1.0.0'
+
+http:
+  port: '8099'
+
+logger:
+  log_level: 'local'
+
+postgres:
+  user: "app"
+  password: "secret"
+  host: "localhost"
+  port: "5460"
+  name: "app"
+  pool_max: 2
+  ssl_mode: "disable"
+
+keycloak:
+  realm: "identifier"
+  base_url: "http://localhost:8080"
+  realm_rs256_public_key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuW1WoSDy39mjH7oKGq3SVP9e3BzPXX2vBOntetCO7mh30MHJ2vJSZiWQYtV25X8s9YjeKwkN+8WGROZ92A/mHmBi9jyCbHmJoXmIsPY0M+YW2l39eKSBK1XzUS6P6EH8qzkoUb36fTrX2mrPal/3VQzziF7VC8RxMN89SnISchi+mAhXeDVG4hznpZZ4K3uHu5ML8qQo0rC1zlTbrWLDbiRL2x+tU39DPaQHyvAoljtKmd/8HS+H1hxeBgoxE9qfj+fjHC03qQUsC9adPNwsmPFu/KRz+0xJ3y6h3XNIJGL/set7VA/i+2gDqWYPyWrcOce2L/dFxtqzkFwqQ+mGxwIDAQAB"
+  rest_api:
+    client_id: "testclient"
+    client_secret: "ZfxtNGGpXWOcqNDPpw7Gayd1zdWjJsdS"

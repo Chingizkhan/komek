@@ -1,0 +1,2 @@
+migrate create -ext sql -dir db/migrations/ -seq init_mg
+migrate -source file://db/migrations -database postgres://app:secret@localhost:5460/app?sslmode=disable up 2
