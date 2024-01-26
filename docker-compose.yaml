@@ -4,17 +4,33 @@ services:
   db:
     image: postgres:15.2-alpine
     restart: unless-stopped
+    container_name: komek-db
     volumes:
       - komek-db:/var/lib/postgresql/data
 #      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_USER=app
       - POSTGRES_DB=app
       - POSTGRES_PASSWORD=secret
     networks:
       - komek
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/app/
+    container_name: komek-app
+    networks:
+      - komek
+    depends_on:
+      - db
+    command: air main.go
 
 volumes:
   komek-db:
