@@ -11,8 +11,8 @@ logger:
 postgres:
   user: "app"
   password: "secret"
-  host: "localhost"
-  port: "5433"
+  host: "db"
+  port: "5432"
   name: "app"
   pool_max: 2
   ssl_mode: "disable"

@@ -6,20 +6,21 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM users
 ORDER BY created_at DESC;
 
--- name: SaveUser :one
+-- name: SaveUser :exec
 INSERT INTO users(
-    id, name, login, email, phone, created_at, updated_at
+    name, login, email, password_hash, phone
 ) VALUES (
-    $1, $2, $3, $4, $5, CURRENT_TIMESTAMP(6), CURRENT_TIMESTAMP(6)
+    $1, $2, $3, $4, $5
 );
 
 -- name: UpdateUser :one
 UPDATE users
-SET id = $1,
-    name = $2,
+SET name = $2,
     login = $3,
     email = $4,
-    phone = $5,
+    email_verified = $5,
+    phone = $6,
+    password_hash = $7,
     updated_at = CURRENT_TIMESTAMP(6)
 WHERE id = $1
 RETURNING id;

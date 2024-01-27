@@ -1,2 +1,0 @@
-DROP TABLE words;
-DROP TABLE users;

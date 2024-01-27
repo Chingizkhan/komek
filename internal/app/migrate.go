@@ -8,7 +8,7 @@ import (
 //func init() {
 //	m, err := migrate.New(
 //		"file://db/migrations",
-//		"postgres://app:secret@localhost:5460/app?sslmode=disable")
+//		"postgres://app:secret@db:5432/app?sslmode=disable")
 //	if err != nil {
 //		log.Printf("Migrate: postgres is trying to connect: %s", err)
 //		return

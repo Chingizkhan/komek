@@ -24,6 +24,8 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 	defer pg.Close()
 
+	//userRepo := user_repo.New(pg)
+
 	// get usecases
 	//wordUC := worduc.New(wordRepo.New(pg))
 	//userUC := useruc.New(im)
