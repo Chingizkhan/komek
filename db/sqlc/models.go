@@ -18,6 +18,7 @@ type User struct {
 	EmailVerified sql.NullBool   `json:"email_verified"`
 	PasswordHash  string         `json:"password_hash"`
 	Phone         sql.NullString `json:"phone"`
+	Roles         string         `json:"roles"`
 	CreatedAt     sql.NullTime   `json:"created_at"`
 	UpdatedAt     sql.NullTime   `json:"updated_at"`
 }

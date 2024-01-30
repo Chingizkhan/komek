@@ -27,9 +27,10 @@ type (
 	}
 
 	UserRegisterRequest struct {
-		Login        string
-		Phone        domain.Phone
-		PasswordHash string
+		Login    string
+		Phone    domain.Phone
+		Password string
+		Roles    domain.Roles
 	}
 
 	UserLoginRequest struct {

@@ -9,13 +9,24 @@ import (
 
 type (
 	Handler struct {
-		l   logger.ILogger
-		cfg *config.Config
+		l      logger.ILogger
+		cfg    *config.Config
+		userUC UserUseCase
+	}
+
+	HandlerParams struct {
+		Logger logger.ILogger
+		Cfg    *config.Config
+		UserUC UserUseCase
 	}
 )
 
-func NewHandler(l logger.ILogger, cfg *config.Config) *Handler {
-	return &Handler{l, cfg}
+func NewHandler(p *HandlerParams) *Handler {
+	return &Handler{
+		p.Logger,
+		p.Cfg,
+		p.UserUC,
+	}
 }
 
 func (h *Handler) Register(r *chi.Mux) {

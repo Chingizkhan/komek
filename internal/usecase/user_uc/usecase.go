@@ -8,12 +8,13 @@ import (
 )
 
 type UseCase struct {
-	r  UserRepository
-	tr Transactional
+	r      UserRepository
+	tr     Transactional
+	hasher Hasher
 }
 
-func New(r UserRepository, tr Transactional) *UseCase {
-	return &UseCase{r, tr}
+func New(r UserRepository, tr Transactional, hasher Hasher) *UseCase {
+	return &UseCase{r, tr, hasher}
 }
 
 func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) error {
@@ -23,10 +24,16 @@ func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) err
 	}
 	defer tx.Rollback(ctx)
 
+	passHash, err := u.hasher.Hash(req.Password)
+	if err != nil {
+		return fmt.Errorf("u.hasher.Hash - %w", err)
+	}
+
 	user := domain.User{
 		Phone:        req.Phone,
 		Login:        req.Login,
-		PasswordHash: req.PasswordHash,
+		Roles:        req.Roles,
+		PasswordHash: passHash,
 	}
 
 	err = u.r.Save(ctx, tx, user)
@@ -95,8 +102,10 @@ func (u *UseCase) ChangePassword(ctx context.Context, req dto.UserChangePassword
 	}
 	defer tx.Rollback(ctx)
 
-	// todo: generate hash of password
-	passwordHash := req.Password
+	passwordHash, err := u.hasher.Hash(req.Password)
+	if err != nil {
+		return fmt.Errorf("u.hasher.Hash - %w", err)
+	}
 
 	_, err = u.r.UpdatePasswordHash(ctx, tx, req.ID, passwordHash)
 	if err != nil {

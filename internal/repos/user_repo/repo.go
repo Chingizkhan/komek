@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	user_db "komek/db/sqlc"
 	"komek/internal/domain"
+	"komek/internal/dto"
 	"komek/pkg/postgres"
 )
 
@@ -43,12 +44,33 @@ func (r *Repository) Get(ctx context.Context, userID uuid.UUID) (domain.User, er
 	}, nil
 }
 
+func (r *Repository) GetWithTX(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
+	qtx := r.q.WithTx(tx)
+
+	u, err := qtx.GetUser(ctx, userID)
+	if err != nil {
+		return domain.User{}, fmt.Errorf("r.q.GetUser :%w", err)
+	}
+	return domain.User{
+		ID:            u.ID,
+		Name:          u.Name.String,
+		Phone:         domain.Phone(u.Phone.String),
+		Login:         u.Login,
+		EmailVerified: u.EmailVerified.Bool,
+		PasswordHash:  u.PasswordHash,
+		Email:         domain.Email(u.Email.String),
+		CreatedAt:     u.CreatedAt.Time,
+		UpdatedAt:     u.UpdatedAt.Time,
+	}, nil
+}
+
 func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) error {
 	qtx := r.q.WithTx(tx)
 
 	err := qtx.SaveUser(ctx, user_db.SaveUserParams{
 		Login:        u.Login,
 		PasswordHash: u.PasswordHash,
+		Roles:        u.Roles.ConvString(),
 	})
 	if err != nil {
 		return fmt.Errorf("qtx.SaveUser: %w", err)
@@ -157,4 +179,21 @@ func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error 
 		return fmt.Errorf("qtx.RemoveUser: %w", err)
 	}
 	return nil
+}
+
+func (r *Repository) Find(ctx context.Context, req dto.UserFindRequest) ([]domain.User, error) {
+	return make([]domain.User, 0, 0), nil
+}
+
+func (r *Repository) FindWithTX(ctx context.Context, tx pgx.Tx, req dto.UserFindRequest) ([]domain.User, error) {
+	//qtx := r.q.WithTx(tx)
+
+	//_, err := qtx.FindUsers(ctx, user_db.FindUsersParams{
+	//	Name:          sql.NullString{},
+	//	Login:         "",
+	//	Email:         sql.NullString{},
+	//	EmailVerified: sql.NullBool{},
+	//	Phone:         sql.NullString{},
+	//})
+	return make([]domain.User, 0, 0), nil
 }

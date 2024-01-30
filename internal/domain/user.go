@@ -13,7 +13,7 @@ type User struct {
 	Email         Email
 	EmailVerified bool
 	PasswordHash  string
-	Roles         []Role
+	Roles         Roles
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }

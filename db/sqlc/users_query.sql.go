@@ -12,8 +12,64 @@ import (
 	"github.com/google/uuid"
 )
 
+const findUsers = `-- name: FindUsers :many
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, created_at, updated_at
+FROM users
+WHERE name = $1
+AND login = $2
+AND email = $3
+AND email_verified = $4
+AND phone = $5
+ORDER BY created_at DESC
+`
+
+type FindUsersParams struct {
+	Name          sql.NullString `json:"name"`
+	Login         string         `json:"login"`
+	Email         sql.NullString `json:"email"`
+	EmailVerified sql.NullBool   `json:"email_verified"`
+	Phone         sql.NullString `json:"phone"`
+}
+
+func (q *Queries) FindUsers(ctx context.Context, arg FindUsersParams) ([]User, error) {
+	rows, err := q.db.Query(ctx, findUsers,
+		arg.Name,
+		arg.Login,
+		arg.Email,
+		arg.EmailVerified,
+		arg.Phone,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []User{}
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Login,
+			&i.Email,
+			&i.EmailVerified,
+			&i.PasswordHash,
+			&i.Phone,
+			&i.Roles,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUser = `-- name: GetUser :one
-SELECT id, name, login, email, email_verified, password_hash, phone, created_at, updated_at FROM users
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, created_at, updated_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -28,6 +84,7 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.EmailVerified,
 		&i.PasswordHash,
 		&i.Phone,
+		&i.Roles,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -35,7 +92,7 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, name, login, email, email_verified, password_hash, phone, created_at, updated_at FROM users
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, created_at, updated_at FROM users
 ORDER BY created_at DESC
 `
 
@@ -56,6 +113,7 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 			&i.EmailVerified,
 			&i.PasswordHash,
 			&i.Phone,
+			&i.Roles,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -83,9 +141,9 @@ func (q *Queries) RemoveUser(ctx context.Context, id uuid.UUID) (uuid.UUID, erro
 
 const saveUser = `-- name: SaveUser :exec
 INSERT INTO users(
-    name, login, email, password_hash, phone
+    name, login, email, password_hash, phone, roles
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 )
 `
 
@@ -95,6 +153,7 @@ type SaveUserParams struct {
 	Email        sql.NullString `json:"email"`
 	PasswordHash string         `json:"password_hash"`
 	Phone        sql.NullString `json:"phone"`
+	Roles        string         `json:"roles"`
 }
 
 func (q *Queries) SaveUser(ctx context.Context, arg SaveUserParams) error {
@@ -104,6 +163,7 @@ func (q *Queries) SaveUser(ctx context.Context, arg SaveUserParams) error {
 		arg.Email,
 		arg.PasswordHash,
 		arg.Phone,
+		arg.Roles,
 	)
 	return err
 }

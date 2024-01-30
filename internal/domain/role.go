@@ -1,6 +1,9 @@
 package domain
 
+import "strings"
+
 type Role string
+type Roles []Role
 
 const (
 	RoleUser    Role = "user"
@@ -18,4 +21,14 @@ func (r Role) IsAdmin() bool {
 
 func (r Role) IsManager() bool {
 	return r == RoleManager
+}
+
+func (roles Roles) ConvString() string {
+	rolesStr := make([]string, 0, len(roles))
+
+	for _, r := range roles {
+		rolesStr = append(rolesStr, string(r))
+	}
+
+	return strings.Join(rolesStr, ",")
 }

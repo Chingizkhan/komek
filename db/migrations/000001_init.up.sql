@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users(
     email_verified bool DEFAULT FALSE,
     password_hash varchar(100) NOT NULL,
     phone varchar(15),
+    roles text NOT NULL,
     created_at timestamp(6) default current_timestamp(6),
     updated_at timestamp(6) default current_timestamp(6)
 );

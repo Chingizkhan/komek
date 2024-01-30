@@ -1,22 +1,28 @@
 package app
 
 import (
-	"context"
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4"
 	"komek/config"
 	"komek/internal/controller/http/v1"
 	"komek/internal/repos/user_repo"
+	"komek/internal/service/hasher"
+	"komek/internal/service/transactional"
+	"komek/internal/usecase/user_uc"
 	"komek/pkg/httpserver"
 	"komek/pkg/logger"
 	"komek/pkg/postgres"
-	"log"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 )
+
+// todo: connect with sso server
+// todo: add redis
+// todo: finish user endpoints
+// todo: token use case
+// todo: add locker service
+// todo: add auth middleware
 
 func Run(cfg *config.Config, l *logger.Logger) {
 	pg, err := postgres.New(
@@ -29,35 +35,37 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 	defer pg.Close()
 
-	ctx := context.Background()
-
-	tx, err := pg.Pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.Serializable})
-	if err != nil {
-		return
-	}
-	defer tx.Rollback(ctx)
-
 	userRepo := user_repo.New(pg)
-	uu, err := uuid.Parse("9034fda7-543e-48da-a463-973c70dbbecd")
-	resp, err := userRepo.UpdateLogin(ctx, tx, uu, "login")
-	respPass, err := userRepo.UpdatePasswordHash(ctx, tx, uu, "passHash")
-	_ = resp
-	_ = respPass
-	if err != nil {
-		log.Println("err update", err)
-		return
-	}
-
-	tx.Commit(ctx)
+	transactionalRepo := transactional.New(pg)
+	hash := hasher.New()
 
 	// get usecases
-	//wordUC := worduc.New(wordRepo.New(pg))
-	//userUC := useruc.New(im)
-	//tokenUC := tokenuc.New(im)
+	userUC := user_uc.New(userRepo, transactionalRepo, hash)
+
+	//uu, err := uuid.Parse("9034fda7-543e-48da-a463-973c70dbbecd")
+	//if err != nil {
+	//	log.Println("err parse:", err)
+	//	return
+	//}
+	//ctx := context.Background()
+	//err = userUC.Register(ctx, dto.UserRegisterRequest{
+	//	Login:    "login",
+	//	Phone:    "77058113795",
+	//	Password: "some_password",
+	//	Roles:    []domain.Role{domain.RoleAdmin, domain.RoleManager},
+	//})
+	//if err != nil {
+	//	log.Println("err register:", err)
+	//	return
+	//}
 
 	// start http server
 	r := chi.NewRouter()
-	handler := v1.NewHandler(l, cfg)
+	handler := v1.NewHandler(&v1.HandlerParams{
+		Logger: l,
+		Cfg:    cfg,
+		UserUC: userUC,
+	})
 	handler.Register(r)
 	httpServer := httpserver.New(
 		r,

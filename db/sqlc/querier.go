@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	FindUsers(ctx context.Context, arg FindUsersParams) ([]User, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	GetUsers(ctx context.Context) ([]User, error)
 	RemoveUser(ctx context.Context, id uuid.UUID) (uuid.UUID, error)

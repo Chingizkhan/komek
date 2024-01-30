@@ -8,9 +8,9 @@ ORDER BY created_at DESC;
 
 -- name: SaveUser :exec
 INSERT INTO users(
-    name, login, email, password_hash, phone
+    name, login, email, password_hash, phone, roles
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6
 );
 
 -- name: UpdateUserName :one
@@ -59,3 +59,13 @@ RETURNING id;
 DELETE FROM users
 WHERE id = $1
 RETURNING id;
+
+-- name: FindUsers :many
+SELECT *
+FROM users
+WHERE name = $1
+AND login = $2
+AND email = $3
+AND email_verified = $4
+AND phone = $5
+ORDER BY created_at DESC;;
