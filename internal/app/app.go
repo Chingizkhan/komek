@@ -1,12 +1,17 @@
 package app
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
 	"komek/config"
 	"komek/internal/controller/http/v1"
+	"komek/internal/repos/user_repo"
 	"komek/pkg/httpserver"
 	"komek/pkg/logger"
 	"komek/pkg/postgres"
+	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -24,7 +29,26 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 	defer pg.Close()
 
-	//userRepo := user_repo.New(pg)
+	ctx := context.Background()
+
+	tx, err := pg.Pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.Serializable})
+	if err != nil {
+		return
+	}
+	defer tx.Rollback(ctx)
+
+	userRepo := user_repo.New(pg)
+	uu, err := uuid.Parse("9034fda7-543e-48da-a463-973c70dbbecd")
+	resp, err := userRepo.UpdateLogin(ctx, tx, uu, "login")
+	respPass, err := userRepo.UpdatePasswordHash(ctx, tx, uu, "passHash")
+	_ = resp
+	_ = respPass
+	if err != nil {
+		log.Println("err update", err)
+		return
+	}
+
+	tx.Commit(ctx)
 
 	// get usecases
 	//wordUC := worduc.New(wordRepo.New(pg))

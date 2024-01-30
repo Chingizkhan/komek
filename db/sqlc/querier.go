@@ -15,7 +15,12 @@ type Querier interface {
 	GetUsers(ctx context.Context) ([]User, error)
 	RemoveUser(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 	SaveUser(ctx context.Context, arg SaveUserParams) error
-	UpdateUser(ctx context.Context, arg UpdateUserParams) (uuid.UUID, error)
+	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (uuid.UUID, error)
+	UpdateUserEmailVerified(ctx context.Context, arg UpdateUserEmailVerifiedParams) (uuid.UUID, error)
+	UpdateUserLogin(ctx context.Context, arg UpdateUserLoginParams) (uuid.UUID, error)
+	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (uuid.UUID, error)
+	UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) (uuid.UUID, error)
+	UpdateUserPhone(ctx context.Context, arg UpdateUserPhoneParams) (uuid.UUID, error)
 }
 
 var _ Querier = (*Queries)(nil)

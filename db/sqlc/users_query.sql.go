@@ -108,39 +108,121 @@ func (q *Queries) SaveUser(ctx context.Context, arg SaveUserParams) error {
 	return err
 }
 
-const updateUser = `-- name: UpdateUser :one
+const updateUserEmail = `-- name: UpdateUserEmail :one
 UPDATE users
-SET name = $2,
-    login = $3,
-    email = $4,
-    email_verified = $5,
-    phone = $6,
-    password_hash = $7,
+SET email = $2,
     updated_at = CURRENT_TIMESTAMP(6)
 WHERE id = $1
 RETURNING id
 `
 
-type UpdateUserParams struct {
-	ID            uuid.UUID      `json:"id"`
-	Name          sql.NullString `json:"name"`
-	Login         string         `json:"login"`
-	Email         sql.NullString `json:"email"`
-	EmailVerified sql.NullBool   `json:"email_verified"`
-	Phone         sql.NullString `json:"phone"`
-	PasswordHash  string         `json:"password_hash"`
+type UpdateUserEmailParams struct {
+	ID    uuid.UUID      `json:"id"`
+	Email sql.NullString `json:"email"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, updateUser,
-		arg.ID,
-		arg.Name,
-		arg.Login,
-		arg.Email,
-		arg.EmailVerified,
-		arg.Phone,
-		arg.PasswordHash,
-	)
+func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateUserEmail, arg.ID, arg.Email)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const updateUserEmailVerified = `-- name: UpdateUserEmailVerified :one
+UPDATE users
+SET email_verified = $2,
+    updated_at = CURRENT_TIMESTAMP(6)
+WHERE id = $1
+RETURNING id
+`
+
+type UpdateUserEmailVerifiedParams struct {
+	ID            uuid.UUID    `json:"id"`
+	EmailVerified sql.NullBool `json:"email_verified"`
+}
+
+func (q *Queries) UpdateUserEmailVerified(ctx context.Context, arg UpdateUserEmailVerifiedParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateUserEmailVerified, arg.ID, arg.EmailVerified)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const updateUserLogin = `-- name: UpdateUserLogin :one
+UPDATE users
+SET login = $2,
+    updated_at = CURRENT_TIMESTAMP(6)
+WHERE id = $1
+RETURNING id
+`
+
+type UpdateUserLoginParams struct {
+	ID    uuid.UUID `json:"id"`
+	Login string    `json:"login"`
+}
+
+func (q *Queries) UpdateUserLogin(ctx context.Context, arg UpdateUserLoginParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateUserLogin, arg.ID, arg.Login)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const updateUserName = `-- name: UpdateUserName :one
+UPDATE users
+SET name = $2,
+    updated_at = CURRENT_TIMESTAMP(6)
+WHERE id = $1
+RETURNING id
+`
+
+type UpdateUserNameParams struct {
+	ID   uuid.UUID      `json:"id"`
+	Name sql.NullString `json:"name"`
+}
+
+func (q *Queries) UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateUserName, arg.ID, arg.Name)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const updateUserPasswordHash = `-- name: UpdateUserPasswordHash :one
+UPDATE users
+SET password_hash = $2,
+    updated_at = CURRENT_TIMESTAMP(6)
+WHERE id = $1
+RETURNING id
+`
+
+type UpdateUserPasswordHashParams struct {
+	ID           uuid.UUID `json:"id"`
+	PasswordHash string    `json:"password_hash"`
+}
+
+func (q *Queries) UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateUserPasswordHash, arg.ID, arg.PasswordHash)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
+const updateUserPhone = `-- name: UpdateUserPhone :one
+UPDATE users
+SET phone = $2,
+    updated_at = CURRENT_TIMESTAMP(6)
+WHERE id = $1
+RETURNING id
+`
+
+type UpdateUserPhoneParams struct {
+	ID    uuid.UUID      `json:"id"`
+	Phone sql.NullString `json:"phone"`
+}
+
+func (q *Queries) UpdateUserPhone(ctx context.Context, arg UpdateUserPhoneParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, updateUserPhone, arg.ID, arg.Phone)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
