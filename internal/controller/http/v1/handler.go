@@ -21,14 +21,5 @@ func NewHandler(l logger.ILogger, cfg *config.Config) *Handler {
 func (h *Handler) Register(r *chi.Mux) {
 	r.Use(middleware.Logging(h.l))
 
-	h.publicRoutes(r)
-	h.protectedRoutes(r)
-}
-
-func (h *Handler) publicRoutes(r *chi.Mux) {
-	r.Route("/api/v1/", func(r chi.Router) {
-	})
-}
-
-func (h *Handler) protectedRoutes(r *chi.Mux) {
+	h.userRoutes(r)
 }

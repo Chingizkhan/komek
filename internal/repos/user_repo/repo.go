@@ -149,18 +149,12 @@ func (r *Repository) UpdatePasswordHash(ctx context.Context, tx pgx.Tx, id uuid.
 	return id, nil
 }
 
-//func (r *Repository) Delete(ctx context.Context, value string, userID uuid.UUID) error {
-//	const fn = "Delete"
-//
-//	_, err := r.q.DeleteWord(ctx, user_db.DeleteWordParams{
-//		Value: value,
-//		FkUserID: uuid.NullUUID{
-//			UUID:  userID,
-//			Valid: true,
-//		},
-//	})
-//	if err != nil {
-//		return fmt.Errorf("%s - %s - %w", _repoName, fn, err)
-//	}
-//	return nil
-//}
+func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
+	qtx := r.q.WithTx(tx)
+
+	_, err := qtx.RemoveUser(ctx, id)
+	if err != nil {
+		return fmt.Errorf("qtx.RemoveUser: %w", err)
+	}
+	return nil
+}

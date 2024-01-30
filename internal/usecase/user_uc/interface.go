@@ -16,4 +16,9 @@ type UserRepository interface {
 	UpdateEmailVerified(ctx context.Context, tx pgx.Tx, id uuid.UUID, value bool) (uuid.UUID, error)
 	UpdatePhone(ctx context.Context, tx pgx.Tx, id uuid.UUID, value domain.Phone) (uuid.UUID, error)
 	UpdatePasswordHash(ctx context.Context, tx pgx.Tx, id uuid.UUID, value string) (uuid.UUID, error)
+	Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
+}
+
+type Transactional interface {
+	Start(ctx context.Context) (pgx.Tx, error)
 }
