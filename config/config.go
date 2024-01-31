@@ -4,14 +4,17 @@ import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
 	"net/url"
+	"time"
 )
 
 type (
 	Config struct {
-		App  `yaml:"app"`
-		PG   `yaml:"postgres"`
-		HTTP `yaml:"http"`
-		Log  `yaml:"logger"`
+		App    `yaml:"app"`
+		PG     `yaml:"postgres"`
+		HTTP   `yaml:"http"`
+		Log    `yaml:"logger"`
+		Redis  `yaml:"redis"`
+		Locker `yaml:"locker"`
 	}
 
 	App struct {
@@ -35,6 +38,15 @@ type (
 
 	Log struct {
 		Level string `env-required:"true" yaml:"log_level" env:"LOG_LEVEL"`
+	}
+
+	Redis struct {
+		Addr     string `env-required:"true" yaml:"addr" env:"REDIS_ADDR"`
+		Password string `env-required:"true" yaml:"password" env:"REDIS_PASSWORD"`
+	}
+
+	Locker struct {
+		LockTimeout time.Duration `env-required:"true" yaml:"lock_timeout" env:"LOCKER_LOCK_TIMEOUT"`
 	}
 )
 

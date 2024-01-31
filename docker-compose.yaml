@@ -21,6 +21,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "8888:8888"
     volumes:
@@ -32,7 +33,20 @@ services:
       - db
     command: air main.go
 
+  cache:
+    image: redis:7.0-alpine
+    restart: unless-stopped
+    container_name: komek-cache
+    ports:
+      - '6380:6379'
+    networks:
+      - komek
+    command: redis-server --save 20 1 --loglevel warning --requirepass secret
+    volumes:
+      - cache:/data
+
 volumes:
+  cache:
   komek-db:
 
 networks:

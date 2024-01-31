@@ -6,11 +6,14 @@ import (
 	"komek/internal/controller/http/v1"
 	"komek/internal/repos/user_repo"
 	"komek/internal/service/hasher"
+	"komek/internal/service/locker"
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/user_uc"
 	"komek/pkg/httpserver"
 	"komek/pkg/logger"
 	"komek/pkg/postgres"
+	"komek/pkg/redis"
+	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -35,9 +38,27 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 	defer pg.Close()
 
+	cache, err := redis.New(cfg.Redis.Addr, cfg.Redis.Password)
+	if err != nil {
+		l.Error("app - Run - redis.New:", logger.Err(err))
+		os.Exit(1)
+	}
+
 	userRepo := user_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
 	hash := hasher.New()
+	lock := locker.New(cache.Client, cfg.LockTimeout)
+
+	//err = lock.Unlock("data")
+	//if err != nil {
+	//	log.Println("lock.Unlock:", err)
+	//	return
+	//}
+	err = lock.Lock("data")
+	if err != nil {
+		log.Println("lock.Lock:", err)
+		return
+	}
 
 	// get usecases
 	userUC := user_uc.New(userRepo, transactionalRepo, hash)
