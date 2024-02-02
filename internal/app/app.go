@@ -7,6 +7,7 @@ import (
 	"komek/internal/repos/user_repo"
 	"komek/internal/service/hasher"
 	"komek/internal/service/locker"
+	"komek/internal/service/oauthServer"
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/user_uc"
 	"komek/pkg/httpserver"
@@ -18,13 +19,12 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 // todo: connect with sso server
-// todo: add redis
 // todo: finish user endpoints
 // todo: token use case
-// todo: add locker service
 // todo: add auth middleware
 
 func Run(cfg *config.Config, l *logger.Logger) {
@@ -44,20 +44,21 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		os.Exit(1)
 	}
 
+	oauthServerClient := oauthServer.New(time.Second*10, "http://localhost:8081")
 	userRepo := user_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
 	hash := hasher.New()
 	lock := locker.New(cache.Client, cfg.LockTimeout)
 
-	//err = lock.Unlock("data")
-	//if err != nil {
-	//	log.Println("lock.Unlock:", err)
-	//	return
-	//}
 	err = lock.Lock("data")
 	if err != nil {
 		log.Println("lock.Lock:", err)
-		return
+		os.Exit(1)
+	}
+	err = lock.Unlock("data")
+	if err != nil {
+		log.Println("lock.Unlock:", err)
+		os.Exit(1)
 	}
 
 	// get usecases
@@ -83,11 +84,13 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	// start http server
 	r := chi.NewRouter()
 	handler := v1.NewHandler(&v1.HandlerParams{
-		Logger: l,
-		Cfg:    cfg,
-		UserUC: userUC,
+		Logger:            l,
+		Cfg:               cfg,
+		UserUC:            userUC,
+		CookieSecret:      []byte(cfg.Cookie.Secret),
+		OauthServerClient: oauthServerClient,
 	})
-	handler.Register(r)
+	handler.Register(r, cfg.HTTP.Timeout)
 	httpServer := httpserver.New(
 		r,
 		httpserver.Port(cfg.HTTP.Port),

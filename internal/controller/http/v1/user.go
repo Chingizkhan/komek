@@ -3,6 +3,7 @@ package v1
 import (
 	"context"
 	"github.com/go-chi/chi/v5"
+	customMiddleware "komek/internal/controller/http/middleware"
 	"komek/internal/dto"
 	"komek/pkg/logger"
 	"net/http"
@@ -25,6 +26,8 @@ func (h *Handler) userRoutes(r *chi.Mux) {
 		// protected
 		r.Route("/", func(r chi.Router) {
 			// todo: use middleware with jwt auth
+			r.Use(customMiddleware.AuthOauth2(h.cookieSecret))
+
 			r.Delete("/delete", h.userDelete)
 			r.Put("/change-password", h.userChangePassword)
 			r.Put("/update", h.userUpdate)

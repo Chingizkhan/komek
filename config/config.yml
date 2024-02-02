@@ -4,6 +4,7 @@ app:
 
 http:
   port: '8888'
+  timeout: '15s'
 
 logger:
   log_level: 'local'
@@ -23,3 +24,26 @@ redis:
 
 locker:
   lock_timeout: '3m'
+
+oauth2:
+  url:
+    auth: "http://localhost:9010/oauth2/auth"
+    token: "http://localhost:9010/oauth2/token"
+    redirect: "http://localhost:8888/callback"
+  config:
+    client_id: "1ac9df27-ade0-4f03-b434-b17337b6411e"
+    client_secret: "mysecret"
+    scopes:
+      - offline
+      - users.write
+      - users.read
+      - users.edit
+      - users.delete
+
+oauth_service:
+  addr: 'http://localhost:8081'
+  client_id: '1ac9df27-ade0-4f03-b434-b17337b6411e'
+  client_secret: 'mysecret'
+
+cookie:
+  secret: 'secret'

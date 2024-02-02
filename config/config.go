@@ -9,12 +9,14 @@ import (
 
 type (
 	Config struct {
-		App    `yaml:"app"`
-		PG     `yaml:"postgres"`
-		HTTP   `yaml:"http"`
-		Log    `yaml:"logger"`
-		Redis  `yaml:"redis"`
-		Locker `yaml:"locker"`
+		App          `yaml:"app"`
+		PG           `yaml:"postgres"`
+		HTTP         `yaml:"http"`
+		Log          `yaml:"logger"`
+		Redis        `yaml:"redis"`
+		Locker       `yaml:"locker"`
+		Cookie       `yaml:"cookie"`
+		OauthService `yaml:"oauth_service"`
 	}
 
 	App struct {
@@ -33,7 +35,12 @@ type (
 	}
 
 	HTTP struct {
-		Port string `env-required:"true" yaml:"port" env:"HTTP_PORT"`
+		Port    string        `env-required:"true" yaml:"port" env:"HTTP_PORT"`
+		Timeout time.Duration `env-required:"true" yaml:"timeout" env:"HTTP_TIMEOUT"`
+	}
+
+	Cookie struct {
+		Secret string `env-required:"true" yaml:"secret" env:"COOKIE_SECRET"`
 	}
 
 	Log struct {
@@ -47,6 +54,12 @@ type (
 
 	Locker struct {
 		LockTimeout time.Duration `env-required:"true" yaml:"lock_timeout" env:"LOCKER_LOCK_TIMEOUT"`
+	}
+
+	OauthService struct {
+		Addr         string `env-required:"true" yaml:"addr" env:"OAUTH2_CLIENT_ADDR"`
+		ClientID     string `env-required:"true" yaml:"client_id" env:"OAUTH_SERVICE_CLIENT_ID"`
+		ClientSecret string `env-required:"true" yaml:"client_secret" env:"OAUTH_SERVICE_CLIENT_SECRET"`
 	}
 )
 
