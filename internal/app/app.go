@@ -7,7 +7,7 @@ import (
 	"komek/internal/repos/user_repo"
 	"komek/internal/service/hasher"
 	"komek/internal/service/locker"
-	"komek/internal/service/oauthServer"
+	"komek/internal/service/oauth_service"
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/user_uc"
 	"komek/pkg/httpserver"
@@ -44,7 +44,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		os.Exit(1)
 	}
 
-	oauthServerClient := oauthServer.New(time.Second*10, "http://localhost:8081")
+	oauthServerClient := oauth_service.New(time.Second*10, cfg.Oauth2Raw.ServiceAddr)
 	userRepo := user_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
 	hash := hasher.New()

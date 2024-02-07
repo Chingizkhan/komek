@@ -33,10 +33,11 @@ func (h *Handler) callback(secret []byte) http.HandlerFunc {
 			return
 		}
 
+		log.Println("req.Code:", req.Code)
 		token, err := oauth.Config.Exchange(r.Context(), req.Code)
 		if err != nil {
 			h.l.Error("callback", logger.KV("couldn't get token", err.Error()))
-			http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+			//http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 			return
 		}
 

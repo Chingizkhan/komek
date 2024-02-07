@@ -3,20 +3,22 @@ package config
 import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"golang.org/x/oauth2"
 	"net/url"
+	"sync"
 	"time"
 )
 
 type (
 	Config struct {
-		App          `yaml:"app"`
-		PG           `yaml:"postgres"`
-		HTTP         `yaml:"http"`
-		Log          `yaml:"logger"`
-		Redis        `yaml:"redis"`
-		Locker       `yaml:"locker"`
-		Cookie       `yaml:"cookie"`
-		OauthService `yaml:"oauth_service"`
+		App       `yaml:"app"`
+		PG        `yaml:"postgres"`
+		HTTP      `yaml:"http"`
+		Log       `yaml:"logger"`
+		Redis     `yaml:"redis"`
+		Locker    `yaml:"locker"`
+		Cookie    `yaml:"cookie"`
+		Oauth2Raw Oauth2 `yaml:"oauth2"`
 	}
 
 	App struct {
@@ -56,10 +58,14 @@ type (
 		LockTimeout time.Duration `env-required:"true" yaml:"lock_timeout" env:"LOCKER_LOCK_TIMEOUT"`
 	}
 
-	OauthService struct {
-		Addr         string `env-required:"true" yaml:"addr" env:"OAUTH2_CLIENT_ADDR"`
-		ClientID     string `env-required:"true" yaml:"client_id" env:"OAUTH_SERVICE_CLIENT_ID"`
-		ClientSecret string `env-required:"true" yaml:"client_secret" env:"OAUTH_SERVICE_CLIENT_SECRET"`
+	Oauth2 struct {
+		ServiceAddr  string   `env-required:"true" yaml:"service_addr" env:"OAUTH2_SERVICE_ADDR"`
+		ClientID     string   `env-required:"true" yaml:"client_id" env:"OAUTH_CLIENT_ID"`
+		ClientSecret string   `env-required:"true" yaml:"client_secret" env:"OAUTH_CLIENT_SECRET"`
+		AuthURL      string   `env-required:"true" yaml:"auth_url" env:"OAUTH_AUTH_URL"`
+		TokenURL     string   `env-required:"true" yaml:"token_url" env:"OAUTH_TOKEN_URL"`
+		RedirectURL  string   `env-required:"true" yaml:"redirect_url" env:"OAUTH_REDIRECT_URL"`
+		Scopes       []string `env-required:"true" yaml:"scopes" env:"OAUTH_SCOPES"`
 	}
 )
 
@@ -75,6 +81,8 @@ func New() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	cfg.GetOauthConfig()
 
 	return cfg, nil
 }
@@ -94,4 +102,26 @@ func (pg *PG) DSN() string {
 	dsn.RawQuery = q.Encode()
 
 	return dsn.String()
+}
+
+var (
+	oauthCfg oauth2.Config
+	once     sync.Once
+)
+
+func (cfg *Config) GetOauthConfig() oauth2.Config {
+	once.Do(func() {
+		raw := cfg.Oauth2Raw
+		oauthCfg = oauth2.Config{
+			ClientID:     raw.ClientID,
+			ClientSecret: raw.ClientSecret,
+			RedirectURL:  raw.RedirectURL,
+			Scopes:       raw.Scopes,
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  raw.AuthURL,
+				TokenURL: raw.TokenURL,
+			},
+		}
+	})
+	return oauthCfg
 }

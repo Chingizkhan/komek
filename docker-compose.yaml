@@ -9,7 +9,7 @@ services:
       - komek-db:/var/lib/postgresql/data
 #      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     ports:
-      - "5433:5432"
+      - "5435:5432"
     environment:
       - POSTGRES_USER=app
       - POSTGRES_DB=app
@@ -17,28 +17,28 @@ services:
     networks:
       - komek
 
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    ports:
-      - "8888:8888"
-    volumes:
-      - ./:/app/
-    container_name: komek-app
-    networks:
-      - komek
-    depends_on:
-      - db
-    command: air main.go
+#  app:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    restart: unless-stopped
+#    ports:
+#      - "8888:8888"
+#    volumes:
+#      - ./:/app/
+#    container_name: komek-app
+#    networks:
+#      - komek
+#    depends_on:
+#      - db
+#    command: air main.go
 
   cache:
     image: redis:7.0-alpine
     restart: unless-stopped
     container_name: komek-cache
     ports:
-      - '6380:6379'
+      - '6381:6379'
     networks:
       - komek
     command: redis-server --save 20 1 --loglevel warning --requirepass secret
