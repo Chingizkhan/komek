@@ -1,9 +1,11 @@
 package app
 
 import (
+	"context"
 	"github.com/go-chi/chi/v5"
 	"komek/config"
 	"komek/internal/controller/http/v1"
+	"komek/internal/dto"
 	"komek/internal/repos/user_repo"
 	"komek/internal/service/hasher"
 	"komek/internal/service/locker"
@@ -64,12 +66,19 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	// get usecases
 	userUC := user_uc.New(userRepo, transactionalRepo, hash)
 
-	//uu, err := uuid.Parse("9034fda7-543e-48da-a463-973c70dbbecd")
+	//uu, err := uuid.Parse("16aba4b7-c928-4bc9-b80a-5afca8205ca5")
 	//if err != nil {
 	//	log.Println("err parse:", err)
 	//	return
 	//}
-	//ctx := context.Background()
+	ctx := context.Background()
+	us, err := userRepo.Find(ctx, nil, dto.UserFindRequest{})
+	if err != nil {
+		log.Println("find user err:", err)
+		os.Exit(1)
+		return
+	}
+	log.Println(us)
 	//err = userUC.Register(ctx, dto.UserRegisterRequest{
 	//	Login:    "login",
 	//	Phone:    "77058113795",

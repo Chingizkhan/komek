@@ -11,17 +11,10 @@ import (
 type (
 	UserRepository interface {
 		Save(ctx context.Context, tx pgx.Tx, u domain.User) error
-		Get(ctx context.Context, userID uuid.UUID) (domain.User, error)
-		GetWithTX(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error)
-		UpdateName(ctx context.Context, tx pgx.Tx, id uuid.UUID, value string) (uuid.UUID, error)
-		UpdateLogin(ctx context.Context, tx pgx.Tx, id uuid.UUID, value string) (uuid.UUID, error)
-		UpdateEmail(ctx context.Context, tx pgx.Tx, id uuid.UUID, value domain.Email) (uuid.UUID, error)
-		UpdateEmailVerified(ctx context.Context, tx pgx.Tx, id uuid.UUID, value bool) (uuid.UUID, error)
-		UpdatePhone(ctx context.Context, tx pgx.Tx, id uuid.UUID, value domain.Phone) (uuid.UUID, error)
-		UpdatePasswordHash(ctx context.Context, tx pgx.Tx, id uuid.UUID, value string) (uuid.UUID, error)
+		Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error)
+		Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRequest) (domain.User, error)
 		Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
-		Find(ctx context.Context, req dto.UserFindRequest) ([]domain.User, error)
-		FindWithTX(ctx context.Context, tx pgx.Tx, req dto.UserFindRequest) ([]domain.User, error)
+		Find(ctx context.Context, tx pgx.Tx, req dto.UserFindRequest) ([]domain.User, error)
 	}
 
 	Transactional interface {

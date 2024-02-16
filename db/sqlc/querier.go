@@ -11,17 +11,20 @@ import (
 )
 
 type Querier interface {
+	DeleteOrganisation(ctx context.Context, id uuid.UUID) error
+	// AND email_verified = $4
+	// AND phone = $5
 	FindUsers(ctx context.Context, arg FindUsersParams) ([]User, error)
+	GetOrganisation(ctx context.Context, id uuid.UUID) (Organisation, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	GetUsers(ctx context.Context) ([]User, error)
+	ListOrganisation(ctx context.Context) ([]Organisation, error)
 	RemoveUser(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
-	SaveUser(ctx context.Context, arg SaveUserParams) error
-	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (uuid.UUID, error)
-	UpdateUserEmailVerified(ctx context.Context, arg UpdateUserEmailVerifiedParams) (uuid.UUID, error)
-	UpdateUserLogin(ctx context.Context, arg UpdateUserLoginParams) (uuid.UUID, error)
-	UpdateUserName(ctx context.Context, arg UpdateUserNameParams) (uuid.UUID, error)
-	UpdateUserPasswordHash(ctx context.Context, arg UpdateUserPasswordHashParams) (uuid.UUID, error)
-	UpdateUserPhone(ctx context.Context, arg UpdateUserPhoneParams) (uuid.UUID, error)
+	SaveOrganisation(ctx context.Context, arg SaveOrganisationParams) error
+	SaveUser(ctx context.Context, arg SaveUserParams) (User, error)
+	UpdateOrganisationBin(ctx context.Context, arg UpdateOrganisationBinParams) error
+	UpdateOrganisationName(ctx context.Context, arg UpdateOrganisationNameParams) error
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -6,9 +6,18 @@ package sqlc
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+type Organisation struct {
+	ID        uuid.UUID    `json:"id"`
+	Name      string       `json:"name"`
+	Bin       string       `json:"bin"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+}
 
 type User struct {
 	ID            uuid.UUID      `json:"id"`
@@ -19,6 +28,6 @@ type User struct {
 	PasswordHash  string         `json:"password_hash"`
 	Phone         sql.NullString `json:"phone"`
 	Roles         string         `json:"roles"`
-	CreatedAt     sql.NullTime   `json:"created_at"`
-	UpdatedAt     sql.NullTime   `json:"updated_at"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
 }
