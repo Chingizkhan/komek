@@ -10,7 +10,7 @@ var (
 
 func init() {
 	Config = oauth2.Config{
-		ClientID:     "1ac9df27-ade0-4f03-b434-b17337b6411e",
+		ClientID:     "321ffb75-c57b-4f11-866c-63fd1a561ddb",
 		ClientSecret: "mysecret",
 		RedirectURL:  "http://localhost:8888/callback",
 		Scopes:       []string{"offline", "users.write", "users.read", "users.edit", "users.delete"},

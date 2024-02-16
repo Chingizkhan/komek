@@ -5,7 +5,6 @@ import (
 	"komek/internal/service/oauth"
 	"komek/pkg/cookies"
 	"komek/pkg/state"
-	"log"
 	"net/http"
 	"time"
 )
@@ -19,7 +18,6 @@ func LoginFlow(w http.ResponseWriter, r *http.Request, secret []byte) error {
 	if err != nil {
 		return fmt.Errorf("state.Generate - %w", err)
 	}
-	log.Println("generated state:", string(st))
 
 	expiration := time.Now().Add(10 * time.Minute)
 	cookie := http.Cookie{

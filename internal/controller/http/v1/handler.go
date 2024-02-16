@@ -5,8 +5,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"komek/config"
 	customMiddleware "komek/internal/controller/http/middleware"
-	"komek/internal/service/oauthServer"
+	"komek/internal/service/oauth_service"
 	"komek/pkg/logger"
+	"net/http"
 	"time"
 )
 
@@ -28,16 +29,17 @@ type (
 	}
 
 	OauthServerClient interface {
-		Introspect(tok string) (oauthServer.IntrospectResponse, error)
+		Introspect(tok string) (oauth_service.IntrospectResponse, error)
 	}
 )
 
 func NewHandler(p *HandlerParams) *Handler {
 	return &Handler{
-		l:            p.Logger,
-		cfg:          p.Cfg,
-		userUC:       p.UserUC,
-		cookieSecret: p.CookieSecret,
+		l:                 p.Logger,
+		cfg:               p.Cfg,
+		userUC:            p.UserUC,
+		cookieSecret:      p.CookieSecret,
+		oauthServerClient: p.OauthServerClient,
 	}
 }
 
@@ -50,5 +52,12 @@ func (h *Handler) Register(r *chi.Mux, timeout time.Duration) {
 	r.Use(customMiddleware.Logging(h.l))
 
 	h.userRoutes(r)
+
+	r.With(customMiddleware.AuthOauth2(h.cookieSecret)).Get("/test", h.test)
+	r.With(customMiddleware.AuthClientCredentials()).Get("/test-cc", h.test)
 	r.Get("/callback", h.callback(h.cookieSecret))
+}
+
+func (h *Handler) test(w http.ResponseWriter, r *http.Request) {
+	h.Resp(w, "okay", http.StatusOK)
 }

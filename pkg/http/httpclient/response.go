@@ -10,7 +10,7 @@ import (
 
 type (
 	Response struct {
-		r    *http.Response
+		R    *http.Response
 		Body []byte
 	}
 
@@ -41,5 +41,5 @@ func (r *Response) extract() error {
 }
 
 func (r *Response) Close() {
-	_ = r.r.Body.Close()
+	_ = r.R.Body.Close()
 }
