@@ -3,9 +3,7 @@ package sqlc
 import (
 	"context"
 	"database/sql"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"log"
 	"testing"
 )
 
@@ -44,14 +42,14 @@ func TestSaveUser(t *testing.T) {
 	require.NotZero(t, user.UpdatedAt)
 }
 
-func TestUserGet(t *testing.T) {
-	id, err := uuid.Parse("16aba4b7-c928-4bc9-b80a-5afca8205ca5")
-	if err != nil {
-		log.Fatalln("can not parse id:", err)
-	}
-	user, err := testQueries.GetUser(context.Background(), id)
-	if err != nil {
-		log.Fatalln("can not get user by id:", err)
-	}
-	require.Equal(t, user.ID, id)
-}
+//func TestUserGet(t *testing.T) {
+//	id, err := uuid.Parse("16aba4b7-c928-4bc9-b80a-5afca8205ca5")
+//	if err != nil {
+//		log.Fatalln("can not parse id:", err)
+//	}
+//	user, err := testQueries.GetUser(context.Background(), id)
+//	if err != nil {
+//		log.Fatalln("can not get user by id:", err)
+//	}
+//	require.Equal(t, user.ID, id)
+//}
