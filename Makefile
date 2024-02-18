@@ -7,4 +7,7 @@ migrateup:
 migratedown:
 	migrate -source file://db/migrations -database "postgres://app:secret@localhost:5433/app?sslmode=disable" -verbose down
 
+test:
+	go test -v -cover ./...
+
 PHONY: postgres
