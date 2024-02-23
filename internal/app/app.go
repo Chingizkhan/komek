@@ -53,6 +53,15 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	lock := locker.New(cache.Client, cfg.LockTimeout)
 	txRepo := store.NewTX(pg)
 
+	startCron()
+
+	//for _, v := range []int{1, 2} {
+	//	v := v
+	//	go func() {
+	//		testMultiplePay(v)
+	//	}()
+	//}
+
 	err = lock.Lock("data")
 	if err != nil {
 		log.Println("lock.Lock:", err)
@@ -100,3 +109,62 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		return
 	}
 }
+
+//type (
+//	TransferRequest struct {
+//		FromPhone string  `json:"from_phone"`
+//		ToPhone   string  `json:"to_phone"`
+//		Amount    float64 `json:"amount"`
+//		OrderType string  `json:"order_type"`
+//		IsDev     bool    `json:"is_dev"`
+//	}
+//
+//	TransferResponse struct {
+//		Id string `json:"id"`
+//	}
+//)
+//
+//const (
+//	path     = "http://localhost:8083/api/v1/integration"
+//	transfer = "/wallet/transfer"
+//)
+
+//func testMultiplePay(v int) {
+//	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
+//	defer cancel()
+//
+//	js, err := json.Marshal(TransferRequest{
+//		FromPhone: "11111111113",
+//		ToPhone:   "11111111114",
+//		Amount:    10,
+//		OrderType: "",
+//		IsDev:     true,
+//	})
+//	req, err := http.NewRequestWithContext(ctx, http.MethodPost, path+transfer, bytes.NewBuffer(js))
+//	if err != nil {
+//		log.Println("new request:", err)
+//		return
+//	}
+//	response, err := http.DefaultClient.Do(req)
+//	if err != nil {
+//		log.Println("defaultClient.Do:", err)
+//		return
+//	}
+//	defer response.Body.Close()
+//
+//	responseJS, err := io.ReadAll(response.Body)
+//	if err != nil {
+//		log.Println("can not read response:", err)
+//		return
+//	}
+//
+//	var transferResponse TransferResponse
+//	err = json.Unmarshal(responseJS, &transferResponse)
+//	if err != nil {
+//		log.Println("yoyo", string(responseJS))
+//		log.Println("can not unmarshal response:", err)
+//		return
+//	}
+//
+//	log.Printf("%d - transferResponse: %#v", v, transferResponse)
+//}
