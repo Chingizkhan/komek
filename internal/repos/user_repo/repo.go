@@ -11,6 +11,8 @@ import (
 	"komek/internal/domain"
 	"komek/internal/dto"
 	"komek/pkg/postgres"
+	"log"
+	"strings"
 )
 
 const (
@@ -26,26 +28,11 @@ func New(pg *postgres.Postgres) *Repository {
 	return &Repository{pg.Pool, user_db.New(pg.Pool)}
 }
 
-func (r *Repository) Get(ctx context.Context, userID uuid.UUID) (domain.User, error) {
-	u, err := r.q.GetUser(ctx, userID)
-	if err != nil {
-		return domain.User{}, fmt.Errorf("r.q.GetUser :%w", err)
+func (r *Repository) Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
+	qtx := r.q
+	if tx != nil {
+		qtx = r.q.WithTx(tx)
 	}
-	return domain.User{
-		ID:            u.ID,
-		Name:          u.Name.String,
-		Phone:         domain.Phone(u.Phone.String),
-		Login:         u.Login,
-		EmailVerified: u.EmailVerified.Bool,
-		PasswordHash:  u.PasswordHash,
-		Email:         domain.Email(u.Email.String),
-		CreatedAt:     u.CreatedAt.Time,
-		UpdatedAt:     u.UpdatedAt.Time,
-	}, nil
-}
-
-func (r *Repository) GetWithTX(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
-	qtx := r.q.WithTx(tx)
 
 	u, err := qtx.GetUser(ctx, userID)
 	if err != nil {
@@ -59,15 +46,35 @@ func (r *Repository) GetWithTX(ctx context.Context, tx pgx.Tx, userID uuid.UUID)
 		EmailVerified: u.EmailVerified.Bool,
 		PasswordHash:  u.PasswordHash,
 		Email:         domain.Email(u.Email.String),
-		CreatedAt:     u.CreatedAt.Time,
-		UpdatedAt:     u.UpdatedAt.Time,
+		CreatedAt:     u.CreatedAt,
+		UpdatedAt:     u.UpdatedAt,
 	}, nil
 }
+
+//
+//func (r *Repository) GetWithTX(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
+//
+//	u, err := qtx.GetUser(ctx, userID)
+//	if err != nil {
+//		return domain.User{}, fmt.Errorf("r.q.GetUser :%w", err)
+//	}
+//	return domain.User{
+//		ID:            u.ID,
+//		Name:          u.Name.String,
+//		Phone:         domain.Phone(u.Phone.String),
+//		Login:         u.Login,
+//		EmailVerified: u.EmailVerified.Bool,
+//		PasswordHash:  u.PasswordHash,
+//		Email:         domain.Email(u.Email.String),
+//		CreatedAt:     u.CreatedAt.Time,
+//		UpdatedAt:     u.UpdatedAt.Time,
+//	}, nil
+//}
 
 func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) error {
 	qtx := r.q.WithTx(tx)
 
-	err := qtx.SaveUser(ctx, user_db.SaveUserParams{
+	_, err := qtx.SaveUser(ctx, user_db.SaveUserParams{
 		Login:        u.Login,
 		PasswordHash: u.PasswordHash,
 		Roles:        u.Roles.ConvString(),
@@ -82,93 +89,40 @@ func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) error {
 	return nil
 }
 
-func (r *Repository) UpdateName(ctx context.Context, tx pgx.Tx, id uuid.UUID, value string) (uuid.UUID, error) {
-	qtx := r.q.WithTx(tx)
-	name := sql.NullString{
-		String: value,
-		Valid:  true,
-	}
-	id, err := qtx.UpdateUserName(ctx, user_db.UpdateUserNameParams{
-		ID:   id,
-		Name: name,
-	})
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("r.q.UpdateName: %w", err)
-	}
-	return id, nil
-}
-
-func (r *Repository) UpdateLogin(ctx context.Context, tx pgx.Tx, id uuid.UUID, value string) (uuid.UUID, error) {
-	qtx := r.q.WithTx(tx)
-	id, err := qtx.UpdateUserLogin(ctx, user_db.UpdateUserLoginParams{
-		ID:    id,
-		Login: value,
-	})
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("r.q.UpdateLogin: %w", err)
-	}
-	return id, nil
-}
-
-func (r *Repository) UpdateEmail(ctx context.Context, tx pgx.Tx, id uuid.UUID, value domain.Email) (uuid.UUID, error) {
-	qtx := r.q.WithTx(tx)
-	email := sql.NullString{
-		String: string(value),
-		Valid:  true,
-	}
-	id, err := qtx.UpdateUserEmail(ctx, user_db.UpdateUserEmailParams{
-		ID:    id,
-		Email: email,
-	})
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("r.q.UpdateEmail: %w", err)
-	}
-	return id, nil
-}
-
-func (r *Repository) UpdateEmailVerified(ctx context.Context, tx pgx.Tx, id uuid.UUID, value bool) (uuid.UUID, error) {
-	qtx := r.q.WithTx(tx)
-	verified := sql.NullBool{
-		Bool:  value,
-		Valid: true,
-	}
-	id, err := qtx.UpdateUserEmailVerified(ctx, user_db.UpdateUserEmailVerifiedParams{
-		ID:            id,
-		EmailVerified: verified,
-	})
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("r.q.UpdateEmailVerified: %w", err)
-	}
-	return id, nil
-}
-
-func (r *Repository) UpdatePhone(ctx context.Context, tx pgx.Tx, id uuid.UUID, value domain.Phone) (uuid.UUID, error) {
-	qtx := r.q.WithTx(tx)
-	phone := sql.NullString{
-		String: string(value),
-		Valid:  true,
-	}
-	id, err := qtx.UpdateUserPhone(ctx, user_db.UpdateUserPhoneParams{
-		ID:    id,
-		Phone: phone,
-	})
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("r.q.UpdatePhone: %w", err)
-	}
-	return id, nil
-}
-
-func (r *Repository) UpdatePasswordHash(ctx context.Context, tx pgx.Tx, id uuid.UUID, value string) (uuid.UUID, error) {
+func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRequest) (domain.User, error) {
 	qtx := r.q.WithTx(tx)
 
-	id, err := qtx.UpdateUserPasswordHash(ctx, user_db.UpdateUserPasswordHashParams{
-		ID:           id,
-		PasswordHash: value,
+	name := checkAndConvertToNullStr(req.Name)
+	login := checkAndConvertToNullStr(req.Login)
+	email := checkAndConvertToNullStr(string(req.Email))
+	phone := checkAndConvertToNullStr(string(req.Phone))
+	passwordHash := checkAndConvertToNullStr(req.PasswordHash)
+	emailVerified := checkAndConvertToNullBool(req.EmailVerified)
+
+	u, err := qtx.UpdateUser(ctx, user_db.UpdateUserParams{
+		ID:            req.ID,
+		Name:          name,
+		Login:         login,
+		Email:         email,
+		Phone:         phone,
+		PasswordHash:  passwordHash,
+		EmailVerified: emailVerified,
 	})
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("r.q.UpdatePasswordHash: %w", err)
+		return domain.User{}, fmt.Errorf("r.q.UpdateName: %w", err)
 	}
-	return id, nil
+	return domain.User{
+		ID:            u.ID,
+		Name:          u.Name.String,
+		Phone:         domain.Phone(u.Phone.String),
+		Login:         u.Login,
+		Email:         domain.Email(u.Email.String),
+		EmailVerified: u.EmailVerified.Bool,
+		PasswordHash:  u.PasswordHash,
+		Roles:         convertRolesToDomain(u.Roles),
+		CreatedAt:     u.CreatedAt,
+		UpdatedAt:     u.UpdatedAt,
+	}, nil
 }
 
 func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
@@ -181,19 +135,53 @@ func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error 
 	return nil
 }
 
-func (r *Repository) Find(ctx context.Context, req dto.UserFindRequest) ([]domain.User, error) {
+func (r *Repository) Find(ctx context.Context, tx pgx.Tx, req dto.UserFindRequest) ([]domain.User, error) {
+	qtx := r.q
+	if tx != nil {
+		qtx = r.q.WithTx(tx)
+	}
+
+	users, err := qtx.FindUsers(ctx, user_db.FindUsersParams{
+		Name:  "Jack",
+		Login: "jake_buffalo",
+		Email: "",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("qtx.FindUsers: %w", err)
+	}
+
+	for i, u := range users {
+		log.Println(i, u)
+	}
+
 	return make([]domain.User, 0, 0), nil
 }
 
-func (r *Repository) FindWithTX(ctx context.Context, tx pgx.Tx, req dto.UserFindRequest) ([]domain.User, error) {
-	//qtx := r.q.WithTx(tx)
+func convertRolesToDomain(rolesStr string) domain.Roles {
+	rolesInput := strings.Split(rolesStr, ",")
+	roles := make(domain.Roles, 0, len(rolesInput))
+	for _, r := range rolesInput {
+		roles = append(roles, domain.Role(r))
+	}
+	return roles
+}
 
-	//_, err := qtx.FindUsers(ctx, user_db.FindUsersParams{
-	//	Name:          sql.NullString{},
-	//	Login:         "",
-	//	Email:         sql.NullString{},
-	//	EmailVerified: sql.NullBool{},
-	//	Phone:         sql.NullString{},
-	//})
-	return make([]domain.User, 0, 0), nil
+func checkAndConvertToNullStr(value string) (nullValue sql.NullString) {
+	if value != "" {
+		nullValue = sql.NullString{
+			String: value,
+			Valid:  true,
+		}
+	}
+	return
+}
+
+func checkAndConvertToNullBool(value bool) (nullValue sql.NullBool) {
+	if value {
+		nullValue = sql.NullBool{
+			Bool:  value,
+			Valid: true,
+		}
+	}
+	return
 }

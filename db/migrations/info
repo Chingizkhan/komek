@@ -1,4 +1,5 @@
 migrate create -ext sql -dir db/migrations/ -seq init_mg
+migrate -source file://db/migrations -database "postgres://app:secret@localhost:5433/app?sslmode=disable" up 2
 migrate -source file://db/migrations -database postgres://app:secret@localhost:5460/app?sslmode=disable up 2
 
 https://github.com/shopspring/decimal - библиотека для точного расчета с денежными операциями

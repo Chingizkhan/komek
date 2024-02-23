@@ -6,54 +6,25 @@ WHERE id = $1 LIMIT 1;
 SELECT * FROM users
 ORDER BY created_at DESC;
 
--- name: SaveUser :exec
+-- name: SaveUser :one
 INSERT INTO users(
     name, login, email, password_hash, phone, roles
 ) VALUES (
     $1, $2, $3, $4, $5, $6
-);
+) RETURNING *;
 
--- name: UpdateUserName :one
+-- name: UpdateUser :one
 UPDATE users
-SET name = $2,
+SET name = coalesce(sqlc.narg(name), name),
+    login = coalesce(sqlc.narg(login), login),
+    email = coalesce(sqlc.narg(email), email),
+    email_verified = coalesce(sqlc.narg(email_verified), email_verified),
+    password_hash = coalesce(sqlc.narg(password_hash), password_hash),
+    phone = coalesce(sqlc.narg(phone), phone),
+    roles = coalesce(sqlc.narg(roles), roles),
     updated_at = CURRENT_TIMESTAMP(6)
-WHERE id = $1
-RETURNING id;
-
--- name: UpdateUserLogin :one
-UPDATE users
-SET login = $2,
-    updated_at = CURRENT_TIMESTAMP(6)
-WHERE id = $1
-RETURNING id;
-
--- name: UpdateUserEmail :one
-UPDATE users
-SET email = $2,
-    updated_at = CURRENT_TIMESTAMP(6)
-WHERE id = $1
-RETURNING id;
-
--- name: UpdateUserEmailVerified :one
-UPDATE users
-SET email_verified = $2,
-    updated_at = CURRENT_TIMESTAMP(6)
-WHERE id = $1
-RETURNING id;
-
--- name: UpdateUserPhone :one
-UPDATE users
-SET phone = $2,
-    updated_at = CURRENT_TIMESTAMP(6)
-WHERE id = $1
-RETURNING id;
-
--- name: UpdateUserPasswordHash :one
-UPDATE users
-SET password_hash = $2,
-    updated_at = CURRENT_TIMESTAMP(6)
-WHERE id = $1
-RETURNING id;
+WHERE id = sqlc.arg(id)
+RETURNING *;
 
 -- name: RemoveUser :one
 DELETE FROM users
@@ -63,9 +34,9 @@ RETURNING id;
 -- name: FindUsers :many
 SELECT *
 FROM users
-WHERE name = $1
-AND login = $2
-AND email = $3
-AND email_verified = $4
-AND phone = $5
-ORDER BY created_at DESC;;
+WHERE (@name::varchar = '' OR name = @name)
+AND (@login::varchar = '' OR login = @login)
+AND (@email::varchar = '' OR email = @email)
+-- AND email_verified = $4
+-- AND phone = $5
+ORDER BY created_at DESC;

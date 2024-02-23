@@ -107,7 +107,10 @@ func (u *UseCase) ChangePassword(ctx context.Context, req dto.UserChangePassword
 		return fmt.Errorf("u.hasher.Hash - %w", err)
 	}
 
-	_, err = u.r.UpdatePasswordHash(ctx, tx, req.ID, passwordHash)
+	_, err = u.r.Update(ctx, tx, dto.UserUpdateRequest{
+		ID:           req.ID,
+		PasswordHash: passwordHash,
+	})
 	if err != nil {
 		return fmt.Errorf("u.r.UpdatePasswordHash - %w", err)
 	}
@@ -126,41 +129,9 @@ func (u *UseCase) Update(ctx context.Context, req dto.UserUpdateRequest) error {
 	}
 	defer tx.Rollback(ctx)
 
-	if req.Name != "" {
-		_, err = u.r.UpdateName(ctx, tx, req.ID, req.Name)
-		if err != nil {
-			return fmt.Errorf("u.r.UpdateName - %w", err)
-		}
-	}
-	if req.Login != "" {
-		_, err = u.r.UpdateLogin(ctx, tx, req.ID, req.Login)
-		if err != nil {
-			return fmt.Errorf("u.r.UpdateLogin - %w", err)
-		}
-	}
-	if req.Email != "" {
-		_, err = u.r.UpdateEmail(ctx, tx, req.ID, req.Email)
-		if err != nil {
-			return fmt.Errorf("u.r.UpdateEmail - %w", err)
-		}
-	}
-	if req.EmailVerified {
-		_, err = u.r.UpdateEmailVerified(ctx, tx, req.ID, req.EmailVerified)
-		if err != nil {
-			return fmt.Errorf("u.r.UpdateEmailVerified - %w", err)
-		}
-	}
-	if req.Phone != "" {
-		_, err = u.r.UpdatePhone(ctx, tx, req.ID, req.Phone)
-		if err != nil {
-			return fmt.Errorf("u.r.UpdatePhone - %w", err)
-		}
-	}
-	if req.PasswordHash != "" {
-		_, err = u.r.UpdatePasswordHash(ctx, tx, req.ID, req.PasswordHash)
-		if err != nil {
-			return fmt.Errorf("u.r.UpdatePasswordHash - %w", err)
-		}
+	_, err = u.r.Update(ctx, tx, req)
+	if err != nil {
+		return fmt.Errorf("u.r.Update - %w", err)
 	}
 
 	err = tx.Commit(ctx)

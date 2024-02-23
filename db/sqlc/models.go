@@ -6,9 +6,43 @@ package sqlc
 
 import (
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+type Account struct {
+	ID        int64     `json:"id"`
+	Owner     string    `json:"owner"`
+	Balance   int64     `json:"balance"`
+	Currency  string    `json:"currency"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type Entry struct {
+	ID        int64 `json:"id"`
+	AccountID int64 `json:"account_id"`
+	// can be negative or positive
+	Amount    int64     `json:"amount"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type Organisation struct {
+	ID        uuid.UUID    `json:"id"`
+	Name      string       `json:"name"`
+	Bin       string       `json:"bin"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	UpdatedAt sql.NullTime `json:"updated_at"`
+}
+
+type Transfer struct {
+	ID            int64 `json:"id"`
+	FromAccountID int64 `json:"from_account_id"`
+	ToAccountID   int64 `json:"to_account_id"`
+	// must be positive
+	Amount    int64     `json:"amount"`
+	CreatedAt time.Time `json:"created_at"`
+}
 
 type User struct {
 	ID            uuid.UUID      `json:"id"`
@@ -19,6 +53,6 @@ type User struct {
 	PasswordHash  string         `json:"password_hash"`
 	Phone         sql.NullString `json:"phone"`
 	Roles         string         `json:"roles"`
-	CreatedAt     sql.NullTime   `json:"created_at"`
-	UpdatedAt     sql.NullTime   `json:"updated_at"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
 }
