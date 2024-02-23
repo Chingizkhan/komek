@@ -1,23 +1,10 @@
 package v1
 
 import (
-	"context"
 	"github.com/go-chi/chi/v5"
 	"komek/internal/dto"
 	"komek/pkg/logger"
 	"net/http"
-)
-
-type (
-	UserUseCase interface {
-		Register(ctx context.Context, req dto.UserRegisterRequest) error
-		Delete(ctx context.Context, req dto.UserDeleteRequest) error
-		ChangePassword(ctx context.Context, req dto.UserChangePasswordRequest) error
-		Update(ctx context.Context, req dto.UserUpdateRequest) error
-		// todo: make it later
-		Login(ctx context.Context) error
-		Logout(ctx context.Context) error
-	}
 )
 
 func (h *Handler) userRoutes(r *chi.Mux) {

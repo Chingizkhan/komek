@@ -6,22 +6,21 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"komek/db/sqlc"
+	"komek/pkg/postgres"
 )
 
-type Store struct {
-	*sqlc.Queries
+type TX struct {
 	db *pgxpool.Pool
 }
 
-func NewStore(db *pgxpool.Pool) *Store {
-	return &Store{
-		db:      db,
-		Queries: sqlc.New(db),
+func NewTX(pg *postgres.Postgres) *TX {
+	return &TX{
+		db: pg.Pool,
 	}
 }
 
-func (store *Store) Exec(ctx context.Context, fn func(*sqlc.Queries) error) error {
-	tx, err := store.db.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
+func (r *TX) Exec(ctx context.Context, fn func(*sqlc.Queries) error) error {
+	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
 	if err != nil {
 		return fmt.Errorf("BeginTx: %w", err)
 	}

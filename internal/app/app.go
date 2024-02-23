@@ -1,12 +1,12 @@
 package app
 
 import (
-	"context"
 	"github.com/go-chi/chi/v5"
 	"komek/config"
 	"komek/internal/controller/http/v1"
-	"komek/internal/dto"
+	"komek/internal/repos/store"
 	"komek/internal/repos/user_repo"
+	"komek/internal/service/banking"
 	"komek/internal/service/hasher"
 	"komek/internal/service/locker"
 	"komek/internal/service/oauth_service"
@@ -51,6 +51,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	transactionalRepo := transactional.New(pg)
 	hash := hasher.New()
 	lock := locker.New(cache.Client, cfg.LockTimeout)
+	txRepo := store.NewTX(pg)
 
 	err = lock.Lock("data")
 	if err != nil {
@@ -65,37 +66,15 @@ func Run(cfg *config.Config, l *logger.Logger) {
 
 	// get usecases
 	userUC := user_uc.New(userRepo, transactionalRepo, hash)
-
-	//uu, err := uuid.Parse("16aba4b7-c928-4bc9-b80a-5afca8205ca5")
-	//if err != nil {
-	//	log.Println("err parse:", err)
-	//	return
-	//}
-	ctx := context.Background()
-	us, err := userRepo.Find(ctx, nil, dto.UserFindRequest{})
-	if err != nil {
-		log.Println("find user err:", err)
-		os.Exit(1)
-		return
-	}
-	log.Println(us)
-	//err = userUC.Register(ctx, dto.UserRegisterRequest{
-	//	Login:    "login",
-	//	Phone:    "77058113795",
-	//	Password: "some_password",
-	//	Roles:    []domain.Role{domain.RoleAdmin, domain.RoleManager},
-	//})
-	//if err != nil {
-	//	log.Println("err register:", err)
-	//	return
-	//}
+	bankingUC := banking.New(txRepo)
 
 	// start http server
 	r := chi.NewRouter()
 	handler := v1.NewHandler(&v1.HandlerParams{
 		Logger:            l,
 		Cfg:               cfg,
-		UserUC:            userUC,
+		User:              userUC,
+		Banking:           bankingUC,
 		CookieSecret:      []byte(cfg.Cookie.Secret),
 		OauthServerClient: oauthServerClient,
 	})

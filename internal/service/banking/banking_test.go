@@ -38,13 +38,13 @@ func TestTransfer(t *testing.T) {
 	amount := int64(10)
 
 	errs := make(chan error)
-	results := make(chan dto.TransferResult)
+	results := make(chan dto.TransferOut)
 
 	for i := 0; i < n; i++ {
 		txName := fmt.Sprintf("tx %d", i+1)
 		go func() {
 			ctx := context.WithValue(context.Background(), txKey, txName)
-			transfer, err := service.Transfer(ctx, dto.TransferParams{
+			transfer, err := service.Transfer(ctx, dto.TransferIn{
 				FromAccountID: acc1.ID,
 				ToAccountID:   acc2.ID,
 				Amount:        amount,
@@ -148,7 +148,7 @@ func TestTransferDeadlock(t *testing.T) {
 		txName := fmt.Sprintf("tx %d", i+1)
 		go func() {
 			ctx := context.WithValue(context.Background(), txKey, txName)
-			_, err := service.Transfer(ctx, dto.TransferParams{
+			_, err := service.Transfer(ctx, dto.TransferIn{
 				FromAccountID: accFromID,
 				ToAccountID:   accToID,
 				Amount:        amount,

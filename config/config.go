@@ -69,17 +69,17 @@ type (
 	}
 )
 
-func New() (*Config, error) {
+func New(url string) (*Config, error) {
 	cfg := &Config{}
 
-	err := cleanenv.ReadConfig("./config/config.yml", cfg)
+	err := cleanenv.ReadConfig(url, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("config error: %w", err)
+		return nil, fmt.Errorf("read config error: %w", err)
 	}
 
 	err = cleanenv.ReadEnv(cfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read env error: %w", err)
 	}
 
 	cfg.GetOauthConfig()

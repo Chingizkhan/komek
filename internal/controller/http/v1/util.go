@@ -30,3 +30,14 @@ func (h *Handler) Resp(w http.ResponseWriter, res interface{}, status int) {
 		// XXX Do something with the error ;)
 	}
 }
+
+func (h *Handler) RespAnother(w http.ResponseWriter, res interface{}, status int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	err := json.NewEncoder(w).Encode(res)
+	if err != nil {
+		//w.WriteHeader(http.StatusInternalServerError) // write header can be used once?
+		http.Error(w, "internal_error", http.StatusInternalServerError)
+		return
+	}
+}

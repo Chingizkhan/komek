@@ -1,0 +1,1 @@
+mockgen -package mock_banking -destination internal/service/banking/mock/banking.go komek/internal/controller/http/v1 Banking

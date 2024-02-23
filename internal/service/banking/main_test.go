@@ -1,10 +1,9 @@
 package banking
 
 import (
-	"context"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"komek/db/sqlc"
 	store2 "komek/internal/repos/store"
+	"komek/pkg/postgres"
 	"log"
 	"os"
 	"testing"
@@ -16,23 +15,19 @@ const (
 
 var (
 	testQueries *sqlc.Queries
-	testPool    *pgxpool.Pool
 	service     *Service
 )
 
 func TestMain(m *testing.M) {
-	poolConfig, err := pgxpool.ParseConfig(dataSource)
+	pg, err := postgres.New(
+		dataSource,
+		postgres.MaxPoolSize(20),
+	)
 	if err != nil {
-		log.Fatal("can not parse config:", err)
+		log.Fatal("can not connect postgres:", err)
 	}
-	testPool, err = pgxpool.ConnectConfig(context.Background(), poolConfig)
-	if err != nil {
-		log.Fatal("can not connect config:", err)
-	}
-
-	testQueries = sqlc.New(testPool)
-
-	store := store2.NewStore(testPool)
+	testQueries = sqlc.New(pg.Pool)
+	store := store2.NewTX(pg)
 	service = New(store)
 
 	os.Exit(m.Run())

@@ -15,7 +15,8 @@ type (
 	Handler struct {
 		l                 logger.ILogger
 		cfg               *config.Config
-		userUC            UserUseCase
+		user              User
+		banking           Banking
 		cookieSecret      []byte
 		oauthServerClient OauthServerClient
 	}
@@ -23,7 +24,8 @@ type (
 	HandlerParams struct {
 		Logger            logger.ILogger
 		Cfg               *config.Config
-		UserUC            UserUseCase
+		User              User
+		Banking           Banking
 		CookieSecret      []byte
 		OauthServerClient OauthServerClient
 	}
@@ -37,7 +39,8 @@ func NewHandler(p *HandlerParams) *Handler {
 	return &Handler{
 		l:                 p.Logger,
 		cfg:               p.Cfg,
-		userUC:            p.UserUC,
+		user:              p.User,
+		banking:           p.Banking,
 		cookieSecret:      p.CookieSecret,
 		oauthServerClient: p.OauthServerClient,
 	}
@@ -52,6 +55,7 @@ func (h *Handler) Register(r *chi.Mux, timeout time.Duration) {
 	r.Use(customMiddleware.Logging(h.l))
 
 	h.userRoutes(r)
+	h.bankingRoutes(r)
 
 	r.With(customMiddleware.AuthOauth2(h.cookieSecret)).Get("/test", h.test)
 	r.With(customMiddleware.AuthClientCredentials()).Get("/test-cc", h.test)
