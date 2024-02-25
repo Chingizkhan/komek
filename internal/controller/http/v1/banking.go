@@ -27,7 +27,7 @@ func (h *Handler) accountCreate(w http.ResponseWriter, r *http.Request) {
 
 	account, err := h.banking.CreateAccount(r.Context(), req)
 	if err != nil {
-		h.l.Error("accountCreate - banking.CreateAccount", logger.Err(err))
+		h.l.Error("accountCreate - banking_uc.CreateAccount", logger.Err(err))
 		h.Err(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -45,7 +45,7 @@ func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
 
 	account, err := h.banking.GetAccount(r.Context(), req)
 	if err != nil {
-		h.l.Error("accountGet - banking.CreateAccount", logger.Err(err))
+		h.l.Error("accountGet - banking_uc.CreateAccount", logger.Err(err))
 		h.Err(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -63,7 +63,7 @@ func (h *Handler) operationTransfer(w http.ResponseWriter, r *http.Request) {
 
 	transfer, err := h.banking.Transfer(r.Context(), req)
 	if err != nil {
-		h.l.Error("operationTransfer - banking.Transfer", logger.Err(err))
+		h.l.Error("operationTransfer - banking_uc.Transfer", logger.Err(err))
 		h.Err(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

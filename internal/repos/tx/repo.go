@@ -1,4 +1,4 @@
-package store
+package tx
 
 import (
 	"context"
@@ -9,17 +9,23 @@ import (
 	"komek/pkg/postgres"
 )
 
-type TX struct {
-	db *pgxpool.Pool
-}
+type (
+	Tx interface {
+		Exec(ctx context.Context, fn func(*sqlc.Queries) error) error
+	}
 
-func NewTX(pg *postgres.Postgres) *TX {
-	return &TX{
+	TxPostgres struct {
+		db *pgxpool.Pool
+	}
+)
+
+func NewTX(pg *postgres.Postgres) *TxPostgres {
+	return &TxPostgres{
 		db: pg.Pool,
 	}
 }
 
-func (r *TX) Exec(ctx context.Context, fn func(*sqlc.Queries) error) error {
+func (r *TxPostgres) Exec(ctx context.Context, fn func(*sqlc.Queries) error) error {
 	tx, err := r.db.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
 	if err != nil {
 		return fmt.Errorf("BeginTx: %w", err)

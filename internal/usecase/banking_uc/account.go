@@ -1,11 +1,14 @@
-package banking
+package banking_uc
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/lib/pq"
 	"komek/db/sqlc"
 	"komek/internal/domain"
 	"komek/internal/dto"
+	"log"
 )
 
 func (s *Service) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (domain.Account, error) {
@@ -21,6 +24,10 @@ func (s *Service) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (do
 			Currency: in.Currency,
 		})
 		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok {
+				log.Println("createAccount usecase - ", pqErr.Code.Name())
+				return errors.New(pqErr.Code.Name())
+			}
 			return fmt.Errorf("q.CreateAccount: %w", err)
 		}
 		return nil

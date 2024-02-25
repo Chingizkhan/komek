@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 	"komek/internal/domain"
-	mock_banking "komek/internal/service/banking/mock"
+	"komek/internal/usecase/banking_uc/mock"
 	"komek/pkg/httpserver"
 	"komek/pkg/random"
 	"net/http"

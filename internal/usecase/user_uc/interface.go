@@ -18,7 +18,7 @@ type (
 	}
 
 	Transactional interface {
-		Start(ctx context.Context) (pgx.Tx, error)
+		Exec(ctx context.Context, fn func(tx pgx.Tx) error) error
 	}
 
 	Hasher interface {

@@ -4,13 +4,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"komek/config"
 	"komek/internal/controller/http/v1"
-	"komek/internal/repos/store"
+	"komek/internal/repos/tx"
 	"komek/internal/repos/user_repo"
-	"komek/internal/service/banking"
 	"komek/internal/service/hasher"
 	"komek/internal/service/locker"
 	"komek/internal/service/oauth_service"
 	"komek/internal/service/transactional"
+	"komek/internal/usecase/banking_uc"
 	"komek/internal/usecase/user_uc"
 	"komek/pkg/httpserver"
 	"komek/pkg/logger"
@@ -51,7 +51,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	transactionalRepo := transactional.New(pg)
 	hash := hasher.New()
 	lock := locker.New(cache.Client, cfg.LockTimeout)
-	txRepo := store.NewTX(pg)
+	txRepo := tx.NewTX(pg)
 
 	startCron()
 
@@ -75,7 +75,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 
 	// get usecases
 	userUC := user_uc.New(userRepo, transactionalRepo, hash)
-	bankingUC := banking.New(txRepo)
+	bankingUC := banking_uc.New(txRepo)
 
 	// start http server
 	r := chi.NewRouter()

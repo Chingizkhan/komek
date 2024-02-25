@@ -45,14 +45,15 @@ type Transfer struct {
 }
 
 type User struct {
-	ID            uuid.UUID      `json:"id"`
-	Name          sql.NullString `json:"name"`
-	Login         string         `json:"login"`
-	Email         sql.NullString `json:"email"`
-	EmailVerified sql.NullBool   `json:"email_verified"`
-	PasswordHash  string         `json:"password_hash"`
-	Phone         sql.NullString `json:"phone"`
-	Roles         string         `json:"roles"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
+	ID                uuid.UUID      `json:"id"`
+	Name              sql.NullString `json:"name"`
+	Login             string         `json:"login"`
+	Email             sql.NullString `json:"email"`
+	EmailVerified     sql.NullBool   `json:"email_verified"`
+	PasswordHash      string         `json:"password_hash"`
+	Phone             sql.NullString `json:"phone"`
+	Roles             string         `json:"roles"`
+	PasswordChangedAt time.Time      `json:"password_changed_at"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         time.Time      `json:"updated_at"`
 }

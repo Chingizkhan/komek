@@ -26,11 +26,11 @@ type Querier interface {
 	GetOrganisation(ctx context.Context, id uuid.UUID) (Organisation, error)
 	GetTransfer(ctx context.Context, id int64) (Transfer, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
-	GetUsers(ctx context.Context) ([]User, error)
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
 	ListOrganisation(ctx context.Context) ([]Organisation, error)
 	ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error)
+	ListUsers(ctx context.Context) ([]User, error)
 	RemoveUser(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
 	SaveOrganisation(ctx context.Context, arg SaveOrganisationParams) error
 	SaveUser(ctx context.Context, arg SaveUserParams) (User, error)

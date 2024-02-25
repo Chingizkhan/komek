@@ -16,10 +16,21 @@ func New(pg *postgres.Postgres) *Transactional {
 	return &Transactional{pg.Pool}
 }
 
-func (t *Transactional) Start(ctx context.Context) (pgx.Tx, error) {
-	tx, err := t.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.Serializable})
+func (t *Transactional) Exec(ctx context.Context, fn func(tx pgx.Tx) error) error {
+	tx, err := t.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
 	if err != nil {
-		return nil, fmt.Errorf("t.pool.BeginTx: %w", err)
+		return fmt.Errorf("BeginTx: %w", err)
 	}
-	return tx, nil
+	if err = fn(tx); err != nil {
+		if rbErr := tx.Rollback(ctx); rbErr != nil {
+			return fmt.Errorf("tx err: %v, rb err: %v", err, rbErr)
+		}
+		return err
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return fmt.Errorf("CommitTx: %w", err)
+	}
+
+	return nil
 }

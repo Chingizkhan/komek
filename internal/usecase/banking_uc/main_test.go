@@ -1,8 +1,8 @@
-package banking
+package banking_uc
 
 import (
 	"komek/db/sqlc"
-	store2 "komek/internal/repos/store"
+	store2 "komek/internal/repos/tx"
 	"komek/pkg/postgres"
 	"log"
 	"os"

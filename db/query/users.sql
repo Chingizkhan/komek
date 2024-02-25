@@ -2,7 +2,7 @@
 SELECT * FROM users
 WHERE id = $1 LIMIT 1;
 
--- name: GetUsers :many
+-- name: ListUsers :many
 SELECT * FROM users
 ORDER BY created_at DESC;
 
@@ -22,6 +22,7 @@ SET name = coalesce(sqlc.narg(name), name),
     password_hash = coalesce(sqlc.narg(password_hash), password_hash),
     phone = coalesce(sqlc.narg(phone), phone),
     roles = coalesce(sqlc.narg(roles), roles),
+    password_changed_at = coalesce(sqlc.narg(password_changed_at), password_changed_at),
     updated_at = CURRENT_TIMESTAMP(6)
 WHERE id = sqlc.arg(id)
 RETURNING *;

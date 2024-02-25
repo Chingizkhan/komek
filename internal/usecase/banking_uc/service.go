@@ -1,4 +1,4 @@
-package banking
+package banking_uc
 
 import (
 	"context"
