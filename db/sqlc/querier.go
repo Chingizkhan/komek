@@ -26,6 +26,7 @@ type Querier interface {
 	GetOrganisation(ctx context.Context, id uuid.UUID) (Organisation, error)
 	GetTransfer(ctx context.Context, id int64) (Transfer, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
+	GetUserByLogin(ctx context.Context, login string) (User, error)
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
 	ListOrganisation(ctx context.Context) ([]Organisation, error)

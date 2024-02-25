@@ -34,6 +34,13 @@ type (
 	}
 
 	UserLoginRequest struct {
+		Login    string
+		Password string
+	}
+
+	UserLoginResponse struct {
+		AccessToken string
+		User        domain.User
 	}
 
 	UserLogoutRequest struct {

@@ -3,6 +3,7 @@ package user_repo
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
@@ -36,7 +37,36 @@ func (r *Repository) Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (doma
 
 	u, err := qtx.GetUser(ctx, userID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
 		return domain.User{}, fmt.Errorf("r.q.GetUser :%w", err)
+	}
+	return domain.User{
+		ID:            u.ID,
+		Name:          u.Name.String,
+		Phone:         domain.Phone(u.Phone.String),
+		Login:         u.Login,
+		EmailVerified: u.EmailVerified.Bool,
+		PasswordHash:  u.PasswordHash,
+		Email:         domain.Email(u.Email.String),
+		CreatedAt:     u.CreatedAt,
+		UpdatedAt:     u.UpdatedAt,
+	}, nil
+}
+
+func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string) (domain.User, error) {
+	qtx := r.q
+	if tx != nil {
+		qtx = r.q.WithTx(tx)
+	}
+
+	u, err := qtx.GetUserByLogin(ctx, login)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
+		return domain.User{}, fmt.Errorf("r.q.GetUserByLogin :%w", err)
 	}
 	return domain.User{
 		ID:            u.ID,

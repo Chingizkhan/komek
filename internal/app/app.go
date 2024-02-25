@@ -9,6 +9,7 @@ import (
 	"komek/internal/service/hasher"
 	"komek/internal/service/locker"
 	"komek/internal/service/oauth_service"
+	"komek/internal/service/token"
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/banking_uc"
 	"komek/internal/usecase/user_uc"
@@ -52,6 +53,11 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	hash := hasher.New()
 	lock := locker.New(cache.Client, cfg.LockTimeout)
 	txRepo := tx.NewTX(pg)
+	tokenMaker, err := token.NewPasetoMaker("12312312312312312312312312312312")
+	if err != nil {
+		l.Error("app - Run - token.NewPasetoMaker:", logger.Err(err))
+		os.Exit(1)
+	}
 
 	startCron()
 
@@ -74,7 +80,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 
 	// get usecases
-	userUC := user_uc.New(userRepo, transactionalRepo, hash)
+	userUC := user_uc.New(userRepo, transactionalRepo, hash, tokenMaker)
 	bankingUC := banking_uc.New(txRepo)
 
 	// start http server

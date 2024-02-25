@@ -6,18 +6,19 @@ import (
 	"github.com/jackc/pgx/v4"
 	"komek/internal/domain"
 	"komek/internal/dto"
-	"komek/internal/repos/tx"
+	"komek/internal/service/token"
+	"time"
 )
 
 type UseCase struct {
-	r      UserRepository
-	tr     Transactional
-	hasher Hasher
-	tx     tx.Tx
+	r          UserRepository
+	tr         Transactional
+	hasher     Hasher
+	tokenMaker token.Maker
 }
 
-func New(r UserRepository, tr Transactional, hasher Hasher, tx tx.Tx) *UseCase {
-	return &UseCase{r, tr, hasher, tx}
+func New(r UserRepository, tr Transactional, hasher Hasher, tokenMaker token.Maker) *UseCase {
+	return &UseCase{r, tr, hasher, tokenMaker}
 }
 
 func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) error {
@@ -47,8 +48,27 @@ func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) err
 	return nil
 }
 
-func (u *UseCase) Login(ctx context.Context) error {
-	return nil
+func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.UserLoginResponse, error) {
+	user, err := u.r.GetUserByLogin(ctx, nil, in.Login)
+	if err != nil {
+		return nil, fmt.Errorf("get user by login: %w", err)
+	}
+
+	// check password
+	if !u.hasher.CheckHash(in.Password, user.PasswordHash) {
+		return nil, ErrIncorrectPassword
+	}
+
+	// get access token
+	accessToken, err := u.tokenMaker.CreateToken(user.ID, time.Minute*1)
+	if err != nil {
+		return nil, fmt.Errorf("tokenMaker.CreateToken: %w", err)
+	}
+
+	return &dto.UserLoginResponse{
+		AccessToken: accessToken,
+		User:        user,
+	}, nil
 }
 
 func (u *UseCase) Logout(ctx context.Context) error {
