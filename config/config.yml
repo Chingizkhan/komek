@@ -13,13 +13,13 @@ postgres:
   user: "app"
   password: "secret"
   host: "localhost"
-  port: "5433"
+  port: "5435"
   name: "app"
   pool_max: 2
   ssl_mode: "disable"
 
 redis:
-  addr: "localhost:6380"
+  addr: "localhost:6381"
   password: "secret"
 
 locker:

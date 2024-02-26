@@ -1,7 +1,9 @@
 package app
 
 import (
+	"github.com/Chingizkhan/sso_client"
 	"github.com/go-chi/chi/v5"
+	"golang.org/x/oauth2"
 	"komek/config"
 	"komek/internal/controller/http/v1"
 	"komek/internal/repos/tx"
@@ -59,7 +61,23 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		os.Exit(1)
 	}
 
-	startCron()
+	sso := sso_client.New(sso_client.Config{
+		CookieSecret:   "secret",
+		CookieLifetime: 10 * time.Minute,
+		OauthAddr:      "http://localhost:8081",
+		Oauth2Config: oauth2.Config{
+			ClientID:     "38b36b9d-48a8-40fd-9911-ee4462428c58",
+			ClientSecret: "mysecret",
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "http://localhost:9010/oauth2/auth",
+				TokenURL: "http://localhost:9010/oauth2/token",
+			},
+			RedirectURL: "http://localhost:8082/callback",
+			Scopes:      []string{"offline", "users.write", "users.read", "users.edit", "users.delete"},
+		},
+	})
+
+	go startCron()
 
 	//for _, v := range []int{1, 2} {
 	//	v := v
@@ -93,6 +111,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		TokenMaker:        tokenMaker,
 		CookieSecret:      []byte(cfg.Cookie.Secret),
 		OauthServerClient: oauthServerClient,
+		Sso:               sso,
 	})
 	handler.Register(r, cfg.HTTP.Timeout)
 	httpServer := httpserver.New(

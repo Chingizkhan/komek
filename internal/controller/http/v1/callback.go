@@ -15,7 +15,7 @@ import (
 
 func (h *Handler) callback(secret []byte) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		var req = CallbackRequest{}
+		var req CallbackRequest
 		err := req.Validate(r)
 		if err != nil {
 			api_util.RenderErrorResponse(w, err.Error(), http.StatusBadRequest)

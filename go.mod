@@ -2,7 +2,12 @@ module komek
 
 go 1.21.1
 
+//replace (
+//	github.com/Chingizkhan/sso_client => ../sso_client/github.com/Chingizkhan/sso_client
+//)
+
 require (
+	github.com/Chingizkhan/sso_client v1.0.3
 	github.com/fatih/color v1.16.0
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/go-chi/cors v1.2.1
@@ -19,8 +24,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/mock v0.4.0
-	golang.org/x/crypto v0.18.0
-	golang.org/x/oauth2 v0.14.0
+	golang.org/x/crypto v0.19.0
+	golang.org/x/oauth2 v0.17.0
 )
 
 require (
@@ -45,8 +50,8 @@ require (
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
-	golang.org/x/net v0.20.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/net v0.21.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
