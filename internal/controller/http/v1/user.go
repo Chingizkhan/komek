@@ -2,7 +2,9 @@ package v1
 
 import (
 	"github.com/go-chi/chi/v5"
+	customMiddleware "komek/internal/controller/http/middleware"
 	"komek/internal/dto"
+	"komek/internal/service/token"
 	"komek/pkg/logger"
 	"net/http"
 )
@@ -11,6 +13,7 @@ func (h *Handler) userRoutes(r *chi.Mux) {
 	r.Route("/user", func(r chi.Router) {
 		// protected
 		r.Route("/", func(r chi.Router) {
+			r.Use(customMiddleware.Auth(h.tokenMaker))
 			// todo: use middleware with jwt auth
 			r.Delete("/delete", h.userDelete)
 			r.Put("/change-password", h.userChangePassword)
@@ -36,9 +39,22 @@ func (h *Handler) userRegister(w http.ResponseWriter, r *http.Request) {
 	h.Resp(w, "success", http.StatusOK)
 }
 
+func (h *Handler) payload(r *http.Request) *token.Payload {
+	return r.Context().Value(customMiddleware.AuthorizationPayloadKey).(*token.Payload)
+}
+
 func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request) {
 	req := dto.UserDeleteRequest{}
+
 	if err := req.ParseAndValidate(r); err != nil {
+		h.l.Error("userDelete - ParseAndValidate", logger.Err(err))
+		h.Err(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	payload := h.payload(r)
+	err := h.user.Delete(r.Context(), dto.UserDeleteRequest{ID: payload.UserID})
+	if err != nil {
 		h.l.Error("userDelete - ParseAndValidate", logger.Err(err))
 		h.Err(w, err.Error(), http.StatusBadRequest)
 		return

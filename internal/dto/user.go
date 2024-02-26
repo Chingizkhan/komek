@@ -47,6 +47,7 @@ type (
 	}
 
 	UserGetRequest struct {
+		ID uuid.UUID
 	}
 
 	UserFindRequest struct {

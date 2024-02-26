@@ -48,6 +48,14 @@ func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) err
 	return nil
 }
 
+func (u *UseCase) Get(ctx context.Context, req dto.UserGetRequest) (domain.User, error) {
+	user, err := u.r.Get(ctx, nil, req.ID)
+	if err != nil {
+		return domain.User{}, fmt.Errorf("get user: %w", err)
+	}
+	return user, nil
+}
+
 func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.UserLoginResponse, error) {
 	user, err := u.r.GetUserByLogin(ctx, nil, in.Login)
 	if err != nil {
