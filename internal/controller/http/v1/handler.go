@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/Chingizkhan/sso_client"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"komek/config"
@@ -19,6 +20,7 @@ type (
 		banking           Banking
 		cookieSecret      []byte
 		oauthServerClient OauthServerClient
+		sso               sso_client.Client
 	}
 
 	HandlerParams struct {
@@ -28,6 +30,7 @@ type (
 		Banking           Banking
 		CookieSecret      []byte
 		OauthServerClient OauthServerClient
+		Sso               sso_client.Client
 	}
 
 	OauthServerClient interface {
@@ -43,6 +46,7 @@ func NewHandler(p *HandlerParams) *Handler {
 		banking:           p.Banking,
 		cookieSecret:      p.CookieSecret,
 		oauthServerClient: p.OauthServerClient,
+		sso:               p.Sso,
 	}
 }
 
@@ -57,8 +61,9 @@ func (h *Handler) Register(r *chi.Mux, timeout time.Duration) {
 	h.userRoutes(r)
 	h.bankingRoutes(r)
 
-	r.With(customMiddleware.AuthOauth2(h.cookieSecret)).Get("/test", h.test)
-	r.With(customMiddleware.AuthClientCredentials()).Get("/test-cc", h.test)
+	//r.With(customMiddleware.AuthOauth2(h.cookieSecret)).Get("/test", h.test)
+	r.With(h.sso.AuthOauth2).Get("/test", h.test)
+	r.With(h.sso.AuthClientCredentials).Get("/test-cc", h.test)
 	r.Get("/callback", h.callback(h.cookieSecret))
 }
 
