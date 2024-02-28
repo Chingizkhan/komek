@@ -51,6 +51,9 @@ type (
 	}
 
 	UserFindRequest struct {
+		Name  string
+		Login string
+		Email domain.Email
 	}
 )
 

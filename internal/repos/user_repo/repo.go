@@ -30,10 +30,7 @@ func New(pg *postgres.Postgres) *Repository {
 }
 
 func (r *Repository) Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
-	qtx := r.q
-	if tx != nil {
-		qtx = r.q.WithTx(tx)
-	}
+	qtx := r.queries(tx)
 
 	u, err := qtx.GetUser(ctx, userID)
 	if err != nil {
@@ -56,10 +53,7 @@ func (r *Repository) Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (doma
 }
 
 func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string) (domain.User, error) {
-	qtx := r.q
-	if tx != nil {
-		qtx = r.q.WithTx(tx)
-	}
+	qtx := r.queries(tx)
 
 	u, err := qtx.GetUserByLogin(ctx, login)
 	if err != nil {
@@ -102,7 +96,7 @@ func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string
 //}
 
 func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) error {
-	qtx := r.q.WithTx(tx)
+	qtx := r.queries(tx)
 
 	_, err := qtx.SaveUser(ctx, user_db.SaveUserParams{
 		Login:        u.Login,
@@ -120,7 +114,7 @@ func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) error {
 }
 
 func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRequest) (domain.User, error) {
-	qtx := r.q.WithTx(tx)
+	qtx := r.queries(tx)
 
 	name := checkAndConvertToNullStr(req.Name)
 	login := checkAndConvertToNullStr(req.Login)
@@ -156,7 +150,7 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 }
 
 func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
-	qtx := r.q.WithTx(tx)
+	qtx := r.queries(tx)
 
 	_, err := qtx.RemoveUser(ctx, id)
 	if err != nil {
@@ -166,15 +160,12 @@ func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error 
 }
 
 func (r *Repository) Find(ctx context.Context, tx pgx.Tx, req dto.UserFindRequest) ([]domain.User, error) {
-	qtx := r.q
-	if tx != nil {
-		qtx = r.q.WithTx(tx)
-	}
+	qtx := r.queries(tx)
 
 	users, err := qtx.FindUsers(ctx, user_db.FindUsersParams{
-		Name:  "Jack",
-		Login: "jake_buffalo",
-		Email: "",
+		Name:  req.Name,
+		Login: req.Login,
+		Email: string(req.Email),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("qtx.FindUsers: %w", err)
@@ -214,4 +205,12 @@ func checkAndConvertToNullBool(value bool) (nullValue sql.NullBool) {
 		}
 	}
 	return
+}
+
+func (r *Repository) queries(tx pgx.Tx) *user_db.Queries {
+	qtx := r.q
+	if tx != nil {
+		qtx = r.q.WithTx(tx)
+	}
+	return qtx
 }
