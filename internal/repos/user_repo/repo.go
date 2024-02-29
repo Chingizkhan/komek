@@ -131,6 +131,7 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 	phone := checkAndConvertToNullStr(string(req.Phone))
 	emailVerified := checkAndConvertToNullBool(req.EmailVerified)
 	roles := checkAndConvertToNullStr(req.Roles.ConvString())
+	passwordHash := checkAndConvertToNullStr(req.PasswordHash)
 
 	u, err := qtx.UpdateUser(ctx, user_db.UpdateUserParams{
 		ID: pgtype.UUID{
@@ -138,6 +139,7 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 			Valid: true,
 		},
 		Name:          name,
+		PasswordHash:  passwordHash,
 		Login:         login,
 		Email:         email,
 		Phone:         phone,

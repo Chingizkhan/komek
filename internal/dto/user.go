@@ -24,8 +24,9 @@ type (
 	}
 
 	UserChangePasswordRequest struct {
-		ID       uuid.UUID `json:"id"`
-		Password string    `json:"password"`
+		ID          uuid.UUID       `json:"id"`
+		OldPassword domain.Password `json:"old_password"`
+		NewPassword domain.Password `json:"new_password"`
 	}
 
 	UserDeleteRequest struct {
@@ -33,10 +34,10 @@ type (
 	}
 
 	UserRegisterRequest struct {
-		Login    string       `json:"login"`
-		Phone    domain.Phone `json:"phone"`
-		Password string       `json:"password"`
-		Roles    domain.Roles `json:"roles"`
+		Login    string          `json:"login"`
+		Phone    domain.Phone    `json:"phone"`
+		Password domain.Password `json:"password"`
+		Roles    domain.Roles    `json:"roles"`
 	}
 
 	UserResponse struct {
@@ -86,6 +87,16 @@ func (req *UserUpdateRequest) ParseAndValidate(r *http.Request) error {
 }
 
 func (req *UserChangePasswordRequest) ParseAndValidate(r *http.Request) error {
+	err := json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		return fmt.Errorf("can not decode body: %w", err)
+	}
+	if req.OldPassword == req.NewPassword {
+		return errors.New("passwords are same")
+	}
+	if err = req.NewPassword.Validate(); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -109,8 +120,8 @@ func (req *UserRegisterRequest) ParseAndValidate(r *http.Request) error {
 		return errors.New("login too short: must be >= 6")
 	}
 	// todo: add validation for password (min:6, chars, digits)
-	if len(req.Password) < 6 {
-		return errors.New("password too short: must be >= 6")
+	if err = req.Password.Validate(); err != nil {
+		return err
 	}
 	return nil
 }

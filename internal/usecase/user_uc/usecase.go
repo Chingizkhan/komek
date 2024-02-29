@@ -2,11 +2,13 @@ package user_uc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"komek/internal/domain"
 	"komek/internal/dto"
 	"komek/internal/service/token"
+	"log"
 	"time"
 )
 
@@ -22,7 +24,7 @@ func New(r UserRepository, tr Transactional, hasher Hasher, tokenMaker token.Mak
 }
 
 func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) (domain.User, error) {
-	passHash, err := u.hasher.Hash(req.Password)
+	passHash, err := u.hasher.Hash(string(req.Password))
 	if err != nil {
 		return domain.User{}, fmt.Errorf("u.hasher.Hash - %w", err)
 	}
@@ -107,12 +109,23 @@ func (u *UseCase) Delete(ctx context.Context, req dto.UserDeleteRequest) error {
 }
 
 func (u *UseCase) ChangePassword(ctx context.Context, req dto.UserChangePasswordRequest) error {
-	passwordHash, err := u.hasher.Hash(req.Password)
+	user, err := u.r.Get(ctx, nil, req.ID)
+	if err != nil {
+		return fmt.Errorf("get user: %w", err)
+	}
+
+	match := u.hasher.CheckHash(string(req.OldPassword), user.PasswordHash)
+	log.Println("match:", match)
+	if !match {
+		return errors.New("wrong old password")
+	}
+
+	passwordHash, err := u.hasher.Hash(string(req.NewPassword))
 	if err != nil {
 		return fmt.Errorf("u.hasher.Hash - %w", err)
 	}
 
-	if err := u.tr.Exec(ctx, func(tx pgx.Tx) error {
+	if err = u.tr.Exec(ctx, func(tx pgx.Tx) error {
 		_, err = u.r.Update(ctx, tx, dto.UserUpdateRequest{
 			ID:           req.ID,
 			PasswordHash: passwordHash,

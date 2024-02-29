@@ -72,11 +72,23 @@ func (h *Handler) userChangePassword(w http.ResponseWriter, r *http.Request) {
 	req := dto.UserChangePasswordRequest{}
 	if err := req.ParseAndValidate(r); err != nil {
 		h.l.Error("userChangePassword - ParseAndValidate", logger.Err(err))
-		h.Err(w, err.Error(), http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.Resp(w, "success", http.StatusOK)
+	payload := h.payload(r)
+	req.ID = payload.UserID
+
+	err := h.user.ChangePassword(r.Context(), req)
+	if err != nil {
+		h.l.Error("userChangePassword - user.ChangePassword", logger.Err(err))
+		h.Error(w, err, http.StatusConflict)
+		return
+	}
+
+	h.Resp(w, map[string]any{
+		"status": "success",
+	}, http.StatusOK)
 }
 
 func (h *Handler) userUpdate(w http.ResponseWriter, r *http.Request) {
