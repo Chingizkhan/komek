@@ -18,7 +18,7 @@ func (h *Handler) userRoutes(r *chi.Mux) {
 			r.Put("/change-password", h.userChangePassword)
 			r.Put("/update", h.userUpdate)
 			r.Post("/logout", h.userLogout)
-			r.Get("/{:id}", h.userGet)
+			r.Get("/{id}", h.userGet)
 			r.Get("/find", h.usersFind)
 		})
 		// public
@@ -128,14 +128,30 @@ func (h *Handler) userLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) userGet(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserRegisterRequest{}
+	req := dto.UserGetRequest{}
 	if err := req.ParseAndValidate(r); err != nil {
-		h.l.Error("userRegister - ParseAndValidate", logger.Err(err))
-		h.Err(w, err.Error(), http.StatusBadRequest)
+		h.l.Error("userGet - ParseAndValidate", logger.Err(err))
+		h.Error(w, err, http.StatusBadRequest)
 		return
 	}
 
-	h.Resp(w, "success", http.StatusOK)
+	user, err := h.user.Get(r.Context(), req)
+	if err != nil {
+		h.l.Error("userGet - h.user.Get", logger.Err(err))
+		h.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	h.Resp(w, dto.UserResponse{
+		ID:            user.ID,
+		Name:          user.Name,
+		Login:         user.Login,
+		Email:         user.Email,
+		EmailVerified: user.EmailVerified,
+		Roles:         user.Roles,
+		CreatedAt:     user.CreatedAt,
+		UpdatedAt:     user.UpdatedAt,
+	}, http.StatusOK)
 }
 
 func (h *Handler) usersFind(w http.ResponseWriter, r *http.Request) {

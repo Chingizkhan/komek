@@ -45,17 +45,7 @@ func (r *Repository) Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (doma
 		}
 		return domain.User{}, fmt.Errorf("r.q.GetUser :%w", err)
 	}
-	return domain.User{
-		ID:            u.ID.Bytes,
-		Name:          u.Name.String,
-		Phone:         domain.Phone(u.Phone.String),
-		Login:         u.Login,
-		EmailVerified: u.EmailVerified.Bool,
-		PasswordHash:  u.PasswordHash,
-		Email:         domain.Email(u.Email.String),
-		CreatedAt:     u.CreatedAt.Time,
-		UpdatedAt:     u.UpdatedAt.Time,
-	}, nil
+	return mapper.ConvUserToDomain(u), nil
 }
 
 func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string) (domain.User, error) {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"komek/internal/domain"
 	"net/http"
@@ -119,6 +120,12 @@ func (req *UserLogoutRequest) ParseAndValidate(r *http.Request) error {
 }
 
 func (req *UserGetRequest) ParseAndValidate(r *http.Request) error {
+	userID := chi.URLParam(r, "id")
+	id, err := uuid.Parse(userID)
+	if err != nil {
+		return errors.New("invalid_user_id")
+	}
+	req.ID = id
 	return nil
 }
 
