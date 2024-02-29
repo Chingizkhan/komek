@@ -129,8 +129,8 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 	login := checkAndConvertToNullStr(req.Login)
 	email := checkAndConvertToNullStr(string(req.Email))
 	phone := checkAndConvertToNullStr(string(req.Phone))
-	passwordHash := checkAndConvertToNullStr(req.PasswordHash)
 	emailVerified := checkAndConvertToNullBool(req.EmailVerified)
+	roles := checkAndConvertToNullStr(req.Roles.ConvString())
 
 	u, err := qtx.UpdateUser(ctx, user_db.UpdateUserParams{
 		ID: pgtype.UUID{
@@ -141,11 +141,11 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 		Login:         login,
 		Email:         email,
 		Phone:         phone,
-		PasswordHash:  passwordHash,
+		Roles:         roles,
 		EmailVerified: emailVerified,
 	})
 	if err != nil {
-		return domain.User{}, fmt.Errorf("r.q.UpdateName: %w", err)
+		return domain.User{}, fmt.Errorf("r.q.UpdateUser: %w", err)
 	}
 	return domain.User{
 		ID:            u.ID.Bytes,
@@ -212,10 +212,10 @@ func checkAndConvertToNullStr(value string) (nullValue pgtype.Text) {
 	return
 }
 
-func checkAndConvertToNullBool(value bool) (nullValue pgtype.Bool) {
-	if value {
+func checkAndConvertToNullBool(value *bool) (nullValue pgtype.Bool) {
+	if value != nil {
 		nullValue = pgtype.Bool{
-			Bool:  value,
+			Bool:  *value,
 			Valid: true,
 		}
 	}

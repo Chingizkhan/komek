@@ -36,10 +36,10 @@ func (rs Roles) ConvString() string {
 }
 
 func (rs Roles) Allowed() bool {
-	var allowed bool
+	var allowed = true
 	for _, r := range rs {
-		if roles.Contains(r) {
-			allowed = true
+		if !roles.Contains(r) {
+			allowed = false
 		}
 	}
 	return allowed

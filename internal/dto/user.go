@@ -7,35 +7,37 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"komek/internal/domain"
+	"log"
 	"net/http"
 	"time"
 )
 
 type (
 	UserUpdateRequest struct {
-		ID            uuid.UUID
-		Name          string
-		Login         string
-		Email         domain.Email
-		EmailVerified bool
-		Phone         domain.Phone
-		PasswordHash  string
+		ID            uuid.UUID    `json:"id"`
+		Name          string       `json:"name"`
+		Login         string       `json:"login"`
+		Email         domain.Email `json:"email"`
+		EmailVerified *bool        `json:"email_verified"`
+		Phone         domain.Phone `json:"phone"`
+		PasswordHash  string       `json:"password_hash"`
+		Roles         domain.Roles `json:"roles"`
 	}
 
 	UserChangePasswordRequest struct {
-		ID       uuid.UUID
-		Password string
+		ID       uuid.UUID `json:"id"`
+		Password string    `json:"password"`
 	}
 
 	UserDeleteRequest struct {
-		ID uuid.UUID
+		ID uuid.UUID `json:"id"`
 	}
 
 	UserRegisterRequest struct {
-		Login    string
-		Phone    domain.Phone
-		Password string
-		Roles    domain.Roles
+		Login    string       `json:"login"`
+		Phone    domain.Phone `json:"phone"`
+		Password string       `json:"password"`
+		Roles    domain.Roles `json:"roles"`
 	}
 
 	UserResponse struct {
@@ -50,8 +52,8 @@ type (
 	}
 
 	UserLoginRequest struct {
-		Login    string
-		Password string
+		Login    string `json:"login"`
+		Password string `json:"password"`
 	}
 
 	UserLoginResponse struct {
@@ -67,13 +69,21 @@ type (
 	}
 
 	UserFindRequest struct {
-		Name  string
-		Login string
-		Email domain.Email
+		Name  string       `json:"name"`
+		Login string       `json:"login"`
+		Email domain.Email `json:"email"`
 	}
 )
 
 func (req *UserUpdateRequest) ParseAndValidate(r *http.Request) error {
+	err := json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		return fmt.Errorf("can not decode body: %w", err)
+	}
+	if !req.Roles.Allowed() {
+		return errors.New("role not allowed")
+	}
+	log.Println(req.Roles.Allowed())
 	return nil
 }
 

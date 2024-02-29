@@ -12,7 +12,7 @@ type (
 		Get(ctx context.Context, req dto.UserGetRequest) (domain.User, error)
 		Delete(ctx context.Context, req dto.UserDeleteRequest) error
 		ChangePassword(ctx context.Context, req dto.UserChangePasswordRequest) error
-		Update(ctx context.Context, req dto.UserUpdateRequest) error
+		Update(ctx context.Context, req dto.UserUpdateRequest) (domain.User, error)
 		Login(ctx context.Context, in dto.UserLoginRequest) (*dto.UserLoginResponse, error)
 		Logout(ctx context.Context) error
 	}

@@ -3,6 +3,7 @@ package mapper
 import (
 	"komek/db/sqlc"
 	"komek/internal/domain"
+	"komek/internal/dto"
 	"strings"
 )
 
@@ -25,5 +26,18 @@ func ConvUserToDomain(user sqlc.User) domain.User {
 		Roles:         resRoles,
 		CreatedAt:     user.CreatedAt.Time,
 		UpdatedAt:     user.UpdatedAt.Time,
+	}
+}
+
+func ConvUserResponse(user domain.User) dto.UserResponse {
+	return dto.UserResponse{
+		ID:            user.ID,
+		Name:          user.Name,
+		Login:         user.Login,
+		Email:         user.Email,
+		EmailVerified: user.EmailVerified,
+		Roles:         user.Roles,
+		CreatedAt:     user.CreatedAt,
+		UpdatedAt:     user.UpdatedAt,
 	}
 }

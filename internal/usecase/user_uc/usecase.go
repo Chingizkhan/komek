@@ -68,7 +68,7 @@ func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.User
 	}
 
 	// get access token
-	accessToken, err := u.tokenMaker.CreateToken(user.ID, time.Minute*1)
+	accessToken, err := u.tokenMaker.CreateToken(user.ID, time.Minute*15)
 	if err != nil {
 		return nil, fmt.Errorf("tokenMaker.CreateToken: %w", err)
 	}
@@ -127,15 +127,19 @@ func (u *UseCase) ChangePassword(ctx context.Context, req dto.UserChangePassword
 	return nil
 }
 
-func (u *UseCase) Update(ctx context.Context, req dto.UserUpdateRequest) error {
-	if err := u.tr.Exec(ctx, func(tx pgx.Tx) error {
-		_, err := u.r.Update(ctx, tx, req)
+func (u *UseCase) Update(ctx context.Context, req dto.UserUpdateRequest) (domain.User, error) {
+	var (
+		user domain.User
+		err  error
+	)
+	if err = u.tr.Exec(ctx, func(tx pgx.Tx) error {
+		user, err = u.r.Update(ctx, tx, req)
 		if err != nil {
 			return fmt.Errorf("u.r.Update - %w", err)
 		}
 		return nil
 	}); err != nil {
-		return fmt.Errorf("tr.Exec: %w", err)
+		return domain.User{}, fmt.Errorf("tr.Exec: %w", err)
 	}
-	return nil
+	return user, nil
 }
