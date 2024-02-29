@@ -7,7 +7,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"komek/internal/domain"
-	"log"
 	"net/http"
 	"time"
 )
@@ -83,7 +82,6 @@ func (req *UserUpdateRequest) ParseAndValidate(r *http.Request) error {
 	if !req.Roles.Allowed() {
 		return errors.New("role not allowed")
 	}
-	log.Println(req.Roles.Allowed())
 	return nil
 }
 
