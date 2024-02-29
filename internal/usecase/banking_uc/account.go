@@ -41,7 +41,7 @@ func (s *Service) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (do
 		Owner:     acc.Owner,
 		Balance:   acc.Balance,
 		Currency:  acc.Currency,
-		CreatedAt: acc.CreatedAt,
+		CreatedAt: acc.CreatedAt.Time,
 	}, nil
 }
 
@@ -67,6 +67,6 @@ func (s *Service) GetAccount(ctx context.Context, in dto.GetAccountIn) (domain.A
 		Owner:     acc.Owner,
 		Balance:   acc.Balance,
 		Currency:  acc.Currency,
-		CreatedAt: acc.CreatedAt,
+		CreatedAt: acc.CreatedAt.Time,
 	}, nil
 }

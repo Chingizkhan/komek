@@ -8,7 +8,7 @@ import (
 
 type (
 	User interface {
-		Register(ctx context.Context, req dto.UserRegisterRequest) error
+		Register(ctx context.Context, req dto.UserRegisterRequest) (domain.User, error)
 		Get(ctx context.Context, req dto.UserGetRequest) (domain.User, error)
 		Delete(ctx context.Context, req dto.UserDeleteRequest) error
 		ChangePassword(ctx context.Context, req dto.UserChangePasswordRequest) error

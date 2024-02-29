@@ -11,7 +11,7 @@ func ConvTransferToDomain(transfer sqlc.Transfer) domain.Transfer {
 		FromAccountID: transfer.FromAccountID,
 		ToAccountID:   transfer.ToAccountID,
 		Amount:        transfer.Amount,
-		CreatedAt:     transfer.CreatedAt,
+		CreatedAt:     transfer.CreatedAt.Time,
 	}
 }
 
@@ -20,7 +20,7 @@ func ConvEntryToDomain(entry sqlc.Entry) domain.Entry {
 		ID:        entry.ID,
 		AccountID: entry.AccountID,
 		Amount:    entry.Amount,
-		CreatedAt: entry.CreatedAt,
+		CreatedAt: entry.CreatedAt.Time,
 	}
 }
 
@@ -30,6 +30,6 @@ func ConvAccountToDomain(acc sqlc.Account) domain.Account {
 		Owner:     acc.Owner,
 		Balance:   acc.Balance,
 		Currency:  acc.Currency,
-		CreatedAt: acc.CreatedAt,
+		CreatedAt: acc.CreatedAt.Time,
 	}
 }

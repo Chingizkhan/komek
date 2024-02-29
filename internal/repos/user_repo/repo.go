@@ -2,15 +2,18 @@ package user_repo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	user_db "komek/db/sqlc"
 	"komek/internal/domain"
 	"komek/internal/dto"
+	"komek/internal/mapper"
 	"komek/pkg/postgres"
 	"log"
 	"strings"
@@ -32,7 +35,10 @@ func New(pg *postgres.Postgres) *Repository {
 func (r *Repository) Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	u, err := qtx.GetUser(ctx, userID)
+	u, err := qtx.GetUser(ctx, pgtype.UUID{
+		Bytes: userID,
+		Valid: true,
+	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
@@ -40,15 +46,15 @@ func (r *Repository) Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (doma
 		return domain.User{}, fmt.Errorf("r.q.GetUser :%w", err)
 	}
 	return domain.User{
-		ID:            u.ID,
+		ID:            u.ID.Bytes,
 		Name:          u.Name.String,
 		Phone:         domain.Phone(u.Phone.String),
 		Login:         u.Login,
 		EmailVerified: u.EmailVerified.Bool,
 		PasswordHash:  u.PasswordHash,
 		Email:         domain.Email(u.Email.String),
-		CreatedAt:     u.CreatedAt,
-		UpdatedAt:     u.UpdatedAt,
+		CreatedAt:     u.CreatedAt.Time,
+		UpdatedAt:     u.UpdatedAt.Time,
 	}, nil
 }
 
@@ -63,15 +69,15 @@ func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string
 		return domain.User{}, fmt.Errorf("r.q.GetUserByLogin :%w", err)
 	}
 	return domain.User{
-		ID:            u.ID,
+		ID:            u.ID.Bytes,
 		Name:          u.Name.String,
 		Phone:         domain.Phone(u.Phone.String),
 		Login:         u.Login,
 		EmailVerified: u.EmailVerified.Bool,
 		PasswordHash:  u.PasswordHash,
 		Email:         domain.Email(u.Email.String),
-		CreatedAt:     u.CreatedAt,
-		UpdatedAt:     u.UpdatedAt,
+		CreatedAt:     u.CreatedAt.Time,
+		UpdatedAt:     u.UpdatedAt.Time,
 	}, nil
 }
 
@@ -95,22 +101,35 @@ func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string
 //	}, nil
 //}
 
-func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) error {
+func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	_, err := qtx.SaveUser(ctx, user_db.SaveUserParams{
+	user, err := qtx.SaveUser(ctx, user_db.SaveUserParams{
 		Login:        u.Login,
 		PasswordHash: u.PasswordHash,
 		Roles:        u.Roles.ConvString(),
 	})
 	if err != nil {
-		return fmt.Errorf("qtx.SaveUser: %w", err)
+		var e *pgconn.PgError
+		if errors.As(err, &e) {
+			log.Println("code", e.Code)
+		}
+		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
+			return domain.User{}, errors.New("user_already_exists")
+		}
+		//if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation && e.ConstraintName == fkWalletID {
+		//	return entity.LimitsPerDay{}, errcode.New("wallet_not_exist").WithErr(err)
+		//}
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
+		return domain.User{}, fmt.Errorf("qtx.SaveUser: %w", err)
 	}
 
 	if err != nil {
-		return fmt.Errorf("transactional.Commit: %w", err)
+		return domain.User{}, fmt.Errorf("transactional.Commit: %w", err)
 	}
-	return nil
+	return mapper.ConvUserToDomain(user), nil
 }
 
 func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRequest) (domain.User, error) {
@@ -124,7 +143,10 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 	emailVerified := checkAndConvertToNullBool(req.EmailVerified)
 
 	u, err := qtx.UpdateUser(ctx, user_db.UpdateUserParams{
-		ID:            req.ID,
+		ID: pgtype.UUID{
+			Bytes: req.ID,
+			Valid: true,
+		},
 		Name:          name,
 		Login:         login,
 		Email:         email,
@@ -136,7 +158,7 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 		return domain.User{}, fmt.Errorf("r.q.UpdateName: %w", err)
 	}
 	return domain.User{
-		ID:            u.ID,
+		ID:            u.ID.Bytes,
 		Name:          u.Name.String,
 		Phone:         domain.Phone(u.Phone.String),
 		Login:         u.Login,
@@ -144,15 +166,18 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 		EmailVerified: u.EmailVerified.Bool,
 		PasswordHash:  u.PasswordHash,
 		Roles:         convertRolesToDomain(u.Roles),
-		CreatedAt:     u.CreatedAt,
-		UpdatedAt:     u.UpdatedAt,
+		CreatedAt:     u.CreatedAt.Time,
+		UpdatedAt:     u.UpdatedAt.Time,
 	}, nil
 }
 
 func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
 	qtx := r.queries(tx)
 
-	_, err := qtx.RemoveUser(ctx, id)
+	_, err := qtx.RemoveUser(ctx, pgtype.UUID{
+		Bytes: id,
+		Valid: true,
+	})
 	if err != nil {
 		return fmt.Errorf("qtx.RemoveUser: %w", err)
 	}
@@ -187,9 +212,9 @@ func convertRolesToDomain(rolesStr string) domain.Roles {
 	return roles
 }
 
-func checkAndConvertToNullStr(value string) (nullValue sql.NullString) {
+func checkAndConvertToNullStr(value string) (nullValue pgtype.Text) {
 	if value != "" {
-		nullValue = sql.NullString{
+		nullValue = pgtype.Text{
 			String: value,
 			Valid:  true,
 		}
@@ -197,9 +222,9 @@ func checkAndConvertToNullStr(value string) (nullValue sql.NullString) {
 	return
 }
 
-func checkAndConvertToNullBool(value bool) (nullValue sql.NullBool) {
+func checkAndConvertToNullBool(value bool) (nullValue pgtype.Bool) {
 	if value {
-		nullValue = sql.NullBool{
+		nullValue = pgtype.Bool{
 			Bool:  value,
 			Valid: true,
 		}

@@ -5,34 +5,31 @@
 package sqlc
 
 import (
-	"database/sql"
-	"time"
-
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Account struct {
-	ID        int64     `json:"id"`
-	Owner     string    `json:"owner"`
-	Balance   int64     `json:"balance"`
-	Currency  string    `json:"currency"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int64              `json:"id"`
+	Owner     string             `json:"owner"`
+	Balance   int64              `json:"balance"`
+	Currency  string             `json:"currency"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Entry struct {
 	ID        int64 `json:"id"`
 	AccountID int64 `json:"account_id"`
 	// can be negative or positive
-	Amount    int64     `json:"amount"`
-	CreatedAt time.Time `json:"created_at"`
+	Amount    int64              `json:"amount"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Organisation struct {
-	ID        uuid.UUID    `json:"id"`
-	Name      string       `json:"name"`
-	Bin       string       `json:"bin"`
-	CreatedAt sql.NullTime `json:"created_at"`
-	UpdatedAt sql.NullTime `json:"updated_at"`
+	ID        pgtype.UUID      `json:"id"`
+	Name      string           `json:"name"`
+	Bin       string           `json:"bin"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
 
 type Transfer struct {
@@ -40,20 +37,20 @@ type Transfer struct {
 	FromAccountID int64 `json:"from_account_id"`
 	ToAccountID   int64 `json:"to_account_id"`
 	// must be positive
-	Amount    int64     `json:"amount"`
-	CreatedAt time.Time `json:"created_at"`
+	Amount    int64              `json:"amount"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type User struct {
-	ID                uuid.UUID      `json:"id"`
-	Name              sql.NullString `json:"name"`
-	Login             string         `json:"login"`
-	Email             sql.NullString `json:"email"`
-	EmailVerified     sql.NullBool   `json:"email_verified"`
-	PasswordHash      string         `json:"password_hash"`
-	Phone             sql.NullString `json:"phone"`
-	Roles             string         `json:"roles"`
-	PasswordChangedAt time.Time      `json:"password_changed_at"`
-	CreatedAt         time.Time      `json:"created_at"`
-	UpdatedAt         time.Time      `json:"updated_at"`
+	ID                pgtype.UUID        `json:"id"`
+	Name              pgtype.Text        `json:"name"`
+	Login             string             `json:"login"`
+	Email             pgtype.Text        `json:"email"`
+	EmailVerified     pgtype.Bool        `json:"email_verified"`
+	PasswordHash      string             `json:"password_hash"`
+	Phone             pgtype.Text        `json:"phone"`
+	Roles             string             `json:"roles"`
+	PasswordChangedAt pgtype.Timestamptz `json:"password_changed_at"`
+	CreatedAt         pgtype.Timestamp   `json:"created_at"`
+	UpdatedAt         pgtype.Timestamp   `json:"updated_at"`
 }

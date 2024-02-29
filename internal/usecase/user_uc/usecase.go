@@ -3,7 +3,7 @@ package user_uc
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 	"komek/internal/domain"
 	"komek/internal/dto"
 	"komek/internal/service/token"
@@ -21,10 +21,10 @@ func New(r UserRepository, tr Transactional, hasher Hasher, tokenMaker token.Mak
 	return &UseCase{r, tr, hasher, tokenMaker}
 }
 
-func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) error {
+func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) (domain.User, error) {
 	passHash, err := u.hasher.Hash(req.Password)
 	if err != nil {
-		return fmt.Errorf("u.hasher.Hash - %w", err)
+		return domain.User{}, fmt.Errorf("u.hasher.Hash - %w", err)
 	}
 
 	user := domain.User{
@@ -36,16 +36,16 @@ func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) err
 
 	err = u.tr.Exec(ctx, func(tx pgx.Tx) error {
 
-		if err = u.r.Save(ctx, tx, user); err != nil {
+		if user, err = u.r.Save(ctx, tx, user); err != nil {
 			return fmt.Errorf("u.r.Save - %w", err)
 		}
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("tr.Exec: %w", err)
+		return domain.User{}, fmt.Errorf("tr.Exec: %w", err)
 	}
 
-	return nil
+	return user, nil
 }
 
 func (u *UseCase) Get(ctx context.Context, req dto.UserGetRequest) (domain.User, error) {
@@ -75,7 +75,16 @@ func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.User
 
 	return &dto.UserLoginResponse{
 		AccessToken: accessToken,
-		User:        user,
+		User: dto.UserResponse{
+			ID:            user.ID,
+			Name:          user.Name,
+			Login:         user.Login,
+			Email:         user.Email,
+			EmailVerified: user.EmailVerified,
+			Roles:         user.Roles,
+			CreatedAt:     user.CreatedAt,
+			UpdatedAt:     user.UpdatedAt,
+		},
 	}, nil
 }
 

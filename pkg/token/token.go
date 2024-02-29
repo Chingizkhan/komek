@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	TypeBearer       = "Bearer"
+	TypeBearer       = "bearer"
 	authorizationKey = "Authorization"
 
 	AccessToken  = "Access-Token"
