@@ -27,7 +27,7 @@ func ConvEntryToDomain(entry sqlc.Entry) domain.Entry {
 func ConvAccountToDomain(acc sqlc.Account) domain.Account {
 	return domain.Account{
 		ID:        acc.ID,
-		Owner:     acc.Owner,
+		Owner:     acc.Owner.Bytes,
 		Balance:   acc.Balance,
 		Currency:  acc.Currency,
 		CreatedAt: acc.CreatedAt.Time,

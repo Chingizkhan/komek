@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/go-chi/chi/v5"
+	customMiddleware "komek/internal/controller/http/middleware"
 	"komek/internal/dto"
 	"komek/pkg/logger"
 	"net/http"
@@ -10,7 +11,8 @@ import (
 func (h *Handler) bankingRoutes(r *chi.Mux) {
 	r.Route("/", func(r chi.Router) {
 		// protected
-		// todo: use middleware with jwt auth
+		r.Use(customMiddleware.Auth(h.tokenMaker))
+
 		r.Post("/account/create", h.accountCreate)
 		r.Get("/account/{:id}", h.accountGet)
 		r.Post("/operation/transfer", h.operationTransfer)
@@ -25,6 +27,8 @@ func (h *Handler) accountCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	payload := h.payload(r)
+	req.Owner = payload.UserID
 	account, err := h.banking.CreateAccount(r.Context(), req)
 	if err != nil {
 		h.l.Error("accountCreate - banking.CreateAccount", logger.Err(err))

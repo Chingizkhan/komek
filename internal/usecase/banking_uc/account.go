@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/lib/pq"
 	"komek/db/sqlc"
 	"komek/internal/domain"
@@ -19,7 +20,10 @@ func (s *Service) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (do
 
 	err = s.tx.Exec(ctx, func(q *sqlc.Queries) error {
 		acc, err = q.CreateAccount(ctx, sqlc.CreateAccountParams{
-			Owner:    in.Owner,
+			Owner: pgtype.UUID{
+				Bytes: in.Owner,
+				Valid: true,
+			},
 			Balance:  in.Balance,
 			Currency: in.Currency,
 		})
@@ -38,7 +42,7 @@ func (s *Service) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (do
 
 	return domain.Account{
 		ID:        acc.ID,
-		Owner:     acc.Owner,
+		Owner:     acc.Owner.Bytes,
 		Balance:   acc.Balance,
 		Currency:  acc.Currency,
 		CreatedAt: acc.CreatedAt.Time,
@@ -64,7 +68,7 @@ func (s *Service) GetAccount(ctx context.Context, in dto.GetAccountIn) (domain.A
 
 	return domain.Account{
 		ID:        acc.ID,
-		Owner:     acc.Owner,
+		Owner:     acc.Owner.Bytes,
 		Balance:   acc.Balance,
 		Currency:  acc.Currency,
 		CreatedAt: acc.CreatedAt.Time,

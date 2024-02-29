@@ -80,6 +80,7 @@ func (req *UserUpdateRequest) ParseAndValidate(r *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("can not decode body: %w", err)
 	}
+	defer r.Body.Close()
 	if !req.Roles.Allowed() {
 		return errors.New("role not allowed")
 	}
@@ -91,6 +92,7 @@ func (req *UserChangePasswordRequest) ParseAndValidate(r *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("can not decode body: %w", err)
 	}
+	defer r.Body.Close()
 	if req.OldPassword == req.NewPassword {
 		return errors.New("passwords are same")
 	}
@@ -109,6 +111,7 @@ func (req *UserRegisterRequest) ParseAndValidate(r *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("can not decode body: %w", err)
 	}
+	defer r.Body.Close()
 	if len(req.Phone) != 11 {
 		return errors.New("invalid phone length")
 	}

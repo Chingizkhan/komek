@@ -10,7 +10,7 @@ import (
 
 type Account struct {
 	ID        int64              `json:"id"`
-	Owner     string             `json:"owner"`
+	Owner     pgtype.UUID        `json:"owner"`
 	Balance   int64              `json:"balance"`
 	Currency  string             `json:"currency"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
