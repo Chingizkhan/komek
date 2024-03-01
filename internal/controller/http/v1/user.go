@@ -99,6 +99,8 @@ func (h *Handler) userUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	payload := h.payload(r)
+	req.ID = payload.UserID
 	user, err := h.user.Update(r.Context(), req)
 	if err != nil {
 		h.l.Error("userUpdate - h.user.Update", logger.Err(err))
