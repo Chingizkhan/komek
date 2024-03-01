@@ -43,6 +43,7 @@ type (
 	UserResponse struct {
 		ID            uuid.UUID    `json:"id"`
 		Name          string       `json:"name"`
+		Phone         domain.Phone `json:"phone"`
 		Login         string       `json:"login"`
 		Email         domain.Email `json:"email"`
 		EmailVerified bool         `json:"email_verified"`

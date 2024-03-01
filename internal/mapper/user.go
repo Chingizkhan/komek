@@ -34,6 +34,7 @@ func ConvUserResponse(user domain.User) dto.UserResponse {
 		ID:            user.ID,
 		Name:          user.Name,
 		Login:         user.Login,
+		Phone:         user.Phone,
 		Email:         user.Email,
 		EmailVerified: user.EmailVerified,
 		Roles:         user.Roles,

@@ -94,15 +94,18 @@ func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string
 func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) (domain.User, error) {
 	qtx := r.queries(tx)
 
+	phone := checkAndConvertToNullStr(string(u.Phone))
+
 	user, err := qtx.SaveUser(ctx, user_db.SaveUserParams{
 		Login:        u.Login,
+		Phone:        phone,
 		PasswordHash: u.PasswordHash,
 		Roles:        u.Roles.ConvString(),
 	})
 	if err != nil {
 		var e *pgconn.PgError
 		if errors.As(err, &e) {
-			log.Println("code", e.Code)
+			log.Println("code", e.ConstraintName)
 		}
 		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
 			return domain.User{}, errors.New("user_already_exists")
