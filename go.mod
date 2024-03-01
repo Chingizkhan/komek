@@ -7,7 +7,7 @@ go 1.21.1
 //)
 
 require (
-	github.com/Chingizkhan/sso_client v1.0.3
+	github.com/Chingizkhan/sso_client v1.0.8
 	github.com/fatih/color v1.16.0
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/go-chi/cors v1.2.1

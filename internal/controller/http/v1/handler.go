@@ -61,10 +61,9 @@ func (h *Handler) Register(r *chi.Mux, timeout time.Duration) {
 	h.userRoutes(r)
 	h.bankingRoutes(r)
 
-	//r.With(customMiddleware.AuthOauth2(h.cookieSecret)).Get("/test", h.test)
 	r.With(h.sso.AuthOauth2).Get("/test", h.test)
 	r.With(h.sso.AuthClientCredentials).Get("/test-cc", h.test)
-	r.Get("/callback", h.callback(h.cookieSecret))
+	r.Get("/callback", h.callback)
 }
 
 func (h *Handler) test(w http.ResponseWriter, r *http.Request) {

@@ -66,14 +66,14 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		CookieLifetime: 10 * time.Minute,
 		OauthAddr:      "http://localhost:8081",
 		Oauth2Config: oauth2.Config{
-			ClientID:     "38b36b9d-48a8-40fd-9911-ee4462428c58",
+			ClientID:     "7b51fdc9-23b9-40d0-bce8-f887f1bb8dcb",
 			ClientSecret: "mysecret",
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "http://localhost:9010/oauth2/auth",
 				TokenURL: "http://localhost:9010/oauth2/token",
 			},
-			RedirectURL: "http://localhost:8082/callback",
-			Scopes:      []string{"offline", "users.write", "users.read", "users.edit", "users.delete"},
+			RedirectURL: "http://localhost:8888/callback",
+			Scopes:      []string{"offline"},
 		},
 	})
 
