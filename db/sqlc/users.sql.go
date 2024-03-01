@@ -7,9 +7,8 @@ package sqlc
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const findUsers = `-- name: FindUsers :many
@@ -66,7 +65,7 @@ SELECT id, name, login, email, email_verified, password_hash, phone, roles, pass
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
+func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, getUser, id)
 	var i User
 	err := row.Scan(
@@ -152,7 +151,7 @@ WHERE id = $1
 RETURNING id
 `
 
-func (q *Queries) RemoveUser(ctx context.Context, id uuid.UUID) (uuid.UUID, error) {
+func (q *Queries) RemoveUser(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
 	row := q.db.QueryRow(ctx, removeUser, id)
 	err := row.Scan(&id)
 	return id, err
@@ -167,12 +166,12 @@ INSERT INTO users(
 `
 
 type SaveUserParams struct {
-	Name         sql.NullString `json:"name"`
-	Login        string         `json:"login"`
-	Email        sql.NullString `json:"email"`
-	PasswordHash string         `json:"password_hash"`
-	Phone        sql.NullString `json:"phone"`
-	Roles        string         `json:"roles"`
+	Name         pgtype.Text `json:"name"`
+	Login        string      `json:"login"`
+	Email        pgtype.Text `json:"email"`
+	PasswordHash string      `json:"password_hash"`
+	Phone        pgtype.Text `json:"phone"`
+	Roles        string      `json:"roles"`
 }
 
 func (q *Queries) SaveUser(ctx context.Context, arg SaveUserParams) (User, error) {
@@ -217,15 +216,15 @@ RETURNING id, name, login, email, email_verified, password_hash, phone, roles, p
 `
 
 type UpdateUserParams struct {
-	Name              sql.NullString `json:"name"`
-	Login             sql.NullString `json:"login"`
-	Email             sql.NullString `json:"email"`
-	EmailVerified     sql.NullBool   `json:"email_verified"`
-	PasswordHash      sql.NullString `json:"password_hash"`
-	Phone             sql.NullString `json:"phone"`
-	Roles             sql.NullString `json:"roles"`
-	PasswordChangedAt sql.NullTime   `json:"password_changed_at"`
-	ID                uuid.UUID      `json:"id"`
+	Name              pgtype.Text        `json:"name"`
+	Login             pgtype.Text        `json:"login"`
+	Email             pgtype.Text        `json:"email"`
+	EmailVerified     pgtype.Bool        `json:"email_verified"`
+	PasswordHash      pgtype.Text        `json:"password_hash"`
+	Phone             pgtype.Text        `json:"phone"`
+	Roles             pgtype.Text        `json:"roles"`
+	PasswordChangedAt pgtype.Timestamptz `json:"password_changed_at"`
+	ID                pgtype.UUID        `json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {

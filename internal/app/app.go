@@ -108,6 +108,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		Cfg:               cfg,
 		User:              userUC,
 		Banking:           bankingUC,
+		TokenMaker:        tokenMaker,
 		CookieSecret:      []byte(cfg.Cookie.Secret),
 		OauthServerClient: oauthServerClient,
 		Sso:               sso,

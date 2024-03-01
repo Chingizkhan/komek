@@ -11,6 +11,8 @@ const (
 	RoleManager Role = "manager"
 )
 
+var roles = Roles{RoleUser, RoleAdmin, RoleManager}
+
 func (r Role) IsUser() bool {
 	return r == RoleUser
 }
@@ -23,12 +25,32 @@ func (r Role) IsManager() bool {
 	return r == RoleManager
 }
 
-func (roles Roles) ConvString() string {
-	rolesStr := make([]string, 0, len(roles))
+func (rs Roles) ConvString() string {
+	rolesStr := make([]string, 0, len(rs))
 
-	for _, r := range roles {
+	for _, r := range rs {
 		rolesStr = append(rolesStr, string(r))
 	}
 
 	return strings.Join(rolesStr, ",")
+}
+
+func (rs Roles) Allowed() bool {
+	var allowed = true
+	for _, r := range rs {
+		if !roles.Contains(r) {
+			allowed = false
+		}
+	}
+	return allowed
+}
+
+func (rs Roles) Contains(role Role) bool {
+	var exists bool
+	for _, r := range roles {
+		if r == role {
+			exists = true
+		}
+	}
+	return exists
 }

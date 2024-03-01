@@ -2,6 +2,8 @@ package v1
 
 import (
 	"encoding/json"
+	customMiddleware "komek/internal/controller/http/middleware"
+	"komek/internal/service/token"
 	"net/http"
 )
 
@@ -12,6 +14,11 @@ type ErrorResponse struct {
 
 func (h *Handler) Err(w http.ResponseWriter, msg string, status int) {
 	h.Resp(w, ErrorResponse{Error: msg}, status)
+}
+
+func (h *Handler) Error(w http.ResponseWriter, err error, status int) {
+	err = h.Unwrap(err)
+	h.Resp(w, ErrorResponse{Error: err.Error()}, status)
 }
 
 func (h *Handler) Resp(w http.ResponseWriter, res interface{}, status int) {
@@ -40,4 +47,23 @@ func (h *Handler) RespAnother(w http.ResponseWriter, res interface{}, status int
 		http.Error(w, "internal_error", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *Handler) Unwrap(err error) error {
+	type wrapper interface {
+		Unwrap() error
+	}
+
+	for err != nil {
+		wrapped, ok := err.(wrapper)
+		if !ok {
+			break
+		}
+		err = wrapped.Unwrap()
+	}
+	return err
+}
+
+func (h *Handler) payload(r *http.Request) *token.Payload {
+	return r.Context().Value(customMiddleware.AuthorizationPayloadKey).(*token.Payload)
 }

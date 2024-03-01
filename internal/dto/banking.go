@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
 	"komek/internal/domain"
 	"net/http"
 	"strconv"
@@ -25,7 +26,7 @@ type (
 	}
 
 	CreateAccountIn struct {
-		Owner    string
+		Owner    uuid.UUID
 		Balance  int64
 		Currency string
 	}
@@ -40,6 +41,7 @@ func (in *CreateAccountIn) ParseAndValidate(r *http.Request) error {
 	if err != nil {
 		return fmt.Errorf("decode response body: %w", err)
 	}
+	defer r.Body.Close()
 	return nil
 }
 

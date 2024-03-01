@@ -7,7 +7,7 @@ package sqlc
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -16,23 +16,23 @@ type Querier interface {
 	CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
 	DeleteAccount(ctx context.Context, id int64) error
-	DeleteOrganisation(ctx context.Context, id uuid.UUID) error
+	DeleteOrganisation(ctx context.Context, id pgtype.UUID) error
 	// AND email_verified = $4
 	// AND phone = $5
 	FindUsers(ctx context.Context, arg FindUsersParams) ([]User, error)
 	GetAccount(ctx context.Context, id int64) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
 	GetEntry(ctx context.Context, id int64) (Entry, error)
-	GetOrganisation(ctx context.Context, id uuid.UUID) (Organisation, error)
+	GetOrganisation(ctx context.Context, id pgtype.UUID) (Organisation, error)
 	GetTransfer(ctx context.Context, id int64) (Transfer, error)
-	GetUser(ctx context.Context, id uuid.UUID) (User, error)
+	GetUser(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByLogin(ctx context.Context, login string) (User, error)
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
 	ListOrganisation(ctx context.Context) ([]Organisation, error)
 	ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error)
 	ListUsers(ctx context.Context) ([]User, error)
-	RemoveUser(ctx context.Context, id uuid.UUID) (uuid.UUID, error)
+	RemoveUser(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	SaveOrganisation(ctx context.Context, arg SaveOrganisationParams) error
 	SaveUser(ctx context.Context, arg SaveUserParams) (User, error)
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)

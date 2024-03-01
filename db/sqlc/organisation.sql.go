@@ -8,7 +8,7 @@ package sqlc
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const deleteOrganisation = `-- name: DeleteOrganisation :exec
@@ -16,7 +16,7 @@ DELETE FROM organisation
 WHERE id = $1
 `
 
-func (q *Queries) DeleteOrganisation(ctx context.Context, id uuid.UUID) error {
+func (q *Queries) DeleteOrganisation(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteOrganisation, id)
 	return err
 }
@@ -27,7 +27,7 @@ WHERE id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetOrganisation(ctx context.Context, id uuid.UUID) (Organisation, error) {
+func (q *Queries) GetOrganisation(ctx context.Context, id pgtype.UUID) (Organisation, error) {
 	row := q.db.QueryRow(ctx, getOrganisation, id)
 	var i Organisation
 	err := row.Scan(
@@ -97,8 +97,8 @@ WHERE id = $1
 `
 
 type UpdateOrganisationBinParams struct {
-	ID  uuid.UUID `json:"id"`
-	Bin string    `json:"bin"`
+	ID  pgtype.UUID `json:"id"`
+	Bin string      `json:"bin"`
 }
 
 func (q *Queries) UpdateOrganisationBin(ctx context.Context, arg UpdateOrganisationBinParams) error {
@@ -114,8 +114,8 @@ WHERE id = $1
 `
 
 type UpdateOrganisationNameParams struct {
-	ID   uuid.UUID `json:"id"`
-	Name string    `json:"name"`
+	ID   pgtype.UUID `json:"id"`
+	Name string      `json:"name"`
 }
 
 func (q *Queries) UpdateOrganisationName(ctx context.Context, arg UpdateOrganisationNameParams) error {

@@ -7,6 +7,7 @@ import (
 	"komek/config"
 	customMiddleware "komek/internal/controller/http/middleware"
 	"komek/internal/service/oauth_service"
+	"komek/internal/service/token"
 	"komek/pkg/logger"
 	"net/http"
 	"time"
@@ -18,6 +19,7 @@ type (
 		cfg               *config.Config
 		user              User
 		banking           Banking
+		tokenMaker        token.Maker
 		cookieSecret      []byte
 		oauthServerClient OauthServerClient
 		sso               sso_client.Client
@@ -28,6 +30,7 @@ type (
 		Cfg               *config.Config
 		User              User
 		Banking           Banking
+		TokenMaker        token.Maker
 		CookieSecret      []byte
 		OauthServerClient OauthServerClient
 		Sso               sso_client.Client
@@ -44,6 +47,7 @@ func NewHandler(p *HandlerParams) *Handler {
 		cfg:               p.Cfg,
 		user:              p.User,
 		banking:           p.Banking,
+		tokenMaker:        p.TokenMaker,
 		cookieSecret:      p.CookieSecret,
 		oauthServerClient: p.OauthServerClient,
 		sso:               p.Sso,

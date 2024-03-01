@@ -1,11 +1,14 @@
 package domain
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type (
 	Account struct {
 		ID        int64
-		Owner     string
+		Owner     uuid.UUID
 		Balance   int64
 		Currency  string
 		CreatedAt time.Time
