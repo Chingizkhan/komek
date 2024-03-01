@@ -38,7 +38,7 @@ func ConvUserResponse(user domain.User) dto.UserResponse {
 		Email:         user.Email,
 		EmailVerified: user.EmailVerified,
 		Roles:         user.Roles,
-		CreatedAt:     user.CreatedAt,
-		UpdatedAt:     user.UpdatedAt,
+		CreatedAt:     user.CreatedAt.Unix(),
+		UpdatedAt:     user.UpdatedAt.Unix(),
 	}
 }

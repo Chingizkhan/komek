@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 	"komek/internal/domain"
 	"net/http"
-	"time"
 )
 
 type (
@@ -48,8 +47,8 @@ type (
 		Email         domain.Email `json:"email"`
 		EmailVerified bool         `json:"email_verified"`
 		Roles         domain.Roles `json:"roles"`
-		CreatedAt     time.Time    `json:"created_at"`
-		UpdatedAt     time.Time    `json:"updated_at"`
+		CreatedAt     int64        `json:"created_at"`
+		UpdatedAt     int64        `json:"updated_at"`
 	}
 
 	UserLoginRequest struct {

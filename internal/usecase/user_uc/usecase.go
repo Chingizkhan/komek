@@ -8,7 +8,6 @@ import (
 	"komek/internal/domain"
 	"komek/internal/dto"
 	"komek/internal/service/token"
-	"log"
 	"time"
 )
 
@@ -84,8 +83,8 @@ func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.User
 			Email:         user.Email,
 			EmailVerified: user.EmailVerified,
 			Roles:         user.Roles,
-			CreatedAt:     user.CreatedAt,
-			UpdatedAt:     user.UpdatedAt,
+			CreatedAt:     user.CreatedAt.Unix(),
+			UpdatedAt:     user.UpdatedAt.Unix(),
 		},
 	}, nil
 }
@@ -115,7 +114,6 @@ func (u *UseCase) ChangePassword(ctx context.Context, req dto.UserChangePassword
 	}
 
 	match := u.hasher.CheckHash(string(req.OldPassword), user.PasswordHash)
-	log.Println("match:", match)
 	if !match {
 		return errors.New("wrong old password")
 	}

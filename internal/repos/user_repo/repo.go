@@ -104,15 +104,18 @@ func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) (domain
 	})
 	if err != nil {
 		var e *pgconn.PgError
-		if errors.As(err, &e) {
-			log.Println("code", e.ConstraintName)
-		}
 		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
-			return domain.User{}, errors.New("user_already_exists")
+			switch e.ConstraintName {
+			case ConstraintUsersLoginKey:
+				return domain.User{}, ErrUserLoginAlreadyExists
+			case ConstraintUsersPhoneKey:
+				return domain.User{}, ErrUserPhoneAlreadyExists
+			case ConstraintUsersEmailKey:
+				return domain.User{}, ErrUserEmailAlreadyExists
+			default:
+				return domain.User{}, ErrUserAlreadyExists
+			}
 		}
-		//if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation && e.ConstraintName == fkWalletID {
-		//	return entity.LimitsPerDay{}, errcode.New("wallet_not_exist").WithErr(err)
-		//}
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
 		}
@@ -150,6 +153,9 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 		EmailVerified: emailVerified,
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
 		return domain.User{}, fmt.Errorf("r.q.UpdateUser: %w", err)
 	}
 	return domain.User{
