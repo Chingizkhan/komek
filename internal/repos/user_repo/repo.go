@@ -16,7 +16,6 @@ import (
 	"komek/internal/mapper"
 	"komek/pkg/postgres"
 	"log"
-	"strings"
 )
 
 const (
@@ -71,45 +70,21 @@ func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string
 	}, nil
 }
 
-//
-//func (r *Repository) GetWithTX(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
-//
-//	u, err := qtx.GetUser(ctx, userID)
-//	if err != nil {
-//		return domain.User{}, fmt.Errorf("r.q.GetUser :%w", err)
-//	}
-//	return domain.User{
-//		ID:            u.ID,
-//		Name:          u.Name.String,
-//		Phone:         domain.Phone(u.Phone.String),
-//		Login:         u.Login,
-//		EmailVerified: u.EmailVerified.Bool,
-//		PasswordHash:  u.PasswordHash,
-//		Email:         domain.Email(u.Email.String),
-//		CreatedAt:     u.CreatedAt.Time,
-//		UpdatedAt:     u.UpdatedAt.Time,
-//	}, nil
-//}
-
 func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) (domain.User, error) {
 	qtx := r.queries(tx)
 
+	phone := checkAndConvertToNullStr(string(u.Phone))
+
 	user, err := qtx.SaveUser(ctx, user_db.SaveUserParams{
 		Login:        u.Login,
+		Phone:        phone,
 		PasswordHash: u.PasswordHash,
 		Roles:        u.Roles.ConvString(),
 	})
 	if err != nil {
-		var e *pgconn.PgError
-		if errors.As(err, &e) {
-			log.Println("code", e.Code)
+		if err = checkConstraints(err); err != nil {
+			return domain.User{}, err
 		}
-		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
-			return domain.User{}, errors.New("user_already_exists")
-		}
-		//if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation && e.ConstraintName == fkWalletID {
-		//	return entity.LimitsPerDay{}, errcode.New("wallet_not_exist").WithErr(err)
-		//}
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
 		}
@@ -147,20 +122,15 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 		EmailVerified: emailVerified,
 	})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
+		if err = checkConstraints(err); err != nil {
+			return domain.User{}, err
+		}
 		return domain.User{}, fmt.Errorf("r.q.UpdateUser: %w", err)
 	}
-	return domain.User{
-		ID:            u.ID.Bytes,
-		Name:          u.Name.String,
-		Phone:         domain.Phone(u.Phone.String),
-		Login:         u.Login,
-		Email:         domain.Email(u.Email.String),
-		EmailVerified: u.EmailVerified.Bool,
-		PasswordHash:  u.PasswordHash,
-		Roles:         convertRolesToDomain(u.Roles),
-		CreatedAt:     u.CreatedAt.Time,
-		UpdatedAt:     u.UpdatedAt.Time,
-	}, nil
+	return mapper.ConvUserToDomain(u), nil
 }
 
 func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
@@ -195,13 +165,21 @@ func (r *Repository) Find(ctx context.Context, tx pgx.Tx, req dto.UserFindReques
 	return make([]domain.User, 0, 0), nil
 }
 
-func convertRolesToDomain(rolesStr string) domain.Roles {
-	rolesInput := strings.Split(rolesStr, ",")
-	roles := make(domain.Roles, 0, len(rolesInput))
-	for _, r := range rolesInput {
-		roles = append(roles, domain.Role(r))
+func checkConstraints(err error) error {
+	var e *pgconn.PgError
+	if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
+		switch e.ConstraintName {
+		case ConstraintUsersLoginKey:
+			return ErrUserLoginAlreadyExists
+		case ConstraintUsersPhoneKey:
+			return ErrUserPhoneAlreadyExists
+		case ConstraintUsersEmailKey:
+			return ErrUserEmailAlreadyExists
+		default:
+			return ErrUserAlreadyExists
+		}
 	}
-	return roles
+	return nil
 }
 
 func checkAndConvertToNullStr(value string) (nullValue pgtype.Text) {

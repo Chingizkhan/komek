@@ -9,6 +9,11 @@ import (
 	"net/http"
 )
 
+// todo: get accounts that belong to user with pagination
+// todo: make transfer money
+// todo: checking on transfer if currency the same on 2 accounts
+// todo: add to request wallet_identifier with (uniques) phone, email, login or account_id
+
 func (h *Handler) userRoutes(r *chi.Mux) {
 	r.Route("/user", func(r chi.Router) {
 		// protected
@@ -99,6 +104,8 @@ func (h *Handler) userUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	payload := h.payload(r)
+	req.ID = payload.UserID
 	user, err := h.user.Update(r.Context(), req)
 	if err != nil {
 		h.l.Error("userUpdate - h.user.Update", logger.Err(err))
