@@ -1,4 +1,4 @@
- version: "3.8"
+version: "3.8"
 
 services:
   db:
@@ -16,6 +16,29 @@ services:
       - POSTGRES_PASSWORD=secret
     networks:
       - komek
+
+  app:
+    build:
+      context: .
+      dockerfile: prod.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    container_name: komek-app
+    environment:
+      - DB_SOURCE=postgresql://app:secret@db:5432/app?sslmode=disable
+    networks:
+      - komek
+    depends_on:
+      - db
+      - cache
+    entrypoint:
+      - "/app/wait-for.sh"
+      - "db:5432"
+      - "--"
+      - "/app/start.sh"
+    command:
+      - "/app/main"
 
 #  app:
 #    build:
