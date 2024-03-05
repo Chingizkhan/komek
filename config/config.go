@@ -19,6 +19,7 @@ type (
 		Locker    `yaml:"locker"`
 		Cookie    `yaml:"cookie"`
 		Oauth2Raw Oauth2 `yaml:"oauth2"`
+		Token     `yaml:"token"`
 	}
 
 	App struct {
@@ -66,6 +67,11 @@ type (
 		TokenURL     string   `env-required:"true" yaml:"token_url" env:"OAUTH_TOKEN_URL"`
 		RedirectURL  string   `env-required:"true" yaml:"redirect_url" env:"OAUTH_REDIRECT_URL"`
 		Scopes       []string `env-required:"true" yaml:"scopes" env:"OAUTH_SCOPES"`
+	}
+
+	Token struct {
+		AccessTokenLifetime  time.Duration `env-required:"true" yaml:"access_token_lifetime" env:"ACCESS_TOKEN_LIFETIME"`
+		RefreshTokenLifetime time.Duration `env-required:"true" yaml:"refresh_token_lifetime" env:"REFRESH_TOKEN_LIFETIME"`
 	}
 )
 

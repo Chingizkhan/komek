@@ -12,14 +12,23 @@ import (
 )
 
 type UseCase struct {
-	r          UserRepository
-	tr         Transactional
-	hasher     Hasher
-	tokenMaker token.Maker
+	r                    UserRepository
+	tr                   Transactional
+	hasher               Hasher
+	tokenMaker           token.Maker
+	accessTokenLifetime  time.Duration
+	refreshTokenLifetime time.Duration
 }
 
-func New(r UserRepository, tr Transactional, hasher Hasher, tokenMaker token.Maker) *UseCase {
-	return &UseCase{r, tr, hasher, tokenMaker}
+func New(r UserRepository, tr Transactional, hasher Hasher, tokenMaker token.Maker, accessTokenLifetime, refreshTokenLifetime time.Duration) *UseCase {
+	return &UseCase{
+		r,
+		tr,
+		hasher,
+		tokenMaker,
+		accessTokenLifetime,
+		refreshTokenLifetime,
+	}
 }
 
 func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) (domain.User, error) {
@@ -69,7 +78,7 @@ func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.User
 	}
 
 	// get access token
-	accessToken, err := u.tokenMaker.CreateToken(user.ID, time.Minute*15)
+	accessToken, err := u.tokenMaker.CreateToken(user.ID, u.accessTokenLifetime)
 	if err != nil {
 		return nil, fmt.Errorf("tokenMaker.CreateToken: %w", err)
 	}

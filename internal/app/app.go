@@ -98,7 +98,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 
 	// get usecases
-	userUC := user_uc.New(userRepo, transactionalRepo, hash, tokenMaker)
+	userUC := user_uc.New(userRepo, transactionalRepo, hash, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
 	bankingUC := banking_uc.New(txRepo)
 
 	// start http server
