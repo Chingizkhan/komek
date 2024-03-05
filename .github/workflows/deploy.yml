@@ -1,0 +1,61 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    name: Build image
+    runs-on: ubuntu-latest
+
+#    services:
+#      postgres:
+#        image: postgres:15.2-alpine
+#        env:
+#          POSTGRES_USER: app
+#          POSTGRES_PASSWORD: secret
+#          POSTGRES_DB: app
+#        options: >-
+#          --health-cmd pg_isready
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#        ports:
+#          - 5433:5432
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4 # More information on this action can be found below in the 'AWS Credentials' section
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/my-github-actions-role
+          aws-region: eu-north-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: 'false'
+
+
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21.1'
+
+      - name: Install golang-migrate
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/bin/
+
+      - name: Run migrations
+        run: make migrateup
+
+      #      - name: Build
+      #        run: go build -v ./...
+
+      - name: Test
+        run: make test
