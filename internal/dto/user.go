@@ -66,6 +66,15 @@ type (
 		User                  UserResponse `json:"user"`
 	}
 
+	UserRefreshTokensIn struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	UserRefreshTokensOut struct {
+		AccessToken          string    `json:"access_token"`
+		AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`
+	}
+
 	UserLogoutRequest struct {
 	}
 
@@ -157,5 +166,13 @@ func (req *UserGetRequest) ParseAndValidate(r *http.Request) error {
 }
 
 func (req *UserFindRequest) ParseAndValidate(r *http.Request) error {
+	return nil
+}
+
+func (req *UserRefreshTokensIn) ParseAndValidate(r *http.Request) error {
+	err := json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		return fmt.Errorf("can not decode body: %w", err)
+	}
 	return nil
 }

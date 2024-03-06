@@ -98,6 +98,7 @@ func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.User
 		return nil, fmt.Errorf("create refresh token: %w", err)
 	}
 
+	// todo: add UserAgent and ClientIp to session
 	session := domain.Session{
 		ID:           refreshPayload.ID,
 		UserID:       user.ID,
@@ -197,4 +198,42 @@ func (u *UseCase) Update(ctx context.Context, req dto.UserUpdateRequest) (domain
 		return domain.User{}, fmt.Errorf("tr.Exec: %w", err)
 	}
 	return user, nil
+}
+
+func (u *UseCase) RefreshTokens(ctx context.Context, in dto.UserRefreshTokensIn) (*dto.UserRefreshTokensOut, error) {
+	payload, err := u.tokenMaker.VerifyToken(in.RefreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("verify token: %w", err)
+	}
+
+	session, err := u.session.Get(ctx, nil, payload.ID)
+	if err != nil {
+		return nil, fmt.Errorf("get session: %w", err)
+	}
+
+	if session.IsBlocked {
+		return nil, ErrSessionBlocked
+	}
+
+	if session.UserID != payload.UserID {
+		return nil, ErrSessionUser
+	}
+
+	if session.RefreshToken != in.RefreshToken {
+		return nil, ErrMismatchSessionToken
+	}
+
+	if time.Now().After(payload.ExpiredAt) {
+		return nil, ErrExpiredSession
+	}
+
+	accessToken, accessPayload, err := u.tokenMaker.CreateToken(
+		payload.UserID,
+		u.accessTokenLifetime,
+	)
+
+	return &dto.UserRefreshTokensOut{
+		AccessToken:          accessToken,
+		AccessTokenExpiresAt: accessPayload.ExpiredAt,
+	}, nil
 }

@@ -30,7 +30,26 @@ func (h *Handler) userRoutes(r *chi.Mux) {
 		// public
 		r.Post("/register", h.userRegister)
 		r.Post("/login", h.userLogin)
+		r.Post("/refresh-token", h.userRefreshToken)
 	})
+}
+
+func (h *Handler) userRefreshToken(w http.ResponseWriter, r *http.Request) {
+	req := dto.UserRefreshTokensIn{}
+	if err := req.ParseAndValidate(r); err != nil {
+		h.l.Error("userRefreshToken - ParseAndValidate", logger.Err(err))
+		h.Error(w, err, http.StatusBadRequest)
+		return
+	}
+
+	refreshTokenResponse, err := h.user.RefreshTokens(r.Context(), req)
+	if err != nil {
+		h.l.Error("userRefreshToken - h.user.RefreshTokens", logger.Err(err))
+		h.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	h.Resp(w, refreshTokenResponse, http.StatusOK)
 }
 
 func (h *Handler) userRegister(w http.ResponseWriter, r *http.Request) {

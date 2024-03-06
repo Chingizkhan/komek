@@ -1,11 +1,13 @@
+DB_URL = "postgres://app:secret@localhost:5433/app?sslmode=disable"
+
 postgres:
 	docker exec -it komek-db psql -U app
 
 migrate_up:
-	migrate -source file://db/migrations -database "postgres://app:secret@localhost:5433/app?sslmode=disable" -verbose up
+	migrate -source file://db/migrations -database "$(DB_URL)" -verbose up
 
 migrate_down:
-	migrate -source file://db/migrations -database "postgres://app:secret@localhost:5433/app?sslmode=disable" -verbose down
+	migrate -source file://db/migrations -database "$(DB_URL)" -verbose down
 
 test:
 	go test -v -cover ./...
