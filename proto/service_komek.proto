@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package db;
+
+import "rpc_create_user.proto";
+import "rpc_login_user.proto";
+
+// https://www.youtube.com/watch?v=mVWgEmyAhvM&list=PLy_6D98if3ULEtXtNSY_2qN21VCKgoQAE&index=41
+
+option go_package = "./pb";
+
+service Komek {
+  rpc CreateUser (CreateUserRequest) returns (CreateUserResponse){};
+  rpc LoginUser (LoginUserRequest) returns (LoginUserResponse){};
+}

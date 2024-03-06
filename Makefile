@@ -18,4 +18,10 @@ app:
 mock_banking:
 	mockgen -package mock_banking -destination internal/service/banking/mock/banking.go komek/internal/controller/http/v1 Banking
 
-PHONY: postgres migrate_up migrate_down test app mock_banking
+proto:
+	rm -f pb/*.go
+	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
+        --go-grpc_out=pb --go-grpc_opt=paths=source_relative \
+        proto/*.proto
+
+.PHONY: postgres migrate_up migrate_down test app mock_banking proto
