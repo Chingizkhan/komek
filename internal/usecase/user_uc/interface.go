@@ -26,4 +26,9 @@ type (
 		Hash(value string) (string, error)
 		CheckHash(password, hash string) bool
 	}
+
+	SessionRepository interface {
+		Get(ctx context.Context, tx pgx.Tx, id uuid.UUID) (domain.Session, error)
+		Save(ctx context.Context, tx pgx.Tx, s domain.Session) (domain.Session, error)
+	}
 )

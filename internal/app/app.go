@@ -6,6 +6,7 @@ import (
 	"golang.org/x/oauth2"
 	"komek/config"
 	"komek/internal/controller/http/v1"
+	"komek/internal/repos/session_repo"
 	"komek/internal/repos/tx"
 	"komek/internal/repos/user_repo"
 	"komek/internal/service/hasher"
@@ -51,6 +52,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 
 	oauthServerClient := oauth_service.New(time.Second*10, cfg.Oauth2Raw.ServiceAddr)
 	userRepo := user_repo.New(pg)
+	sessionRepo := session_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
 	hash := hasher.New()
 	lock := locker.New(cache.Client, cfg.LockTimeout)
@@ -98,7 +100,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 
 	// get usecases
-	userUC := user_uc.New(userRepo, transactionalRepo, hash, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
+	userUC := user_uc.New(userRepo, transactionalRepo, hash, sessionRepo, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
 	bankingUC := banking_uc.New(txRepo)
 
 	// start http server

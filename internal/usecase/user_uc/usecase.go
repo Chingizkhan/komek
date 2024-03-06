@@ -15,16 +15,25 @@ type UseCase struct {
 	r                    UserRepository
 	tr                   Transactional
 	hasher               Hasher
+	session              SessionRepository
 	tokenMaker           token.Maker
 	accessTokenLifetime  time.Duration
 	refreshTokenLifetime time.Duration
 }
 
-func New(r UserRepository, tr Transactional, hasher Hasher, tokenMaker token.Maker, accessTokenLifetime, refreshTokenLifetime time.Duration) *UseCase {
+func New(
+	r UserRepository,
+	tr Transactional,
+	hasher Hasher,
+	session SessionRepository,
+	tokenMaker token.Maker,
+	accessTokenLifetime, refreshTokenLifetime time.Duration,
+) *UseCase {
 	return &UseCase{
 		r,
 		tr,
 		hasher,
+		session,
 		tokenMaker,
 		accessTokenLifetime,
 		refreshTokenLifetime,
@@ -78,13 +87,39 @@ func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.User
 	}
 
 	// get access token
-	accessToken, err := u.tokenMaker.CreateToken(user.ID, u.accessTokenLifetime)
+	accessToken, accessPayload, err := u.tokenMaker.CreateToken(user.ID, u.accessTokenLifetime)
 	if err != nil {
-		return nil, fmt.Errorf("tokenMaker.CreateToken: %w", err)
+		return nil, fmt.Errorf("create access token: %w", err)
+	}
+
+	// get refresh token
+	refreshToken, refreshPayload, err := u.tokenMaker.CreateToken(user.ID, u.refreshTokenLifetime)
+	if err != nil {
+		return nil, fmt.Errorf("create refresh token: %w", err)
+	}
+
+	session := domain.Session{
+		ID:           refreshPayload.ID,
+		UserID:       user.ID,
+		RefreshToken: refreshToken,
+		UserAgent:    "",
+		ClientIp:     "",
+		IsBlocked:    false,
+		ExpiresAt:    refreshPayload.ExpiredAt,
+	}
+
+	// save session_repo
+	createdSession, err := u.session.Save(ctx, nil, session)
+	if err != nil {
+		return nil, fmt.Errorf("session.Save: %w", err)
 	}
 
 	return &dto.UserLoginResponse{
-		AccessToken: accessToken,
+		SessionID:             createdSession.ID,
+		AccessToken:           accessToken,
+		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
 		User: dto.UserResponse{
 			ID:            user.ID,
 			Name:          user.Name,
