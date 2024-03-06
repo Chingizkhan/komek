@@ -122,10 +122,12 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		r,
 		httpserver.Port(cfg.HTTP.Port),
 	)
+	l.Info("http server started", slog.String("env", cfg.Log.Level), slog.String("port", cfg.HTTP.Port))
 
 	// start grpc server
 	server := grpc.Register(l)
 	grpcServer := grpcserver.New(server, cfg.GRPC.Port)
+	l.Info("grpc server started", slog.String("env", cfg.Log.Level), slog.String("port", cfg.GRPC.Port))
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)

@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"komek/internal/controller/grpc/middleware"
 	"komek/pb"
 	"komek/pkg/logger"
@@ -21,6 +22,7 @@ func Register(l logger.ILogger) *grpc.Server {
 	)
 
 	pb.RegisterKomekServer(grpcServer, server)
+	reflection.Register(grpcServer)
 
 	return grpcServer
 }
