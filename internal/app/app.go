@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/oauth2"
 	"komek/config"
+	"komek/internal/controller/grpc"
 	"komek/internal/controller/http/v1"
 	"komek/internal/repos/session_repo"
 	"komek/internal/repos/tx"
@@ -16,6 +17,7 @@ import (
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/banking_uc"
 	"komek/internal/usecase/user_uc"
+	"komek/pkg/grpcserver"
 	"komek/pkg/httpserver"
 	"komek/pkg/logger"
 	"komek/pkg/postgres"
@@ -121,6 +123,10 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		httpserver.Port(cfg.HTTP.Port),
 	)
 
+	// start grpc server
+	server := grpc.Register(l)
+	grpcServer := grpcserver.New(server, cfg.GRPC.Port)
+
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
@@ -129,7 +135,12 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		l.Info("app - Run - signal:", slog.String("signal", s.String()))
 	case err := <-httpServer.Notify():
 		l.Error("app - Run - http_server.Notify:", logger.Err(err))
+	case err := <-grpcServer.Notify():
+		l.Error("app - Run - grpc_server.Notify:", logger.Err(err))
 	}
+
+	// shutdown
+	grpcServer.Shutdown()
 
 	err = httpServer.Shutdown()
 	if err != nil {

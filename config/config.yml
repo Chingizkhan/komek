@@ -6,6 +6,9 @@ http:
   port: '8888'
   timeout: '15s'
 
+grpc:
+  port: '8889'
+
 logger:
   log_level: 'local'
 

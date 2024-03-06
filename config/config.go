@@ -14,6 +14,7 @@ type (
 		App       `yaml:"app"`
 		PG        `yaml:"postgres"`
 		HTTP      `yaml:"http"`
+		GRPC      `yaml:"grpc"`
 		Log       `yaml:"logger"`
 		Redis     `yaml:"redis"`
 		Locker    `yaml:"locker"`
@@ -40,6 +41,10 @@ type (
 	HTTP struct {
 		Port    string        `env-required:"true" yaml:"port" env:"HTTP_PORT"`
 		Timeout time.Duration `env-required:"true" yaml:"timeout" env:"HTTP_TIMEOUT"`
+	}
+
+	GRPC struct {
+		Port string `yaml:"port" env-required:"true" env:"GRPC_PORT"`
 	}
 
 	Cookie struct {
