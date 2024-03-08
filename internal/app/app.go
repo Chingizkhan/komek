@@ -125,7 +125,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	l.Info("http server started", slog.String("env", cfg.Log.Level), slog.String("port", cfg.HTTP.Port))
 
 	// start grpc server
-	server := grpc.Register(l)
+	server := grpc.Register(l, userUC)
 	grpcServer := grpcserver.New(server, cfg.GRPC.Port)
 	l.Info("grpc server started", slog.String("env", cfg.Log.Level), slog.String("port", cfg.GRPC.Port))
 

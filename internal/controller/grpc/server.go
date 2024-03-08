@@ -3,18 +3,23 @@ package grpc
 import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"komek/internal/controller"
 	"komek/internal/controller/grpc/middleware"
 	"komek/pb"
 	"komek/pkg/logger"
 )
 
 type Server struct {
-	l logger.ILogger
+	user controller.User
+	l    logger.ILogger
 	pb.UnimplementedKomekServer
 }
 
-func Register(l logger.ILogger) *grpc.Server {
-	server := &Server{l: l}
+func Register(l logger.ILogger, user controller.User) *grpc.Server {
+	server := &Server{
+		user: user,
+		l:    l,
+	}
 
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(middleware.Log(l)),

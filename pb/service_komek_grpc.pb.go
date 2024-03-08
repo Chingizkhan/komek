@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KomekClient interface {
-	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
+	RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*RegisterUserResponse, error)
 	LoginUser(ctx context.Context, in *LoginUserRequest, opts ...grpc.CallOption) (*LoginUserResponse, error)
 }
 
@@ -34,9 +34,9 @@ func NewKomekClient(cc grpc.ClientConnInterface) KomekClient {
 	return &komekClient{cc}
 }
 
-func (c *komekClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error) {
-	out := new(CreateUserResponse)
-	err := c.cc.Invoke(ctx, "/db.Komek/CreateUser", in, out, opts...)
+func (c *komekClient) RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*RegisterUserResponse, error) {
+	out := new(RegisterUserResponse)
+	err := c.cc.Invoke(ctx, "/db.Komek/RegisterUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *komekClient) LoginUser(ctx context.Context, in *LoginUserRequest, opts 
 // All implementations must embed UnimplementedKomekServer
 // for forward compatibility
 type KomekServer interface {
-	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
+	RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error)
 	LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error)
 	mustEmbedUnimplementedKomekServer()
 }
@@ -65,8 +65,8 @@ type KomekServer interface {
 type UnimplementedKomekServer struct {
 }
 
-func (UnimplementedKomekServer) CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
+func (UnimplementedKomekServer) RegisterUser(context.Context, *RegisterUserRequest) (*RegisterUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterUser not implemented")
 }
 func (UnimplementedKomekServer) LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginUser not implemented")
@@ -84,20 +84,20 @@ func RegisterKomekServer(s grpc.ServiceRegistrar, srv KomekServer) {
 	s.RegisterService(&Komek_ServiceDesc, srv)
 }
 
-func _Komek_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateUserRequest)
+func _Komek_RegisterUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(KomekServer).CreateUser(ctx, in)
+		return srv.(KomekServer).RegisterUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/db.Komek/CreateUser",
+		FullMethod: "/db.Komek/RegisterUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KomekServer).CreateUser(ctx, req.(*CreateUserRequest))
+		return srv.(KomekServer).RegisterUser(ctx, req.(*RegisterUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -128,8 +128,8 @@ var Komek_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*KomekServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateUser",
-			Handler:    _Komek_CreateUser_Handler,
+			MethodName: "RegisterUser",
+			Handler:    _Komek_RegisterUser_Handler,
 		},
 		{
 			MethodName: "LoginUser",

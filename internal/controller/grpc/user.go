@@ -2,12 +2,32 @@ package grpc
 
 import (
 	"context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"komek/internal/domain"
+	"komek/internal/dto"
+	"komek/internal/mapper"
 	"komek/pb"
 )
 
-func (s *Server) CreateUser(ctx context.Context, request *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-	//TODO implement me
-	panic("implement me")
+func (s *Server) RegisterUser(ctx context.Context, r *pb.RegisterUserRequest) (*pb.RegisterUserResponse, error) {
+	req := dto.UserRegisterRequest{
+		Login:    r.Login,
+		Phone:    domain.Phone(r.Phone),
+		Password: domain.Password(r.Password),
+		Roles:    mapper.ConvRolesToDomain(r.Roles),
+	}
+	if err := req.Validate(); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, err.Error())
+	}
+	user, err := s.user.Register(ctx, req)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	return &pb.RegisterUserResponse{
+		User: mapper.ConvUserPb(user),
+	}, nil
 }
 
 func (s *Server) LoginUser(ctx context.Context, request *pb.LoginUserRequest) (*pb.LoginUserResponse, error) {
