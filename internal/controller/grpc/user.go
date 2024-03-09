@@ -8,6 +8,7 @@ import (
 	"komek/internal/dto"
 	"komek/internal/mapper"
 	"komek/pb"
+	"log"
 )
 
 func (s *Server) RegisterUser(ctx context.Context, r *pb.RegisterUserRequest) (*pb.RegisterUserResponse, error) {
@@ -20,6 +21,8 @@ func (s *Server) RegisterUser(ctx context.Context, r *pb.RegisterUserRequest) (*
 	if err := req.Validate(); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, err.Error())
 	}
+	metadata := s.extractMetadata(ctx)
+	log.Println("metadata:", metadata)
 	user, err := s.user.Register(ctx, req)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
