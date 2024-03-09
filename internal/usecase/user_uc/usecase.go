@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"komek/internal/domain"
 	"komek/internal/dto"
@@ -67,16 +68,47 @@ func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) (do
 	return user, nil
 }
 
-func (u *UseCase) Get(ctx context.Context, req dto.UserGetRequest) (domain.User, error) {
-	user, err := u.r.Get(ctx, nil, req.ID)
-	if err != nil {
-		return domain.User{}, fmt.Errorf("get user: %w", err)
+func (u *UseCase) Get(ctx context.Context, in dto.UserGetRequest) (domain.User, error) {
+	var (
+		user domain.User
+		err  error
+	)
+
+	if in.ID != uuid.Nil {
+		user, err = u.r.GetByID(ctx, nil, in.ID)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("get user by id: %w", err)
+		}
+	}
+	if in.Phone != "" {
+		user, err = u.r.GetByPhone(ctx, nil, in.Phone)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("get user by phone: %w", err)
+		}
+	}
+	if in.Login != "" {
+		user, err = u.r.GetByLogin(ctx, nil, in.Login)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("get user by login: %w", err)
+		}
+	}
+	if in.Email != "" {
+		user, err = u.r.GetByEmail(ctx, nil, in.Email)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("get user by email: %w", err)
+		}
+	}
+	if in.AccountID != 0 {
+		user, err = u.r.GetByAccount(ctx, nil, in.AccountID)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("get user by account: %w", err)
+		}
 	}
 	return user, nil
 }
 
 func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.UserLoginResponse, error) {
-	user, err := u.r.GetUserByLogin(ctx, nil, in.Login)
+	user, err := u.r.GetByLogin(ctx, nil, in.Login)
 	if err != nil {
 		return nil, fmt.Errorf("get user by login: %w", err)
 	}
@@ -153,7 +185,7 @@ func (u *UseCase) Delete(ctx context.Context, req dto.UserDeleteRequest) error {
 }
 
 func (u *UseCase) ChangePassword(ctx context.Context, req dto.UserChangePasswordRequest) error {
-	user, err := u.r.Get(ctx, nil, req.ID)
+	user, err := u.r.GetByID(ctx, nil, req.ID)
 	if err != nil {
 		return fmt.Errorf("get user: %w", err)
 	}

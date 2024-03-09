@@ -60,13 +60,64 @@ func (q *Queries) FindUsers(ctx context.Context, arg FindUsersParams) ([]User, e
 	return items, nil
 }
 
-const getUser = `-- name: GetUser :one
+const getUserByAccount = `-- name: GetUserByAccount :one
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM users as u
+WHERE u.id = (
+    SELECT a.owner FROM accounts as a
+    WHERE a.id = $1 LIMIT 1
+)
+`
+
+func (q *Queries) GetUserByAccount(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByAccount, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Login,
+		&i.Email,
+		&i.EmailVerified,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Roles,
+		&i.PasswordChangedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM users
+WHERE email = $1 LIMIT 1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Login,
+		&i.Email,
+		&i.EmailVerified,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Roles,
+		&i.PasswordChangedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
 SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM users
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
-	row := q.db.QueryRow(ctx, getUser, id)
+func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -91,6 +142,30 @@ WHERE "login" = $1 LIMIT 1
 
 func (q *Queries) GetUserByLogin(ctx context.Context, login string) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByLogin, login)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Login,
+		&i.Email,
+		&i.EmailVerified,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Roles,
+		&i.PasswordChangedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByPhone = `-- name: GetUserByPhone :one
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM users
+WHERE phone = $1 LIMIT 1
+`
+
+func (q *Queries) GetUserByPhone(ctx context.Context, phone pgtype.Text) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByPhone, phone)
 	var i User
 	err := row.Scan(
 		&i.ID,

@@ -31,10 +31,10 @@ func New(pg *postgres.Postgres) *Repository {
 	return &Repository{pg.Pool, user_db.New(pg.Pool)}
 }
 
-func (r *Repository) Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
+func (r *Repository) GetByID(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	u, err := qtx.GetUser(ctx, pgtype.UUID{
+	u, err := qtx.GetUserByID(ctx, pgtype.UUID{
 		Bytes: userID,
 		Valid: true,
 	})
@@ -42,12 +42,12 @@ func (r *Repository) Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (doma
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
 		}
-		return domain.User{}, fmt.Errorf("r.q.GetUser :%w", err)
+		return domain.User{}, fmt.Errorf("r.q.GetUser: %w", err)
 	}
 	return mapper.ConvUserToDomain(u), nil
 }
 
-func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string) (domain.User, error) {
+func (r *Repository) GetByLogin(ctx context.Context, tx pgx.Tx, login string) (domain.User, error) {
 	qtx := r.queries(tx)
 
 	u, err := qtx.GetUserByLogin(ctx, login)
@@ -55,19 +55,48 @@ func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
 		}
-		return domain.User{}, fmt.Errorf("r.q.GetUserByLogin :%w", err)
+		return domain.User{}, fmt.Errorf("r.q.GetUserByLogin: %w", err)
 	}
-	return domain.User{
-		ID:            u.ID.Bytes,
-		Name:          u.Name.String,
-		Phone:         domain.Phone(u.Phone.String),
-		Login:         u.Login,
-		EmailVerified: u.EmailVerified.Bool,
-		PasswordHash:  u.PasswordHash,
-		Email:         domain.Email(u.Email.String),
-		CreatedAt:     u.CreatedAt.Time,
-		UpdatedAt:     u.UpdatedAt.Time,
-	}, nil
+	return mapper.ConvUserToDomain(u), nil
+}
+
+func (r *Repository) GetByPhone(ctx context.Context, tx pgx.Tx, phone domain.Phone) (domain.User, error) {
+	qtx := r.queries(tx)
+
+	u, err := qtx.GetUserByPhone(ctx, checkAndConvertToNullStr(string(phone)))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
+		return domain.User{}, fmt.Errorf("r.q.GetUserByPhone: %w", err)
+	}
+	return mapper.ConvUserToDomain(u), nil
+}
+
+func (r *Repository) GetByEmail(ctx context.Context, tx pgx.Tx, email domain.Email) (domain.User, error) {
+	qtx := r.queries(tx)
+
+	u, err := qtx.GetUserByEmail(ctx, checkAndConvertToNullStr(string(email)))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
+		return domain.User{}, fmt.Errorf("r.q.GetUserByEmail: %w", err)
+	}
+	return mapper.ConvUserToDomain(u), nil
+}
+
+func (r *Repository) GetByAccount(ctx context.Context, tx pgx.Tx, accountID int64) (domain.User, error) {
+	qtx := r.queries(tx)
+
+	u, err := qtx.GetUserByAccount(ctx, accountID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
+		return domain.User{}, fmt.Errorf("r.q.GetUserByAccount: %w", err)
+	}
+	return mapper.ConvUserToDomain(u), nil
 }
 
 func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) (domain.User, error) {

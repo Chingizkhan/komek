@@ -24,7 +24,7 @@ func (h *Handler) userRoutes(r *chi.Mux) {
 			r.Put("/change-password", h.userChangePassword)
 			r.Put("/update", h.userUpdate)
 			r.Post("/logout", h.userLogout)
-			r.Get("/{id}", h.userGet)
+			r.Get("/", h.userGet)
 			//r.Get("/find", h.usersFind)
 		})
 		// public

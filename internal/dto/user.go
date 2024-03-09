@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"komek/internal/domain"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -80,7 +80,11 @@ type (
 	}
 
 	UserGetRequest struct {
-		ID uuid.UUID
+		ID        uuid.UUID
+		Phone     domain.Phone
+		Email     domain.Email
+		Login     string
+		AccountID int64
 	}
 
 	UserFindRequest struct {
@@ -161,12 +165,40 @@ func (req *UserLogoutRequest) ParseAndValidate(r *http.Request) error {
 }
 
 func (req *UserGetRequest) ParseAndValidate(r *http.Request) error {
-	userID := chi.URLParam(r, "id")
-	id, err := uuid.Parse(userID)
-	if err != nil {
-		return errors.New("invalid_user_id")
+	userID := r.URL.Query().Get("user_id")
+	if userID != "" {
+		id, err := uuid.Parse(userID)
+		if err != nil {
+			return fmt.Errorf("%s: %w", err, errors.New("invalid_user_id"))
+		}
+		req.ID = id
 	}
-	req.ID = id
+
+	phone := r.URL.Query().Get("phone")
+	if phone != "" {
+		req.Phone = domain.Phone(phone)
+	}
+
+	email := r.URL.Query().Get("email")
+	if email != "" {
+		req.Email = domain.Email(email)
+	}
+
+	req.Login = r.URL.Query().Get("login")
+
+	accountID := r.URL.Query().Get("account_id")
+	if accountID != "" {
+		accID, err := strconv.Atoi(accountID)
+		if err != nil {
+			return fmt.Errorf("%s: %w", err, errors.New("invalid_account_id"))
+		}
+		req.AccountID = int64(accID)
+	}
+
+	if req.ID == uuid.Nil && req.Login == "" && req.Email == "" && req.Phone == "" && req.AccountID == 0 {
+		return errors.New("params_not_specified")
+	}
+
 	return nil
 }
 
