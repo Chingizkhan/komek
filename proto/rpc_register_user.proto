@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package db;
+
+import "user.proto";
+
+option go_package = "./pb";
+
+message RegisterUserRequest {
+  string login = 1;
+  string phone = 2;
+  repeated string roles = 3;
+  string password = 4;
+}
+
+message RegisterUserResponse {
+  User user = 1;
+}

@@ -1,4 +1,4 @@
-package v1
+package controller
 
 import (
 	"context"
@@ -14,6 +14,7 @@ type (
 		ChangePassword(ctx context.Context, req dto.UserChangePasswordRequest) error
 		Update(ctx context.Context, req dto.UserUpdateRequest) (domain.User, error)
 		Login(ctx context.Context, in dto.UserLoginRequest) (*dto.UserLoginResponse, error)
+		RefreshTokens(ctx context.Context, in dto.UserRefreshTokensIn) (*dto.UserRefreshTokensOut, error)
 		Logout(ctx context.Context) error
 	}
 

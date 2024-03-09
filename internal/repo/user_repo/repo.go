@@ -8,12 +8,12 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
-	user_db "komek/db/sqlc"
+	"komek/db/sqlc"
 	"komek/internal/domain"
 	"komek/internal/dto"
 	"komek/internal/mapper"
+	"komek/internal/repo"
 	"komek/pkg/postgres"
 	"log"
 )
@@ -24,30 +24,27 @@ const (
 
 type Repository struct {
 	pool *pgxpool.Pool
-	q    *user_db.Queries
+	q    *sqlc.Queries
 }
 
 func New(pg *postgres.Postgres) *Repository {
-	return &Repository{pg.Pool, user_db.New(pg.Pool)}
+	return &Repository{pg.Pool, sqlc.New(pg.Pool)}
 }
 
-func (r *Repository) Get(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
+func (r *Repository) GetByID(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	u, err := qtx.GetUser(ctx, pgtype.UUID{
-		Bytes: userID,
-		Valid: true,
-	})
+	u, err := qtx.GetUserByID(ctx, repo.ConvertToUUID(userID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
 		}
-		return domain.User{}, fmt.Errorf("r.q.GetUser :%w", err)
+		return domain.User{}, fmt.Errorf("r.q.GetUser: %w", err)
 	}
 	return mapper.ConvUserToDomain(u), nil
 }
 
-func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string) (domain.User, error) {
+func (r *Repository) GetByLogin(ctx context.Context, tx pgx.Tx, login string) (domain.User, error) {
 	qtx := r.queries(tx)
 
 	u, err := qtx.GetUserByLogin(ctx, login)
@@ -55,29 +52,56 @@ func (r *Repository) GetUserByLogin(ctx context.Context, tx pgx.Tx, login string
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
 		}
-		return domain.User{}, fmt.Errorf("r.q.GetUserByLogin :%w", err)
+		return domain.User{}, fmt.Errorf("r.q.GetUserByLogin: %w", err)
 	}
-	return domain.User{
-		ID:            u.ID.Bytes,
-		Name:          u.Name.String,
-		Phone:         domain.Phone(u.Phone.String),
-		Login:         u.Login,
-		EmailVerified: u.EmailVerified.Bool,
-		PasswordHash:  u.PasswordHash,
-		Email:         domain.Email(u.Email.String),
-		CreatedAt:     u.CreatedAt.Time,
-		UpdatedAt:     u.UpdatedAt.Time,
-	}, nil
+	return mapper.ConvUserToDomain(u), nil
+}
+
+func (r *Repository) GetByPhone(ctx context.Context, tx pgx.Tx, phone domain.Phone) (domain.User, error) {
+	qtx := r.queries(tx)
+
+	u, err := qtx.GetUserByPhone(ctx, repo.ConvertToNullStr(string(phone)))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
+		return domain.User{}, fmt.Errorf("r.q.GetUserByPhone: %w", err)
+	}
+	return mapper.ConvUserToDomain(u), nil
+}
+
+func (r *Repository) GetByEmail(ctx context.Context, tx pgx.Tx, email domain.Email) (domain.User, error) {
+	qtx := r.queries(tx)
+
+	u, err := qtx.GetUserByEmail(ctx, repo.ConvertToNullStr(string(email)))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
+		return domain.User{}, fmt.Errorf("r.q.GetUserByEmail: %w", err)
+	}
+	return mapper.ConvUserToDomain(u), nil
+}
+
+func (r *Repository) GetByAccount(ctx context.Context, tx pgx.Tx, accountID int64) (domain.User, error) {
+	qtx := r.queries(tx)
+
+	u, err := qtx.GetUserByAccount(ctx, accountID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return domain.User{}, ErrUserNotFound
+		}
+		return domain.User{}, fmt.Errorf("r.q.GetUserByAccount: %w", err)
+	}
+	return mapper.ConvUserToDomain(u), nil
 }
 
 func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	phone := checkAndConvertToNullStr(string(u.Phone))
-
-	user, err := qtx.SaveUser(ctx, user_db.SaveUserParams{
+	user, err := qtx.SaveUser(ctx, sqlc.SaveUserParams{
 		Login:        u.Login,
-		Phone:        phone,
+		Phone:        repo.ConvertToNullStr(string(u.Phone)),
 		PasswordHash: u.PasswordHash,
 		Roles:        u.Roles.ConvString(),
 	})
@@ -100,26 +124,15 @@ func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) (domain
 func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRequest) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	name := checkAndConvertToNullStr(req.Name)
-	login := checkAndConvertToNullStr(req.Login)
-	email := checkAndConvertToNullStr(string(req.Email))
-	phone := checkAndConvertToNullStr(string(req.Phone))
-	emailVerified := checkAndConvertToNullBool(req.EmailVerified)
-	roles := checkAndConvertToNullStr(req.Roles.ConvString())
-	passwordHash := checkAndConvertToNullStr(req.PasswordHash)
-
-	u, err := qtx.UpdateUser(ctx, user_db.UpdateUserParams{
-		ID: pgtype.UUID{
-			Bytes: req.ID,
-			Valid: true,
-		},
-		Name:          name,
-		PasswordHash:  passwordHash,
-		Login:         login,
-		Email:         email,
-		Phone:         phone,
-		Roles:         roles,
-		EmailVerified: emailVerified,
+	u, err := qtx.UpdateUser(ctx, sqlc.UpdateUserParams{
+		ID:            repo.ConvertToUUID(req.ID),
+		Name:          repo.ConvertToNullStr(req.Name),
+		PasswordHash:  repo.ConvertToNullStr(req.PasswordHash),
+		Login:         repo.ConvertToNullStr(req.Login),
+		Email:         repo.ConvertToNullStr(string(req.Email)),
+		Phone:         repo.ConvertToNullStr(string(req.Phone)),
+		Roles:         repo.ConvertToNullStr(req.Roles.ConvString()),
+		EmailVerified: repo.ConvertToNullBool(req.EmailVerified),
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -136,10 +149,7 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
 	qtx := r.queries(tx)
 
-	_, err := qtx.RemoveUser(ctx, pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	})
+	_, err := qtx.RemoveUser(ctx, repo.ConvertToUUID(id))
 	if err != nil {
 		return fmt.Errorf("qtx.RemoveUser: %w", err)
 	}
@@ -149,7 +159,7 @@ func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error 
 func (r *Repository) Find(ctx context.Context, tx pgx.Tx, req dto.UserFindRequest) ([]domain.User, error) {
 	qtx := r.queries(tx)
 
-	users, err := qtx.FindUsers(ctx, user_db.FindUsersParams{
+	users, err := qtx.FindUsers(ctx, sqlc.FindUsersParams{
 		Name:  req.Name,
 		Login: req.Login,
 		Email: string(req.Email),
@@ -182,27 +192,7 @@ func checkConstraints(err error) error {
 	return nil
 }
 
-func checkAndConvertToNullStr(value string) (nullValue pgtype.Text) {
-	if value != "" {
-		nullValue = pgtype.Text{
-			String: value,
-			Valid:  true,
-		}
-	}
-	return
-}
-
-func checkAndConvertToNullBool(value *bool) (nullValue pgtype.Bool) {
-	if value != nil {
-		nullValue = pgtype.Bool{
-			Bool:  *value,
-			Valid: true,
-		}
-	}
-	return
-}
-
-func (r *Repository) queries(tx pgx.Tx) *user_db.Queries {
+func (r *Repository) queries(tx pgx.Tx) *sqlc.Queries {
 	qtx := r.q
 	if tx != nil {
 		qtx = r.q.WithTx(tx)

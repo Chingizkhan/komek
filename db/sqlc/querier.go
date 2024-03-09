@@ -14,6 +14,7 @@ type Querier interface {
 	AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error)
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
 	CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error)
+	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error)
 	DeleteAccount(ctx context.Context, id int64) error
 	DeleteOrganisation(ctx context.Context, id pgtype.UUID) error
@@ -24,9 +25,13 @@ type Querier interface {
 	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
 	GetEntry(ctx context.Context, id int64) (Entry, error)
 	GetOrganisation(ctx context.Context, id pgtype.UUID) (Organisation, error)
+	GetSession(ctx context.Context, id pgtype.UUID) (Session, error)
 	GetTransfer(ctx context.Context, id int64) (Transfer, error)
-	GetUser(ctx context.Context, id pgtype.UUID) (User, error)
+	GetUserByAccount(ctx context.Context, id int64) (User, error)
+	GetUserByEmail(ctx context.Context, email pgtype.Text) (User, error)
+	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByLogin(ctx context.Context, login string) (User, error)
+	GetUserByPhone(ctx context.Context, phone pgtype.Text) (User, error)
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
 	ListOrganisation(ctx context.Context) ([]Organisation, error)

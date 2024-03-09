@@ -1,10 +1,25 @@
--- name: GetUser :one
+-- name: GetUserByID :one
 SELECT * FROM users
 WHERE id = $1 LIMIT 1;
+
+-- name: GetUserByPhone :one
+SELECT * FROM users
+WHERE phone = $1 LIMIT 1;
+
+-- name: GetUserByEmail :one
+SELECT * FROM users
+WHERE email = $1 LIMIT 1;
 
 -- name: GetUserByLogin :one
 SELECT * FROM users
 WHERE "login" = $1 LIMIT 1;
+
+-- name: GetUserByAccount :one
+SELECT * FROM users as u
+WHERE u.id = (
+    SELECT a.owner FROM accounts as a
+    WHERE a.id = $1 LIMIT 1
+);
 
 -- name: ListUsers :many
 SELECT * FROM users

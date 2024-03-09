@@ -2,24 +2,24 @@ package sqlc
 
 import (
 	"context"
-	"database/sql"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestSaveUser(t *testing.T) {
 	arg := SaveUserParams{
-		Name: sql.NullString{
+		Name: pgtype.Text{
 			Valid:  true,
 			String: "Jack",
 		},
 		Login: "jake_buffalo",
-		Email: sql.NullString{
+		Email: pgtype.Text{
 			Valid:  true,
 			String: "jack@email.com",
 		},
 		PasswordHash: "password_hash",
-		Phone: sql.NullString{
+		Phone: pgtype.Text{
 			Valid:  true,
 			String: "77058113795",
 		},

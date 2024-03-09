@@ -5,6 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"komek/config"
+	"komek/internal/controller"
 	customMiddleware "komek/internal/controller/http/middleware"
 	"komek/internal/service/oauth_service"
 	"komek/internal/service/token"
@@ -17,8 +18,8 @@ type (
 	Handler struct {
 		l                 logger.ILogger
 		cfg               *config.Config
-		user              User
-		banking           Banking
+		user              controller.User
+		banking           controller.Banking
 		tokenMaker        token.Maker
 		cookieSecret      []byte
 		oauthServerClient OauthServerClient
@@ -28,8 +29,8 @@ type (
 	HandlerParams struct {
 		Logger            logger.ILogger
 		Cfg               *config.Config
-		User              User
-		Banking           Banking
+		User              controller.User
+		Banking           controller.Banking
 		TokenMaker        token.Maker
 		CookieSecret      []byte
 		OauthServerClient OauthServerClient

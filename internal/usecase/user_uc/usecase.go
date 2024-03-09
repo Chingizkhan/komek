@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"komek/internal/domain"
 	"komek/internal/dto"
@@ -12,14 +13,32 @@ import (
 )
 
 type UseCase struct {
-	r          UserRepository
-	tr         Transactional
-	hasher     Hasher
-	tokenMaker token.Maker
+	r                    UserRepository
+	tr                   Transactional
+	hasher               Hasher
+	session              SessionRepository
+	tokenMaker           token.Maker
+	accessTokenLifetime  time.Duration
+	refreshTokenLifetime time.Duration
 }
 
-func New(r UserRepository, tr Transactional, hasher Hasher, tokenMaker token.Maker) *UseCase {
-	return &UseCase{r, tr, hasher, tokenMaker}
+func New(
+	r UserRepository,
+	tr Transactional,
+	hasher Hasher,
+	session SessionRepository,
+	tokenMaker token.Maker,
+	accessTokenLifetime, refreshTokenLifetime time.Duration,
+) *UseCase {
+	return &UseCase{
+		r,
+		tr,
+		hasher,
+		session,
+		tokenMaker,
+		accessTokenLifetime,
+		refreshTokenLifetime,
+	}
 }
 
 func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) (domain.User, error) {
@@ -49,16 +68,47 @@ func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) (do
 	return user, nil
 }
 
-func (u *UseCase) Get(ctx context.Context, req dto.UserGetRequest) (domain.User, error) {
-	user, err := u.r.Get(ctx, nil, req.ID)
-	if err != nil {
-		return domain.User{}, fmt.Errorf("get user: %w", err)
+func (u *UseCase) Get(ctx context.Context, in dto.UserGetRequest) (domain.User, error) {
+	var (
+		user domain.User
+		err  error
+	)
+
+	if in.ID != uuid.Nil {
+		user, err = u.r.GetByID(ctx, nil, in.ID)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("get user by id: %w", err)
+		}
+	}
+	if in.Phone != "" {
+		user, err = u.r.GetByPhone(ctx, nil, in.Phone)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("get user by phone: %w", err)
+		}
+	}
+	if in.Login != "" {
+		user, err = u.r.GetByLogin(ctx, nil, in.Login)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("get user by login: %w", err)
+		}
+	}
+	if in.Email != "" {
+		user, err = u.r.GetByEmail(ctx, nil, in.Email)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("get user by email: %w", err)
+		}
+	}
+	if in.AccountID != 0 {
+		user, err = u.r.GetByAccount(ctx, nil, in.AccountID)
+		if err != nil {
+			return domain.User{}, fmt.Errorf("get user by account: %w", err)
+		}
 	}
 	return user, nil
 }
 
 func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.UserLoginResponse, error) {
-	user, err := u.r.GetUserByLogin(ctx, nil, in.Login)
+	user, err := u.r.GetByLogin(ctx, nil, in.Login)
 	if err != nil {
 		return nil, fmt.Errorf("get user by login: %w", err)
 	}
@@ -69,13 +119,40 @@ func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.User
 	}
 
 	// get access token
-	accessToken, err := u.tokenMaker.CreateToken(user.ID, time.Minute*15)
+	accessToken, accessPayload, err := u.tokenMaker.CreateToken(user.ID, u.accessTokenLifetime)
 	if err != nil {
-		return nil, fmt.Errorf("tokenMaker.CreateToken: %w", err)
+		return nil, fmt.Errorf("create access token: %w", err)
+	}
+
+	// get refresh token
+	refreshToken, refreshPayload, err := u.tokenMaker.CreateToken(user.ID, u.refreshTokenLifetime)
+	if err != nil {
+		return nil, fmt.Errorf("create refresh token: %w", err)
+	}
+
+	// todo: add UserAgent and ClientIp to session
+	session := domain.Session{
+		ID:           refreshPayload.ID,
+		UserID:       user.ID,
+		RefreshToken: refreshToken,
+		UserAgent:    "",
+		ClientIp:     "",
+		IsBlocked:    false,
+		ExpiresAt:    refreshPayload.ExpiredAt,
+	}
+
+	// save session_repo
+	createdSession, err := u.session.Save(ctx, nil, session)
+	if err != nil {
+		return nil, fmt.Errorf("session.Save: %w", err)
 	}
 
 	return &dto.UserLoginResponse{
-		AccessToken: accessToken,
+		SessionID:             createdSession.ID,
+		AccessToken:           accessToken,
+		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
 		User: dto.UserResponse{
 			ID:            user.ID,
 			Name:          user.Name,
@@ -108,7 +185,7 @@ func (u *UseCase) Delete(ctx context.Context, req dto.UserDeleteRequest) error {
 }
 
 func (u *UseCase) ChangePassword(ctx context.Context, req dto.UserChangePasswordRequest) error {
-	user, err := u.r.Get(ctx, nil, req.ID)
+	user, err := u.r.GetByID(ctx, nil, req.ID)
 	if err != nil {
 		return fmt.Errorf("get user: %w", err)
 	}
@@ -153,4 +230,42 @@ func (u *UseCase) Update(ctx context.Context, req dto.UserUpdateRequest) (domain
 		return domain.User{}, fmt.Errorf("tr.Exec: %w", err)
 	}
 	return user, nil
+}
+
+func (u *UseCase) RefreshTokens(ctx context.Context, in dto.UserRefreshTokensIn) (*dto.UserRefreshTokensOut, error) {
+	payload, err := u.tokenMaker.VerifyToken(in.RefreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("verify token: %w", err)
+	}
+
+	session, err := u.session.Get(ctx, nil, payload.ID)
+	if err != nil {
+		return nil, fmt.Errorf("get session: %w", err)
+	}
+
+	if session.IsBlocked {
+		return nil, ErrSessionBlocked
+	}
+
+	if session.UserID != payload.UserID {
+		return nil, ErrSessionUser
+	}
+
+	if session.RefreshToken != in.RefreshToken {
+		return nil, ErrMismatchSessionToken
+	}
+
+	if time.Now().After(payload.ExpiredAt) {
+		return nil, ErrExpiredSession
+	}
+
+	accessToken, accessPayload, err := u.tokenMaker.CreateToken(
+		payload.UserID,
+		u.accessTokenLifetime,
+	)
+
+	return &dto.UserRefreshTokensOut{
+		AccessToken:          accessToken,
+		AccessTokenExpiresAt: accessPayload.ExpiredAt,
+	}, nil
 }

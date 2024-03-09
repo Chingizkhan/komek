@@ -5,9 +5,12 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/oauth2"
 	"komek/config"
+	"komek/internal/controller/grpc"
 	"komek/internal/controller/http/v1"
-	"komek/internal/repos/tx"
-	"komek/internal/repos/user_repo"
+	"komek/internal/repo/account_repo"
+	"komek/internal/repo/session_repo"
+	"komek/internal/repo/tx"
+	"komek/internal/repo/user_repo"
 	"komek/internal/service/hasher"
 	"komek/internal/service/locker"
 	"komek/internal/service/oauth_service"
@@ -15,6 +18,7 @@ import (
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/banking_uc"
 	"komek/internal/usecase/user_uc"
+	"komek/pkg/grpcserver"
 	"komek/pkg/httpserver"
 	"komek/pkg/logger"
 	"komek/pkg/postgres"
@@ -51,7 +55,10 @@ func Run(cfg *config.Config, l *logger.Logger) {
 
 	oauthServerClient := oauth_service.New(time.Second*10, cfg.Oauth2Raw.ServiceAddr)
 	userRepo := user_repo.New(pg)
+	sessionRepo := session_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
+	accountRepo := account_repo.New(pg)
+
 	hash := hasher.New()
 	lock := locker.New(cache.Client, cfg.LockTimeout)
 	txRepo := tx.NewTX(pg)
@@ -98,8 +105,8 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 
 	// get usecases
-	userUC := user_uc.New(userRepo, transactionalRepo, hash, tokenMaker)
-	bankingUC := banking_uc.New(txRepo)
+	userUC := user_uc.New(userRepo, transactionalRepo, hash, sessionRepo, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
+	bankingUC := banking_uc.New(transactionalRepo, txRepo, accountRepo)
 
 	// start http server
 	r := chi.NewRouter()
@@ -118,6 +125,12 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		r,
 		httpserver.Port(cfg.HTTP.Port),
 	)
+	l.Info("http server started", slog.String("env", cfg.Log.Level), slog.String("port", cfg.HTTP.Port))
+
+	// start grpc server
+	server := grpc.Register(l, userUC)
+	grpcServer := grpcserver.New(server, cfg.GRPC.Port)
+	l.Info("grpc server started", slog.String("env", cfg.Log.Level), slog.String("port", cfg.GRPC.Port))
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
@@ -127,7 +140,12 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		l.Info("app - Run - signal:", slog.String("signal", s.String()))
 	case err := <-httpServer.Notify():
 		l.Error("app - Run - http_server.Notify:", logger.Err(err))
+	case err := <-grpcServer.Notify():
+		l.Error("app - Run - grpc_server.Notify:", logger.Err(err))
 	}
+
+	// shutdown
+	grpcServer.Shutdown()
 
 	err = httpServer.Shutdown()
 	if err != nil {

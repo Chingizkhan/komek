@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"komek/internal/domain"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 type (
@@ -40,15 +41,16 @@ type (
 	}
 
 	UserResponse struct {
-		ID            uuid.UUID    `json:"id"`
-		Name          string       `json:"name"`
-		Phone         domain.Phone `json:"phone"`
-		Login         string       `json:"login"`
-		Email         domain.Email `json:"email"`
-		EmailVerified bool         `json:"email_verified"`
-		Roles         domain.Roles `json:"roles"`
-		CreatedAt     int64        `json:"created_at"`
-		UpdatedAt     int64        `json:"updated_at"`
+		ID                uuid.UUID    `json:"id"`
+		Name              string       `json:"name"`
+		Phone             domain.Phone `json:"phone"`
+		Login             string       `json:"login"`
+		Email             domain.Email `json:"email"`
+		EmailVerified     bool         `json:"email_verified"`
+		Roles             domain.Roles `json:"roles"`
+		CreatedAt         int64        `json:"created_at"`
+		UpdatedAt         int64        `json:"updated_at"`
+		PasswordChangedAt int64        `json:"password_changed_at"`
 	}
 
 	UserLoginRequest struct {
@@ -57,15 +59,32 @@ type (
 	}
 
 	UserLoginResponse struct {
-		AccessToken string       `json:"access_token"`
-		User        UserResponse `json:"user"`
+		SessionID             uuid.UUID    `json:"session_id"`
+		AccessToken           string       `json:"access_token"`
+		AccessTokenExpiresAt  time.Time    `json:"access_token_expires_at"`
+		RefreshToken          string       `json:"refresh_token"`
+		RefreshTokenExpiresAt time.Time    `json:"refresh_token_expires_at"`
+		User                  UserResponse `json:"user"`
+	}
+
+	UserRefreshTokensIn struct {
+		RefreshToken string `json:"refresh_token"`
+	}
+
+	UserRefreshTokensOut struct {
+		AccessToken          string    `json:"access_token"`
+		AccessTokenExpiresAt time.Time `json:"access_token_expires_at"`
 	}
 
 	UserLogoutRequest struct {
 	}
 
 	UserGetRequest struct {
-		ID uuid.UUID
+		ID        uuid.UUID
+		Phone     domain.Phone
+		Email     domain.Email
+		Login     string
+		AccountID int64
 	}
 
 	UserFindRequest struct {
@@ -112,6 +131,10 @@ func (req *UserRegisterRequest) ParseAndValidate(r *http.Request) error {
 		return fmt.Errorf("can not decode body: %w", err)
 	}
 	defer r.Body.Close()
+	return req.Validate()
+}
+
+func (req *UserRegisterRequest) Validate() error {
 	if len(req.Phone) != 11 {
 		return errors.New("invalid phone length")
 	}
@@ -123,7 +146,7 @@ func (req *UserRegisterRequest) ParseAndValidate(r *http.Request) error {
 		return errors.New("login too short: must be >= 6")
 	}
 	// todo: add validation for password (min:6, chars, digits)
-	if err = req.Password.Validate(); err != nil {
+	if err := req.Password.Validate(); err != nil {
 		return err
 	}
 	return nil
@@ -142,15 +165,51 @@ func (req *UserLogoutRequest) ParseAndValidate(r *http.Request) error {
 }
 
 func (req *UserGetRequest) ParseAndValidate(r *http.Request) error {
-	userID := chi.URLParam(r, "id")
-	id, err := uuid.Parse(userID)
-	if err != nil {
-		return errors.New("invalid_user_id")
+	userID := r.URL.Query().Get("user_id")
+	if userID != "" {
+		id, err := uuid.Parse(userID)
+		if err != nil {
+			return fmt.Errorf("%s: %w", err, errors.New("invalid_user_id"))
+		}
+		req.ID = id
 	}
-	req.ID = id
+
+	phone := r.URL.Query().Get("phone")
+	if phone != "" {
+		req.Phone = domain.Phone(phone)
+	}
+
+	email := r.URL.Query().Get("email")
+	if email != "" {
+		req.Email = domain.Email(email)
+	}
+
+	req.Login = r.URL.Query().Get("login")
+
+	accountID := r.URL.Query().Get("account_id")
+	if accountID != "" {
+		accID, err := strconv.Atoi(accountID)
+		if err != nil {
+			return fmt.Errorf("%s: %w", err, errors.New("invalid_account_id"))
+		}
+		req.AccountID = int64(accID)
+	}
+
+	if req.ID == uuid.Nil && req.Login == "" && req.Email == "" && req.Phone == "" && req.AccountID == 0 {
+		return errors.New("params_not_specified")
+	}
+
 	return nil
 }
 
 func (req *UserFindRequest) ParseAndValidate(r *http.Request) error {
+	return nil
+}
+
+func (req *UserRefreshTokensIn) ParseAndValidate(r *http.Request) error {
+	err := json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		return fmt.Errorf("can not decode body: %w", err)
+	}
 	return nil
 }

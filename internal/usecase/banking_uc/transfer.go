@@ -8,7 +8,7 @@ import (
 	"komek/internal/mapper"
 )
 
-func (s *Service) Transfer(ctx context.Context, in dto.TransferIn) (dto.TransferOut, error) {
+func (s *UseCase) Transfer(ctx context.Context, in dto.TransferIn) (dto.TransferOut, error) {
 	var result dto.TransferOut
 
 	err := s.tx.Exec(ctx, func(q *sqlc.Queries) error {
@@ -34,7 +34,7 @@ func (s *Service) Transfer(ctx context.Context, in dto.TransferIn) (dto.Transfer
 			Amount:    in.Amount,
 		})
 		if err != nil {
-			return fmt.Errorf("create to  entry: %w", err)
+			return fmt.Errorf("create to entry: %w", err)
 		}
 
 		var fromAcc sqlc.Account
@@ -67,7 +67,7 @@ func (s *Service) Transfer(ctx context.Context, in dto.TransferIn) (dto.Transfer
 	return result, nil
 }
 
-func (s *Service) addMoney(
+func (s *UseCase) addMoney(
 	ctx context.Context,
 	q *sqlc.Queries,
 	accID1 int64,

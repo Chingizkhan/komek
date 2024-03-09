@@ -2,7 +2,7 @@ package banking_uc
 
 import (
 	"komek/db/sqlc"
-	store2 "komek/internal/repos/tx"
+	store2 "komek/internal/repo/tx"
 	"komek/pkg/postgres"
 	"log"
 	"os"
@@ -15,7 +15,7 @@ const (
 
 var (
 	testQueries *sqlc.Queries
-	service     *Service
+	service     *UseCase
 )
 
 func TestMain(m *testing.M) {

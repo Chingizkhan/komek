@@ -23,7 +23,7 @@ func (h *Handler) accountCreate(w http.ResponseWriter, r *http.Request) {
 	req := dto.CreateAccountIn{}
 	if err := req.ParseAndValidate(r); err != nil {
 		h.l.Error("accountCreate - ParseAndValidate", logger.Err(err))
-		h.Err(w, err.Error(), http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -32,7 +32,7 @@ func (h *Handler) accountCreate(w http.ResponseWriter, r *http.Request) {
 	account, err := h.banking.CreateAccount(r.Context(), req)
 	if err != nil {
 		h.l.Error("accountCreate - banking.CreateAccount", logger.Err(err))
-		h.Err(w, err.Error(), http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -43,7 +43,7 @@ func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
 	req := dto.GetAccountIn{}
 	if err := req.ParseAndValidate(r); err != nil {
 		h.l.Error("accountGet - ParseAndValidate", logger.Err(err))
-		h.Err(w, err.Error(), http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -51,6 +51,7 @@ func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.l.Error("accountGet - banking_uc.CreateAccount", logger.Err(err))
 		h.Err(w, err.Error(), http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError)
 		return
 	}
 
@@ -61,14 +62,14 @@ func (h *Handler) operationTransfer(w http.ResponseWriter, r *http.Request) {
 	req := dto.TransferIn{}
 	if err := req.ParseAndValidate(r); err != nil {
 		h.l.Error("operationTransfer - ParseAndValidate", logger.Err(err))
-		h.Err(w, err.Error(), http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest)
 		return
 	}
 
 	transfer, err := h.banking.Transfer(r.Context(), req)
 	if err != nil {
 		h.l.Error("operationTransfer - banking_uc.Transfer", logger.Err(err))
-		h.Err(w, err.Error(), http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError)
 		return
 	}
 
