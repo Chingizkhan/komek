@@ -15,7 +15,7 @@ const (
 
 var (
 	testQueries *sqlc.Queries
-	service     *Service
+	service     *UseCase
 )
 
 func TestMain(m *testing.M) {

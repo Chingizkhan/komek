@@ -12,7 +12,7 @@ import (
 	"log"
 )
 
-func (s *Service) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (domain.Account, error) {
+func (s *UseCase) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (domain.Account, error) {
 	var (
 		acc sqlc.Account
 		err error
@@ -49,7 +49,7 @@ func (s *Service) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (do
 	}, nil
 }
 
-func (s *Service) GetAccount(ctx context.Context, in dto.GetAccountIn) (domain.Account, error) {
+func (s *UseCase) GetAccount(ctx context.Context, in dto.GetAccountIn) (domain.Account, error) {
 	var (
 		acc sqlc.Account
 		err error

@@ -12,7 +12,6 @@ import (
 // todo: get accounts that belong to user with pagination
 // todo: make transfer money
 // todo: checking on transfer if currency the same on 2 accounts
-// todo: add to request wallet_identifier with (uniques) phone, email, login or account_id
 
 func (h *Handler) userRoutes(r *chi.Mux) {
 	r.Route("/user", func(r chi.Router) {

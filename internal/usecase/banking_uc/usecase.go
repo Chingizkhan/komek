@@ -6,7 +6,7 @@ import (
 )
 
 type (
-	Service struct {
+	UseCase struct {
 		tx Store
 	}
 
@@ -17,8 +17,8 @@ type (
 
 var txKey = struct{}{}
 
-func New(store Store) *Service {
-	return &Service{
+func New(store Store) *UseCase {
+	return &UseCase{
 		store,
 	}
 }
