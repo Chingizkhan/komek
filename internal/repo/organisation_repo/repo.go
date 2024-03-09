@@ -1,8 +1,8 @@
 package organisation_repo
 
 import (
-	"github.com/jackc/pgx/v4/pgxpool"
-	org_db "komek/db/sqlc"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"komek/db/sqlc"
 	"komek/pkg/postgres"
 )
 
@@ -12,9 +12,9 @@ const (
 
 type Repository struct {
 	pool *pgxpool.Pool
-	q    *org_db.Queries
+	q    *sqlc.Queries
 }
 
 func New(pg *postgres.Postgres) *Repository {
-	return &Repository{pg.Pool, org_db.New(pg.Pool)}
+	return &Repository{pg.Pool, sqlc.New(pg.Pool)}
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"komek/db/sqlc"
 	"komek/internal/domain"
@@ -35,10 +34,7 @@ func New(pg *postgres.Postgres) *Repository {
 func (r *Repository) GetByID(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	u, err := qtx.GetUserByID(ctx, pgtype.UUID{
-		Bytes: userID,
-		Valid: true,
-	})
+	u, err := qtx.GetUserByID(ctx, repo.ConvertToUUID(userID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
@@ -128,26 +124,15 @@ func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) (domain
 func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRequest) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	name := repo.ConvertToNullStr(req.Name)
-	login := repo.ConvertToNullStr(req.Login)
-	email := repo.ConvertToNullStr(string(req.Email))
-	phone := repo.ConvertToNullStr(string(req.Phone))
-	emailVerified := repo.ConvertToNullBool(req.EmailVerified)
-	roles := repo.ConvertToNullStr(req.Roles.ConvString())
-	passwordHash := repo.ConvertToNullStr(req.PasswordHash)
-
 	u, err := qtx.UpdateUser(ctx, sqlc.UpdateUserParams{
-		ID: pgtype.UUID{
-			Bytes: req.ID,
-			Valid: true,
-		},
-		Name:          name,
-		PasswordHash:  passwordHash,
-		Login:         login,
-		Email:         email,
-		Phone:         phone,
-		Roles:         roles,
-		EmailVerified: emailVerified,
+		ID:            repo.ConvertToUUID(req.ID),
+		Name:          repo.ConvertToNullStr(req.Name),
+		PasswordHash:  repo.ConvertToNullStr(req.PasswordHash),
+		Login:         repo.ConvertToNullStr(req.Login),
+		Email:         repo.ConvertToNullStr(string(req.Email)),
+		Phone:         repo.ConvertToNullStr(string(req.Phone)),
+		Roles:         repo.ConvertToNullStr(req.Roles.ConvString()),
+		EmailVerified: repo.ConvertToNullBool(req.EmailVerified),
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -164,10 +149,7 @@ func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRe
 func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error {
 	qtx := r.queries(tx)
 
-	_, err := qtx.RemoveUser(ctx, pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	})
+	_, err := qtx.RemoveUser(ctx, repo.ConvertToUUID(id))
 	if err != nil {
 		return fmt.Errorf("qtx.RemoveUser: %w", err)
 	}

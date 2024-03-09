@@ -8,11 +8,11 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"komek/db/sqlc"
 	"komek/internal/domain"
 	"komek/internal/mapper"
+	"komek/internal/repo"
 	"komek/pkg/postgres"
 )
 
@@ -28,10 +28,7 @@ func New(pg *postgres.Postgres) *Repository {
 func (r *Repository) Get(ctx context.Context, tx pgx.Tx, id uuid.UUID) (domain.Session, error) {
 	qtx := r.queries(tx)
 
-	s, err := qtx.GetSession(ctx, pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	})
+	s, err := qtx.GetSession(ctx, repo.ConvertToUUID(id))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.Session{}, ErrSessionNotFound
@@ -45,22 +42,13 @@ func (r *Repository) Save(ctx context.Context, tx pgx.Tx, s domain.Session) (dom
 	qtx := r.queries(tx)
 
 	session, err := qtx.CreateSession(ctx, sqlc.CreateSessionParams{
-		ID: pgtype.UUID{
-			Bytes: s.ID,
-			Valid: true,
-		},
-		UserID: pgtype.UUID{
-			Bytes: s.UserID,
-			Valid: true,
-		},
+		ID:           repo.ConvertToUUID(s.ID),
+		UserID:       repo.ConvertToUUID(s.UserID),
 		RefreshToken: s.RefreshToken,
 		UserAgent:    s.UserAgent,
 		ClientIp:     s.ClientIp,
 		IsBlocked:    s.IsBlocked,
-		ExpiresAt: pgtype.Timestamptz{
-			Time:  s.ExpiresAt,
-			Valid: true,
-		},
+		ExpiresAt:    repo.ConvertToTimestamptz(s.ExpiresAt),
 	})
 	if err != nil {
 		if err = checkConstraints(err); err != nil {
@@ -95,24 +83,4 @@ func (r *Repository) queries(tx pgx.Tx) *sqlc.Queries {
 		qtx = r.q.WithTx(tx)
 	}
 	return qtx
-}
-
-func checkAndConvertToNullStr(value string) (nullValue pgtype.Text) {
-	if value != "" {
-		nullValue = pgtype.Text{
-			String: value,
-			Valid:  true,
-		}
-	}
-	return
-}
-
-func checkAndConvertToNullBool(value *bool) (nullValue pgtype.Bool) {
-	if value != nil {
-		nullValue = pgtype.Bool{
-			Bool:  *value,
-			Valid: true,
-		}
-	}
-	return
 }
