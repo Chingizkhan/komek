@@ -10,10 +10,11 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
-	user_db "komek/db/sqlc"
+	"komek/db/sqlc"
 	"komek/internal/domain"
 	"komek/internal/dto"
 	"komek/internal/mapper"
+	"komek/internal/repo"
 	"komek/pkg/postgres"
 	"log"
 )
@@ -24,11 +25,11 @@ const (
 
 type Repository struct {
 	pool *pgxpool.Pool
-	q    *user_db.Queries
+	q    *sqlc.Queries
 }
 
 func New(pg *postgres.Postgres) *Repository {
-	return &Repository{pg.Pool, user_db.New(pg.Pool)}
+	return &Repository{pg.Pool, sqlc.New(pg.Pool)}
 }
 
 func (r *Repository) GetByID(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (domain.User, error) {
@@ -63,7 +64,7 @@ func (r *Repository) GetByLogin(ctx context.Context, tx pgx.Tx, login string) (d
 func (r *Repository) GetByPhone(ctx context.Context, tx pgx.Tx, phone domain.Phone) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	u, err := qtx.GetUserByPhone(ctx, checkAndConvertToNullStr(string(phone)))
+	u, err := qtx.GetUserByPhone(ctx, repo.ConvertToNullStr(string(phone)))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
@@ -76,7 +77,7 @@ func (r *Repository) GetByPhone(ctx context.Context, tx pgx.Tx, phone domain.Pho
 func (r *Repository) GetByEmail(ctx context.Context, tx pgx.Tx, email domain.Email) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	u, err := qtx.GetUserByEmail(ctx, checkAndConvertToNullStr(string(email)))
+	u, err := qtx.GetUserByEmail(ctx, repo.ConvertToNullStr(string(email)))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return domain.User{}, ErrUserNotFound
@@ -102,11 +103,9 @@ func (r *Repository) GetByAccount(ctx context.Context, tx pgx.Tx, accountID int6
 func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	phone := checkAndConvertToNullStr(string(u.Phone))
-
-	user, err := qtx.SaveUser(ctx, user_db.SaveUserParams{
+	user, err := qtx.SaveUser(ctx, sqlc.SaveUserParams{
 		Login:        u.Login,
-		Phone:        phone,
+		Phone:        repo.ConvertToNullStr(string(u.Phone)),
 		PasswordHash: u.PasswordHash,
 		Roles:        u.Roles.ConvString(),
 	})
@@ -129,15 +128,15 @@ func (r *Repository) Save(ctx context.Context, tx pgx.Tx, u domain.User) (domain
 func (r *Repository) Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRequest) (domain.User, error) {
 	qtx := r.queries(tx)
 
-	name := checkAndConvertToNullStr(req.Name)
-	login := checkAndConvertToNullStr(req.Login)
-	email := checkAndConvertToNullStr(string(req.Email))
-	phone := checkAndConvertToNullStr(string(req.Phone))
-	emailVerified := checkAndConvertToNullBool(req.EmailVerified)
-	roles := checkAndConvertToNullStr(req.Roles.ConvString())
-	passwordHash := checkAndConvertToNullStr(req.PasswordHash)
+	name := repo.ConvertToNullStr(req.Name)
+	login := repo.ConvertToNullStr(req.Login)
+	email := repo.ConvertToNullStr(string(req.Email))
+	phone := repo.ConvertToNullStr(string(req.Phone))
+	emailVerified := repo.ConvertToNullBool(req.EmailVerified)
+	roles := repo.ConvertToNullStr(req.Roles.ConvString())
+	passwordHash := repo.ConvertToNullStr(req.PasswordHash)
 
-	u, err := qtx.UpdateUser(ctx, user_db.UpdateUserParams{
+	u, err := qtx.UpdateUser(ctx, sqlc.UpdateUserParams{
 		ID: pgtype.UUID{
 			Bytes: req.ID,
 			Valid: true,
@@ -178,7 +177,7 @@ func (r *Repository) Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error 
 func (r *Repository) Find(ctx context.Context, tx pgx.Tx, req dto.UserFindRequest) ([]domain.User, error) {
 	qtx := r.queries(tx)
 
-	users, err := qtx.FindUsers(ctx, user_db.FindUsersParams{
+	users, err := qtx.FindUsers(ctx, sqlc.FindUsersParams{
 		Name:  req.Name,
 		Login: req.Login,
 		Email: string(req.Email),
@@ -211,27 +210,7 @@ func checkConstraints(err error) error {
 	return nil
 }
 
-func checkAndConvertToNullStr(value string) (nullValue pgtype.Text) {
-	if value != "" {
-		nullValue = pgtype.Text{
-			String: value,
-			Valid:  true,
-		}
-	}
-	return
-}
-
-func checkAndConvertToNullBool(value *bool) (nullValue pgtype.Bool) {
-	if value != nil {
-		nullValue = pgtype.Bool{
-			Bool:  *value,
-			Valid: true,
-		}
-	}
-	return
-}
-
-func (r *Repository) queries(tx pgx.Tx) *user_db.Queries {
+func (r *Repository) queries(tx pgx.Tx) *sqlc.Queries {
 	qtx := r.q
 	if tx != nil {
 		qtx = r.q.WithTx(tx)

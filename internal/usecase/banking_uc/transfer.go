@@ -34,7 +34,7 @@ func (s *UseCase) Transfer(ctx context.Context, in dto.TransferIn) (dto.Transfer
 			Amount:    in.Amount,
 		})
 		if err != nil {
-			return fmt.Errorf("create to  entry: %w", err)
+			return fmt.Errorf("create to entry: %w", err)
 		}
 
 		var fromAcc sqlc.Account

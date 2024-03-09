@@ -2,7 +2,7 @@ package banking_uc
 
 import (
 	"komek/db/sqlc"
-	store2 "komek/internal/repos/tx"
+	store2 "komek/internal/repo/tx"
 	"komek/pkg/postgres"
 	"log"
 	"os"

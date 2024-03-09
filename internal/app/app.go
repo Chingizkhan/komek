@@ -7,9 +7,10 @@ import (
 	"komek/config"
 	"komek/internal/controller/grpc"
 	"komek/internal/controller/http/v1"
-	"komek/internal/repos/session_repo"
-	"komek/internal/repos/tx"
-	"komek/internal/repos/user_repo"
+	"komek/internal/repo/account_repo"
+	"komek/internal/repo/session_repo"
+	"komek/internal/repo/tx"
+	"komek/internal/repo/user_repo"
 	"komek/internal/service/hasher"
 	"komek/internal/service/locker"
 	"komek/internal/service/oauth_service"
@@ -56,6 +57,8 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	userRepo := user_repo.New(pg)
 	sessionRepo := session_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
+	accountRepo := account_repo.New(pg)
+
 	hash := hasher.New()
 	lock := locker.New(cache.Client, cfg.LockTimeout)
 	txRepo := tx.NewTX(pg)
@@ -103,7 +106,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 
 	// get usecases
 	userUC := user_uc.New(userRepo, transactionalRepo, hash, sessionRepo, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
-	bankingUC := banking_uc.New(txRepo)
+	bankingUC := banking_uc.New(transactionalRepo, txRepo, accountRepo)
 
 	// start http server
 	r := chi.NewRouter()
