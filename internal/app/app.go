@@ -16,7 +16,6 @@ import (
 	"komek/internal/service/oauth_service"
 	"komek/internal/service/token"
 	"komek/internal/service/transactional"
-	"komek/internal/usecase/banking_uc"
 	"komek/internal/usecase/user_uc"
 	"komek/pkg/grpcserver"
 	"komek/pkg/httpserver"
@@ -60,7 +59,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	accountRepo := account_repo.New(pg)
 	im := identity.NewIdentityManager("localhost:8181", "komek", "", "")
 
-	bankingService, err := banking.New(":8889", false)
+	bankingService, err := banking.New(cfg.BankingService.Addr, cfg.BankingService.EnableTLS)
 	if err != nil {
 		l.Error("app - Run - bankingService:", logger.Err(err))
 		os.Exit(1)
@@ -106,7 +105,6 @@ func Run(cfg *config.Config, l *logger.Logger) {
 
 	// get usecases
 	userUC := user_uc.New(userRepo, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
-	bankingUC := banking_uc.New(transactionalRepo, txRepo, accountRepo)
 
 	// start http server
 	r := chi.NewRouter()
@@ -114,7 +112,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		Logger:            l,
 		Cfg:               cfg,
 		User:              userUC,
-		Banking:           bankingUC,
+		Banking:           bankingService,
 		TokenMaker:        tokenMaker,
 		CookieSecret:      []byte(cfg.Cookie.Secret),
 		OauthServerClient: oauthServerClient,

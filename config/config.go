@@ -11,16 +11,17 @@ import (
 
 type (
 	Config struct {
-		App       `yaml:"app"`
-		PG        `yaml:"postgres"`
-		HTTP      `yaml:"http"`
-		GRPC      `yaml:"grpc"`
-		Log       `yaml:"logger"`
-		Redis     `yaml:"redis"`
-		Locker    `yaml:"locker"`
-		Cookie    `yaml:"cookie"`
-		Oauth2Raw Oauth2 `yaml:"oauth2"`
-		Token     `yaml:"token"`
+		App            `yaml:"app"`
+		PG             `yaml:"postgres"`
+		HTTP           `yaml:"http"`
+		GRPC           `yaml:"grpc"`
+		Log            `yaml:"logger"`
+		Redis          `yaml:"redis"`
+		Locker         `yaml:"locker"`
+		Cookie         `yaml:"cookie"`
+		Oauth2Raw      Oauth2 `yaml:"oauth2"`
+		Token          `yaml:"token"`
+		BankingService `yaml:"banking_service"`
 	}
 
 	App struct {
@@ -77,6 +78,11 @@ type (
 	Token struct {
 		AccessTokenLifetime  time.Duration `env-required:"true" yaml:"access_token_lifetime" env:"ACCESS_TOKEN_LIFETIME"`
 		RefreshTokenLifetime time.Duration `env-required:"true" yaml:"refresh_token_lifetime" env:"REFRESH_TOKEN_LIFETIME"`
+	}
+
+	BankingService struct {
+		Addr      string `env-required:"true" yaml:"addr" env:"BANKING_SERVICE_ADDR"`
+		EnableTLS bool   `env-required:"true" yaml:"enable_tls" env:"BANKING_SERVICE_ENABLE_TLS"`
 	}
 )
 

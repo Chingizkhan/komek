@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"komek/internal/domain"
 	"komek/internal/dto"
 )
@@ -20,7 +21,7 @@ type (
 
 	Banking interface {
 		CreateAccount(ctx context.Context, in dto.CreateAccountIn) (domain.Account, error)
-		GetAccount(ctx context.Context, in dto.GetAccountIn) (domain.Account, error)
+		InfoAccount(ctx context.Context, accountID uuid.UUID) (out domain.Account, err error)
 		Transfer(ctx context.Context, in dto.TransferIn) (dto.TransferOut, error)
 	}
 )

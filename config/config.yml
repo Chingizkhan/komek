@@ -51,3 +51,7 @@ oauth2:
 
 cookie:
   secret: 'secret'
+
+banking_service:
+  addr: ":8889"
+  enable_tls: false
