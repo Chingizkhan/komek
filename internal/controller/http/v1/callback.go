@@ -2,19 +2,18 @@ package v1
 
 import (
 	"golang.org/x/oauth2"
-	"log"
 	"net/http"
 )
 
-func (h *Handler) callback(w http.ResponseWriter, r *http.Request) {
-	tokens, introspectResponse, err := h.sso.ProcessCallback(r)
-	if err != nil {
-		return
-	}
-
-	log.Printf("tokens: %#v", tokens)
-	log.Printf("introspectReesponse: %#v", introspectResponse)
-}
+//func (h *Handler) callback(w http.ResponseWriter, r *http.Request) {
+//	tokens, introspectResponse, err := h.sso.ProcessCallback(r)
+//	if err != nil {
+//		return
+//	}
+//
+//	log.Printf("tokens: %#v", tokens)
+//	log.Printf("introspectReesponse: %#v", introspectResponse)
+//}
 
 func processCookies(w http.ResponseWriter, token *oauth2.Token) {
 	cookieAccess := &http.Cookie{

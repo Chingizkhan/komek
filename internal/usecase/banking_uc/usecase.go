@@ -12,8 +12,8 @@ import (
 type (
 	UseCase struct {
 		tr      usecase.Transactional
+		banking usecase.BankingService
 		tx      Store
-		account AccountRepo
 	}
 
 	Store interface {
@@ -28,10 +28,10 @@ type (
 
 var txKey = struct{}{}
 
-func New(tr usecase.Transactional, store Store, account AccountRepo) *UseCase {
+func New(tr usecase.Transactional, banking usecase.BankingService, store Store) *UseCase {
 	return &UseCase{
 		tr,
+		banking,
 		store,
-		account,
 	}
 }

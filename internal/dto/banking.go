@@ -7,20 +7,19 @@ import (
 	"github.com/google/uuid"
 	"komek/internal/domain"
 	"net/http"
-	"strconv"
 )
 
 type (
 	TransferIn struct {
-		FromAccountID uuid.UUID
-		ToAccountID   uuid.UUID
-		Amount        int64
+		FromAccountID uuid.UUID `json:"from_account_id"`
+		ToAccountID   uuid.UUID `json:"to_account_id"`
+		Amount        int64     `json:"amount"`
 	}
 
 	TransferOut struct {
-		Transaction domain.Transaction
-		FromAccount domain.Account
-		ToAccount   domain.Account
+		Transaction domain.Transaction `json:"transaction"`
+		FromAccount domain.Account     `json:"from_account"`
+		ToAccount   domain.Account     `json:"to_account"`
 	}
 
 	CreateAccountIn struct {
@@ -31,7 +30,7 @@ type (
 	}
 
 	GetAccountIn struct {
-		ID int64
+		ID uuid.UUID
 	}
 )
 
@@ -55,10 +54,12 @@ func (in *TransferIn) ParseAndValidate(r *http.Request) error {
 
 func (in *GetAccountIn) ParseAndValidate(r *http.Request) error {
 	idString := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idString)
+
+	id, err := uuid.Parse(idString)
 	if err != nil {
-		return fmt.Errorf("strconv.Atoi: %w", err)
+		return fmt.Errorf("conv acc id: %w", err)
 	}
-	in.ID = int64(id)
+
+	in.ID = id
 	return nil
 }

@@ -67,7 +67,7 @@ func (h *Handler) Register(r *chi.Mux, timeout time.Duration) {
 
 	//r.With(h.sso.AuthOauth2).Get("/test", h.test)
 	//r.With(h.sso.AuthClientCredentials).Get("/test-cc", h.test)
-	r.Get("/callback", h.callback)
+	//r.Get("/callback", h.callback)
 }
 
 func (h *Handler) test(w http.ResponseWriter, r *http.Request) {

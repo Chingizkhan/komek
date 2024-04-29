@@ -47,7 +47,7 @@ func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	account, err := h.banking.GetAccount(r.Context(), req)
+	account, err := h.banking.GetAccount(r.Context(), req.ID)
 	if err != nil {
 		h.l.Error("accountGet - banking_uc.CreateAccount", logger.Err(err))
 		h.Err(w, err.Error(), http.StatusInternalServerError)

@@ -3,39 +3,9 @@ package mapper
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"komek/db/sqlc"
 	"komek/internal/domain"
 	"komek/internal/service/banking/pb"
 )
-
-func ConvTransferToDomain(transfer sqlc.Transfer) domain.Transfer {
-	return domain.Transfer{
-		ID:            transfer.ID,
-		FromAccountID: transfer.FromAccountID,
-		ToAccountID:   transfer.ToAccountID,
-		Amount:        transfer.Amount,
-		CreatedAt:     transfer.CreatedAt.Time,
-	}
-}
-
-func ConvEntryToDomain(entry sqlc.Entry) domain.Entry {
-	return domain.Entry{
-		ID:        entry.ID,
-		AccountID: entry.AccountID,
-		Amount:    entry.Amount,
-		CreatedAt: entry.CreatedAt.Time,
-	}
-}
-
-func ConvAccountToDomain(acc sqlc.Account) domain.Account {
-	return domain.Account{
-		//ID:        acc.ID,
-		Owner:     acc.Owner.Bytes,
-		Balance:   acc.Balance,
-		Currency:  acc.Currency,
-		CreatedAt: acc.CreatedAt.Time,
-	}
-}
 
 func ConvAccountProtoToDomain(acc *pb.Account) (domain.Account, error) {
 	id, err := uuid.Parse(acc.Id)
@@ -47,11 +17,15 @@ func ConvAccountProtoToDomain(acc *pb.Account) (domain.Account, error) {
 		return domain.Account{}, fmt.Errorf("parse transaction_id: %w", err)
 	}
 	return domain.Account{
-		ID:        id,
-		Owner:     ownerID,
-		Balance:   acc.Balance,
-		Currency:  acc.Currency,
-		CreatedAt: acc.CreatedAt.AsTime(),
+		ID:          id,
+		Owner:       ownerID,
+		Balance:     acc.Balance,
+		HoldBalance: acc.HoldBalance,
+		Currency:    domain.Currency(acc.Currency),
+		Country:     domain.Country(acc.Country),
+		Status:      domain.AccountStatus(acc.Status),
+		CreatedAt:   acc.CreatedAt.AsTime(),
+		UpdatedAt:   acc.UpdatedAt.AsTime(),
 	}, nil
 }
 

@@ -3,47 +3,23 @@ package banking_uc
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5"
+	"github.com/google/uuid"
 	"komek/internal/domain"
 	"komek/internal/dto"
 )
 
-func (s *UseCase) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (domain.Account, error) {
-	var (
-		acc domain.Account
-		err error
-	)
-
-	err = s.tr.Exec(ctx, func(tx pgx.Tx) error {
-		acc, err = s.account.Create(ctx, tx, in)
-		if err != nil {
-			return fmt.Errorf("account.Create: %w", err)
-		}
-		return nil
-	})
+func (s *UseCase) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (out domain.Account, err error) {
+	out, err = s.banking.CreateAccount(ctx, in)
 	if err != nil {
-		return domain.Account{}, fmt.Errorf("tx.Exec: %w", err)
+		return out, fmt.Errorf("banking service -> create account: %w", err)
 	}
-
-	return acc, nil
+	return
 }
 
-func (s *UseCase) GetAccount(ctx context.Context, in dto.GetAccountIn) (domain.Account, error) {
-	var (
-		acc domain.Account
-		err error
-	)
-
-	err = s.tr.Exec(ctx, func(tx pgx.Tx) error {
-		acc, err = s.account.Get(ctx, tx, in.ID)
-		if err != nil {
-			return fmt.Errorf("account.Get: %w", err)
-		}
-		return nil
-	})
+func (s *UseCase) GetAccount(ctx context.Context, accID uuid.UUID) (out domain.Account, err error) {
+	out, err = s.banking.InfoAccount(ctx, accID)
 	if err != nil {
-		return domain.Account{}, fmt.Errorf("tx.Exec: %w", err)
+		return out, fmt.Errorf("banking service -> info account: %w", err)
 	}
-
-	return acc, nil
+	return
 }

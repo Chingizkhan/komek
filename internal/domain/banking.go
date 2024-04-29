@@ -12,15 +12,15 @@ type Currency string
 
 type (
 	Account struct {
-		ID          uuid.UUID
-		Owner       uuid.UUID
-		Balance     int64
-		HoldBalance int64
-		Status      AccountStatus
-		Currency    Currency
-		Country     Country
-		CreatedAt   time.Time
-		UpdatedAt   time.Time
+		ID          uuid.UUID     `json:"id"`
+		Owner       uuid.UUID     `json:"owner"`
+		Balance     int64         `json:"balance"`
+		HoldBalance int64         `json:"hold_balance"`
+		Status      AccountStatus `json:"status"`
+		Currency    Currency      `json:"currency"`
+		Country     Country       `json:"country"`
+		CreatedAt   time.Time     `json:"created_at"`
+		UpdatedAt   time.Time     `json:"updated_at"`
 	}
 
 	Entry struct {

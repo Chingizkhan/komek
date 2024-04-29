@@ -3,11 +3,11 @@ app:
   version: '1.0.0'
 
 http:
-  port: '8888'
+  port: '8887'
   timeout: '15s'
 
 grpc:
-  port: '8889'
+  port: '8886'
 
 logger:
   log_level: 'local'
@@ -25,7 +25,7 @@ postgres:
 
 redis:
 #  addr: "komek-cache:6379"
-  addr: "localhost:6380"
+  addr: "localhost:6381"
   password: "secret"
 
 locker:

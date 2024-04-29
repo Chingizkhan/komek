@@ -5,7 +5,6 @@ import (
 	"komek/config"
 	"komek/internal/controller/grpc"
 	"komek/internal/controller/http/v1"
-	"komek/internal/repo/account_repo"
 	"komek/internal/repo/session_repo"
 	"komek/internal/repo/tx"
 	"komek/internal/repo/user_repo"
@@ -16,6 +15,7 @@ import (
 	"komek/internal/service/oauth_service"
 	"komek/internal/service/token"
 	"komek/internal/service/transactional"
+	"komek/internal/usecase/banking_uc"
 	"komek/internal/usecase/user_uc"
 	"komek/pkg/grpcserver"
 	"komek/pkg/httpserver"
@@ -56,7 +56,6 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	userRepo := user_repo.New(pg)
 	sessionRepo := session_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
-	accountRepo := account_repo.New(pg)
 	im := identity.NewIdentityManager("localhost:8181", "komek", "", "")
 
 	bankingService, err := banking.New(cfg.BankingService.Addr, cfg.BankingService.EnableTLS)
@@ -73,6 +72,9 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		l.Error("app - Run - token.NewPasetoMaker:", logger.Err(err))
 		os.Exit(1)
 	}
+
+	bankingUC := banking_uc.New(transactionalRepo, bankingService, txRepo)
+
 	//
 	//sso := sso_client.New(sso_client.Config{
 	//	CookieSecret:   "secret",
@@ -112,7 +114,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		Logger:            l,
 		Cfg:               cfg,
 		User:              userUC,
-		Banking:           bankingService,
+		Banking:           bankingUC,
 		TokenMaker:        tokenMaker,
 		CookieSecret:      []byte(cfg.Cookie.Secret),
 		OauthServerClient: oauthServerClient,

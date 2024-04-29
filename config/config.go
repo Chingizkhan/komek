@@ -82,7 +82,7 @@ type (
 
 	BankingService struct {
 		Addr      string `env-required:"true" yaml:"addr" env:"BANKING_SERVICE_ADDR"`
-		EnableTLS bool   `env-required:"true" yaml:"enable_tls" env:"BANKING_SERVICE_ENABLE_TLS"`
+		EnableTLS bool   `yaml:"enable_tls" env:"BANKING_SERVICE_ENABLE_TLS"`
 	}
 )
 
