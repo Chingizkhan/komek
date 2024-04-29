@@ -1,9 +1,7 @@
 package app
 
 import (
-	"github.com/Chingizkhan/sso_client"
 	"github.com/go-chi/chi/v5"
-	"golang.org/x/oauth2"
 	"komek/config"
 	"komek/internal/controller/grpc"
 	"komek/internal/controller/http/v1"
@@ -11,7 +9,9 @@ import (
 	"komek/internal/repo/session_repo"
 	"komek/internal/repo/tx"
 	"komek/internal/repo/user_repo"
+	"komek/internal/service/banking"
 	"komek/internal/service/hasher"
+	"komek/internal/service/identity"
 	"komek/internal/service/locker"
 	"komek/internal/service/oauth_service"
 	"komek/internal/service/token"
@@ -58,6 +58,13 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	sessionRepo := session_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
 	accountRepo := account_repo.New(pg)
+	im := identity.NewIdentityManager("localhost:8181", "komek", "", "")
+
+	bankingService, err := banking.New(":8889", false)
+	if err != nil {
+		l.Error("app - Run - bankingService:", logger.Err(err))
+		os.Exit(1)
+	}
 
 	hash := hasher.New()
 	lock := locker.New(cache.Client, cfg.LockTimeout)
@@ -67,31 +74,24 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		l.Error("app - Run - token.NewPasetoMaker:", logger.Err(err))
 		os.Exit(1)
 	}
-
-	sso := sso_client.New(sso_client.Config{
-		CookieSecret:   "secret",
-		CookieLifetime: 10 * time.Minute,
-		OauthAddr:      "http://localhost:8081",
-		Oauth2Config: oauth2.Config{
-			ClientID:     "7b51fdc9-23b9-40d0-bce8-f887f1bb8dcb",
-			ClientSecret: "mysecret",
-			Endpoint: oauth2.Endpoint{
-				AuthURL:  "http://localhost:9010/oauth2/auth",
-				TokenURL: "http://localhost:9010/oauth2/token",
-			},
-			RedirectURL: "http://localhost:8888/callback",
-			Scopes:      []string{"offline"},
-		},
-	})
+	//
+	//sso := sso_client.New(sso_client.Config{
+	//	CookieSecret:   "secret",
+	//	CookieLifetime: 10 * time.Minute,
+	//	OauthAddr:      "http://localhost:8081",
+	//	Oauth2Config: oauth2.Config{
+	//		ClientID:     "7b51fdc9-23b9-40d0-bce8-f887f1bb8dcb",
+	//		ClientSecret: "mysecret",
+	//		Endpoint: oauth2.Endpoint{
+	//			AuthURL:  "http://localhost:9010/oauth2/auth",
+	//			TokenURL: "http://localhost:9010/oauth2/token",
+	//		},
+	//		RedirectURL: "http://localhost:8888/callback",
+	//		Scopes:      []string{"offline"},
+	//	},
+	//})
 
 	go startCron()
-
-	//for _, v := range []int{1, 2} {
-	//	v := v
-	//	go func() {
-	//		testMultiplePay(v)
-	//	}()
-	//}
 
 	err = lock.Lock("data")
 	if err != nil {
@@ -105,7 +105,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 
 	// get usecases
-	userUC := user_uc.New(userRepo, transactionalRepo, hash, sessionRepo, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
+	userUC := user_uc.New(userRepo, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
 	bankingUC := banking_uc.New(transactionalRepo, txRepo, accountRepo)
 
 	// start http server
@@ -118,7 +118,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		TokenMaker:        tokenMaker,
 		CookieSecret:      []byte(cfg.Cookie.Secret),
 		OauthServerClient: oauthServerClient,
-		Sso:               sso,
+		//Sso:               sso,
 	})
 	handler.Register(r, cfg.HTTP.Timeout)
 	httpServer := httpserver.New(

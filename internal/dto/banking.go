@@ -12,22 +12,21 @@ import (
 
 type (
 	TransferIn struct {
-		FromAccountID int64
-		ToAccountID   int64
+		FromAccountID uuid.UUID
+		ToAccountID   uuid.UUID
 		Amount        int64
 	}
 
 	TransferOut struct {
-		Transfer    domain.Transfer
+		Transaction domain.Transaction
 		FromAccount domain.Account
 		ToAccount   domain.Account
-		FromEntry   domain.Entry
-		ToEntry     domain.Entry
 	}
 
 	CreateAccountIn struct {
 		Owner    uuid.UUID
 		Balance  int64
+		Country  string
 		Currency string
 	}
 

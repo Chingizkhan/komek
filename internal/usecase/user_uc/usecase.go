@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"komek/internal/domain"
@@ -17,6 +18,7 @@ type UseCase struct {
 	tr                   Transactional
 	hasher               Hasher
 	session              SessionRepository
+	im                   IdentityManager
 	tokenMaker           token.Maker
 	accessTokenLifetime  time.Duration
 	refreshTokenLifetime time.Duration
@@ -27,6 +29,7 @@ func New(
 	tr Transactional,
 	hasher Hasher,
 	session SessionRepository,
+	im IdentityManager,
 	tokenMaker token.Maker,
 	accessTokenLifetime, refreshTokenLifetime time.Duration,
 ) *UseCase {
@@ -35,6 +38,7 @@ func New(
 		tr,
 		hasher,
 		session,
+		im,
 		tokenMaker,
 		accessTokenLifetime,
 		refreshTokenLifetime,
@@ -63,6 +67,19 @@ func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) (do
 	})
 	if err != nil {
 		return domain.User{}, fmt.Errorf("tr.Exec: %w", err)
+	}
+
+	userID := user.ID.String()
+
+	// keycloak
+	userKeycloak := gocloak.User{
+		ID:      &userID,
+		Enabled: gocloak.BoolP(true),
+	}
+
+	_, err = u.im.CreateUser(ctx, userKeycloak, string(req.Password), "user")
+	if err != nil {
+		return domain.User{}, fmt.Errorf("unable to create keycloak user: %w", err)
 	}
 
 	return user, nil

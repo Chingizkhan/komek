@@ -2,6 +2,7 @@ package user_uc
 
 import (
 	"context"
+	"github.com/Nerzal/gocloak/v13"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"komek/internal/domain"
@@ -19,6 +20,10 @@ type (
 		Update(ctx context.Context, tx pgx.Tx, req dto.UserUpdateRequest) (domain.User, error)
 		Delete(ctx context.Context, tx pgx.Tx, id uuid.UUID) error
 		Find(ctx context.Context, tx pgx.Tx, req dto.UserFindRequest) ([]domain.User, error)
+	}
+
+	IdentityManager interface {
+		CreateUser(ctx context.Context, user gocloak.User, password, role string) (*gocloak.User, error)
 	}
 
 	Transactional interface {

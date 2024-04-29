@@ -1,6 +1,17 @@
 version: "3.8"
 
 services:
+  keycloak-db:
+    image: postgres:15.2-alpine
+    restart: unless-stopped
+    container_name: komek-keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: secret
+    networks:
+      - komek
+
   db:
     image: postgres:15.2-alpine
     restart: unless-stopped
@@ -17,28 +28,61 @@ services:
     networks:
       - komek
 
-  app:
-    build:
-      context: .
-      dockerfile: prod.Dockerfile
+  cache:
+    image: redis:7.0-alpine
     restart: unless-stopped
+    container_name: komek-cache
     ports:
-      - "8888:8888"
-    container_name: komek-app
-    environment:
-      - DB_SOURCE=postgresql://app:secret@db:5432/app?sslmode=disable
+      - '6380:6379'
     networks:
       - komek
+    command: redis-server --save 20 1 --loglevel warning --requirepass secret
+    volumes:
+      - cache:/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: komek-keycloak
+    restart: unless-stopped
+    command: -v start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: secret
+      KC_DB: postgres
+      KC_DB_URL_HOST: keycloak-db
+      KC_DB_URL_DATABASE: keycloak
+      KC_DB_URL_PORT: 5432
+      KC_DB_USERNAME: app
+      KC_DB_PASSWORD: secret
+    ports:
+      - "8181:8080"
     depends_on:
-      - db
-      - cache
-    entrypoint:
-      - "/app/wait-for.sh"
-      - "db:5432"
-      - "--"
-      - "/app/start.sh"
-    command:
-      - "/app/main"
+      - keycloak-db
+    networks:
+      - komek
+
+#  app:
+#    build:
+#      context: .
+#      dockerfile: prod.Dockerfile
+#    restart: unless-stopped
+#    ports:
+#      - "8888:8888"
+#    container_name: komek-app
+#    environment:
+#      - DB_SOURCE=postgresql://app:secret@db:5432/app?sslmode=disable
+#    networks:
+#      - komek
+#    depends_on:
+#      - db
+#      - cache
+#    entrypoint:
+#      - "/app/wait-for.sh"
+#      - "db:5432"
+#      - "--"
+#      - "/app/start.sh"
+#    command:
+#      - "/app/main"
 
 #  app:
 #    build:
@@ -55,18 +99,6 @@ services:
 #    depends_on:
 #      - db
 #    command: air main.go
-
-  cache:
-    image: redis:7.0-alpine
-    restart: unless-stopped
-    container_name: komek-cache
-    ports:
-      - '6380:6379'
-    networks:
-      - komek
-    command: redis-server --save 20 1 --loglevel warning --requirepass secret
-    volumes:
-      - cache:/data
 
 volumes:
   cache:
