@@ -1,0 +1,254 @@
+basePath: /
+consumes:
+    - application/json
+definitions:
+    Account:
+        description: Account defines the structure for API Komek
+        properties:
+            balance:
+                format: int64
+                type: integer
+                x-go-name: Balance
+            country:
+                $ref: '#/definitions/Country'
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            currency:
+                $ref: '#/definitions/Currency'
+            hold_balance:
+                format: int64
+                type: integer
+                x-go-name: HoldBalance
+            id:
+                description: The id of the account
+                format: uuid
+                type: string
+                x-go-name: ID
+            owner:
+                format: uuid
+                type: string
+                x-go-name: Owner
+            status:
+                $ref: '#/definitions/AccountStatus'
+            updated_at:
+                format: date-time
+                type: string
+                x-go-name: UpdatedAt
+        required:
+            - id
+        type: object
+        x-go-package: komek/internal/domain
+    AccountStatus:
+        type: string
+        x-go-package: komek/internal/domain
+    Country:
+        type: string
+        x-go-package: komek/internal/domain
+    CreateAccountIn:
+        description: CreateAccountIn defines the request for create_account method
+        properties:
+            balance:
+                format: int64
+                type: integer
+                x-go-name: Balance
+            country:
+                type: string
+                x-go-name: Country
+            currency:
+                type: string
+                x-go-name: Currency
+            owner:
+                format: uuid
+                type: string
+                x-go-name: Owner
+        required:
+            - owner
+            - country
+            - currency
+        type: object
+        x-go-package: komek/internal/dto
+    Currency:
+        type: string
+        x-go-package: komek/internal/domain
+    Operation:
+        properties:
+            account_id:
+                format: uuid
+                type: string
+                x-go-name: AccountID
+            amount:
+                description: must be positive
+                format: int64
+                type: integer
+                x-go-name: Amount
+            balance_after:
+                format: int64
+                type: integer
+                x-go-name: BalanceAfter
+            balance_before:
+                format: int64
+                type: integer
+                x-go-name: BalanceBefore
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            hold_balance_after:
+                format: int64
+                type: integer
+                x-go-name: HoldBalanceAfter
+            hold_balance_before:
+                format: int64
+                type: integer
+                x-go-name: HoldBalanceBefore
+            id:
+                format: uuid
+                type: string
+                x-go-name: ID
+            transaction_id:
+                format: uuid
+                type: string
+                x-go-name: TransactionID
+            type:
+                $ref: '#/definitions/OperationType'
+        type: object
+        x-go-package: komek/internal/domain
+    OperationType:
+        type: string
+        x-go-package: komek/internal/domain
+    Transaction:
+        properties:
+            account_id:
+                format: uuid
+                type: string
+                x-go-name: AccountID
+            amount:
+                format: int64
+                type: integer
+                x-go-name: Amount
+            created_at:
+                format: date-time
+                type: string
+                x-go-name: CreatedAt
+            id:
+                format: uuid
+                type: string
+                x-go-name: ID
+            operations:
+                items:
+                    $ref: '#/definitions/Operation'
+                type: array
+                x-go-name: Operations
+            refunded_by:
+                format: uuid
+                type: string
+                x-go-name: RefundedBy
+            type:
+                $ref: '#/definitions/TransactionType'
+        type: object
+        x-go-package: komek/internal/domain
+    TransactionType:
+        type: string
+        x-go-package: komek/internal/domain
+    TransferIn:
+        properties:
+            amount:
+                format: int64
+                type: integer
+                x-go-name: Amount
+            from_account_id:
+                format: uuid
+                type: string
+                x-go-name: FromAccountID
+            to_account_id:
+                format: uuid
+                type: string
+                x-go-name: ToAccountID
+        required:
+            - from_account_id
+            - to_account_id
+            - amount
+        type: object
+        x-go-package: komek/internal/dto
+    TransferOut:
+        properties:
+            from_account:
+                $ref: '#/definitions/Account'
+            to_account:
+                $ref: '#/definitions/Account'
+            transaction:
+                $ref: '#/definitions/Transaction'
+        type: object
+        x-go-package: komek/internal/dto
+host: some-url.com
+info:
+    description: Documentation of our Komek API.
+    title: REST API for Komek project.
+    version: 1.0.0
+paths:
+    /account/{id}:
+        get:
+            description: Returns account info connected with User
+            operationId: GetInfo
+            parameters:
+                - description: The ID of account
+                  format: uuid
+                  in: path
+                  name: id
+                  required: true
+                  type: string
+                  x-go-name: ID
+            responses:
+                "200":
+                    $ref: '#/responses/accountResponse'
+            tags:
+                - Account
+    /account/create:
+        post:
+            description: Creates and returns account connected with User
+            operationId: AccountCreateRequest
+            parameters:
+                - in: body
+                  name: Body
+                  schema:
+                    $ref: '#/definitions/CreateAccountIn'
+            responses:
+                "200":
+                    $ref: '#/responses/accountResponse'
+            tags:
+                - Account
+    /operation/transfer:
+        post:
+            description: Process transfer between two accounts
+            operationId: OperationTransferRequest
+            parameters:
+                - in: body
+                  name: Body
+                  schema:
+                    $ref: '#/definitions/TransferIn'
+            responses:
+                "200":
+                    $ref: '#/responses/OperationTransferResponse'
+            tags:
+                - Operations
+produces:
+    - application/json
+responses:
+    OperationTransferResponse:
+        description: ""
+        schema:
+            $ref: '#/definitions/TransferOut'
+    accountCreateResponseWrapper:
+        description: ""
+    accountResponse:
+        description: Account returned in the response
+        schema:
+            $ref: '#/definitions/Account'
+schemes:
+    - http
+securityDefinitions:
+    basic:
+        type: basic
+swagger: "2.0"

@@ -24,4 +24,10 @@ proto:
         --go-grpc_out=pb --go-grpc_opt=paths=source_relative \
         proto/*.proto
 
+swagger_check_install:
+	which swagger || GO111MODULE=off go get -u github.com/go-swagger/go-swagger/cmd/swagger
+
+swagger: swagger_check_install
+	G0111MODULE=off swagger generate spec -o ./swagger.yaml --scan-models
+
 .PHONY: postgres migrate_up migrate_down test app mock_banking proto

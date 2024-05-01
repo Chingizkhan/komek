@@ -11,7 +11,11 @@ type Country string
 type Currency string
 
 type (
+	// Account defines the structure for API Komek
+	// swagger:model
 	Account struct {
+		// The id of the account
+		// required: true
 		ID          uuid.UUID     `json:"id"`
 		Owner       uuid.UUID     `json:"owner"`
 		Balance     int64         `json:"balance"`

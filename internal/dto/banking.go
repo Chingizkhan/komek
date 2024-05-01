@@ -10,23 +10,33 @@ import (
 )
 
 type (
+	// swagger:model
 	TransferIn struct {
+		// required: true
 		FromAccountID uuid.UUID `json:"from_account_id"`
-		ToAccountID   uuid.UUID `json:"to_account_id"`
-		Amount        int64     `json:"amount"`
+		// required: true
+		ToAccountID uuid.UUID `json:"to_account_id"`
+		// required: true
+		Amount int64 `json:"amount"`
 	}
 
+	// swagger:model
 	TransferOut struct {
 		Transaction domain.Transaction `json:"transaction"`
 		FromAccount domain.Account     `json:"from_account"`
 		ToAccount   domain.Account     `json:"to_account"`
 	}
 
+	// CreateAccountIn defines the request for create_account method
+	// swagger:model
 	CreateAccountIn struct {
-		Owner    uuid.UUID
-		Balance  int64
-		Country  string
-		Currency string
+		// required: true
+		Owner   uuid.UUID `json:"owner"`
+		Balance int64     `json:"balance"`
+		// required: true
+		Country string `json:"country"`
+		// required: true
+		Currency string `json:"currency"`
 	}
 
 	GetAccountIn struct {

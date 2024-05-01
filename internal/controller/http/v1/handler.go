@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	openAPIMiddleware "github.com/go-openapi/runtime/middleware"
 	"komek/config"
 	"komek/internal/controller"
 	customMiddleware "komek/internal/controller/http/middleware"
@@ -61,6 +62,13 @@ func (h *Handler) Register(r *chi.Mux, timeout time.Duration) {
 	r.Use(middleware.Timeout(timeout))
 	r.Use(customMiddleware.Cors)
 	r.Use(customMiddleware.Logging(h.l))
+
+	opts := openAPIMiddleware.RedocOpts{SpecURL: "swagger.yaml"}
+	sh := openAPIMiddleware.Redoc(opts, nil)
+
+	r.Handle("/", http.RedirectHandler("/docs", http.StatusMovedPermanently))
+	r.Handle("/docs", sh)
+	r.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	h.userRoutes(r)
 	h.bankingRoutes(r)
