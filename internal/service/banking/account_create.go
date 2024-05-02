@@ -11,8 +11,11 @@ import (
 
 func (s *Banking) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (out domain.Account, err error) {
 	response, err := s.client.CreateAccount(ctx, &pb.CreateAccountIn{
-		Currency: in.Currency,
-		Country:  in.Country,
+		Owner:       in.Owner.String(),
+		Currency:    in.Currency,
+		Country:     in.Country,
+		Balance:     in.Balance,
+		HoldBalance: in.HoldBalance,
 	})
 	if err != nil {
 		return out, fmt.Errorf("create account: %w", err)

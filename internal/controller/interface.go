@@ -22,6 +22,7 @@ type (
 	Banking interface {
 		CreateAccount(ctx context.Context, in dto.CreateAccountIn) (domain.Account, error)
 		GetAccount(ctx context.Context, accountID uuid.UUID) (out domain.Account, err error)
+		ListAccounts(ctx context.Context, userID uuid.UUID) (out []domain.Account, err error)
 		Transfer(ctx context.Context, in dto.TransferIn) (dto.TransferOut, error)
 	}
 )

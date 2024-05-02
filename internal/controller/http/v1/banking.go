@@ -99,6 +99,22 @@ func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
 	h.Resp(w, account, http.StatusOK)
 }
 
+// accountGet - Returns account info connected with User
+func (h *Handler) accountsList(w http.ResponseWriter, r *http.Request) {
+	var req dto.ListAccountsIn
+	payload := h.payload(r)
+	req.UserID = payload.UserID
+	account, err := h.banking.ListAccounts(r.Context(), req.UserID)
+	if err != nil {
+		h.l.Error("accountGet - banking_uc.CreateAccount", logger.Err(err))
+		h.Err(w, err.Error(), http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	h.Resp(w, account, http.StatusOK)
+}
+
 // swagger:parameters OperationTransferRequest
 type transferRequest struct {
 	// in: body

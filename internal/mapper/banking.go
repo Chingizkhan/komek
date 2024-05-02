@@ -29,6 +29,18 @@ func ConvAccountProtoToDomain(acc *pb.Account) (domain.Account, error) {
 	}, nil
 }
 
+func ConvAccountsProtoToDomain(accounts []*pb.Account) ([]domain.Account, error) {
+	res := make([]domain.Account, 0, len(accounts))
+	for _, acc := range accounts {
+		accDomain, err := ConvAccountProtoToDomain(acc)
+		if err != nil {
+			return nil, fmt.Errorf("parse account from proto to domain: %w", err)
+		}
+		res = append(res, accDomain)
+	}
+	return res, nil
+}
+
 func ConvTransactionToDomain(tr *pb.Transaction) (out domain.Transaction, err error) {
 	id, err := uuid.Parse(tr.Id)
 	if err != nil {

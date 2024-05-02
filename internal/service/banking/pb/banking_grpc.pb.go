@@ -25,6 +25,7 @@ type BankingClient interface {
 	Transfer(ctx context.Context, in *TransferIn, opts ...grpc.CallOption) (*TransferOut, error)
 	CreateAccount(ctx context.Context, in *CreateAccountIn, opts ...grpc.CallOption) (*CreateAccountOut, error)
 	InfoAccount(ctx context.Context, in *InfoAccountIn, opts ...grpc.CallOption) (*InfoAccountOut, error)
+	ListAccounts(ctx context.Context, in *ListAccountsIn, opts ...grpc.CallOption) (*ListAccountsOut, error)
 }
 
 type bankingClient struct {
@@ -62,6 +63,15 @@ func (c *bankingClient) InfoAccount(ctx context.Context, in *InfoAccountIn, opts
 	return out, nil
 }
 
+func (c *bankingClient) ListAccounts(ctx context.Context, in *ListAccountsIn, opts ...grpc.CallOption) (*ListAccountsOut, error) {
+	out := new(ListAccountsOut)
+	err := c.cc.Invoke(ctx, "/banking.Banking/ListAccounts", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BankingServer is the server API for Banking service.
 // All implementations must embed UnimplementedBankingServer
 // for forward compatibility
@@ -69,6 +79,7 @@ type BankingServer interface {
 	Transfer(context.Context, *TransferIn) (*TransferOut, error)
 	CreateAccount(context.Context, *CreateAccountIn) (*CreateAccountOut, error)
 	InfoAccount(context.Context, *InfoAccountIn) (*InfoAccountOut, error)
+	ListAccounts(context.Context, *ListAccountsIn) (*ListAccountsOut, error)
 	mustEmbedUnimplementedBankingServer()
 }
 
@@ -84,6 +95,9 @@ func (UnimplementedBankingServer) CreateAccount(context.Context, *CreateAccountI
 }
 func (UnimplementedBankingServer) InfoAccount(context.Context, *InfoAccountIn) (*InfoAccountOut, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method InfoAccount not implemented")
+}
+func (UnimplementedBankingServer) ListAccounts(context.Context, *ListAccountsIn) (*ListAccountsOut, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAccounts not implemented")
 }
 func (UnimplementedBankingServer) mustEmbedUnimplementedBankingServer() {}
 
@@ -152,6 +166,24 @@ func _Banking_InfoAccount_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Banking_ListAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAccountsIn)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BankingServer).ListAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/banking.Banking/ListAccounts",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BankingServer).ListAccounts(ctx, req.(*ListAccountsIn))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Banking_ServiceDesc is the grpc.ServiceDesc for Banking service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -170,6 +202,10 @@ var Banking_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "InfoAccount",
 			Handler:    _Banking_InfoAccount_Handler,
+		},
+		{
+			MethodName: "ListAccounts",
+			Handler:    _Banking_ListAccounts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

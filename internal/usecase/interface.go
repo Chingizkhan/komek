@@ -16,6 +16,7 @@ type (
 	BankingService interface {
 		CreateAccount(ctx context.Context, in dto.CreateAccountIn) (domain.Account, error)
 		InfoAccount(ctx context.Context, accountID uuid.UUID) (out domain.Account, err error)
+		ListAccounts(ctx context.Context, accountIDs []string) (out []domain.Account, err error)
 		Transfer(ctx context.Context, in dto.TransferIn) (dto.TransferOut, error)
 	}
 )
