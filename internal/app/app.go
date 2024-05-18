@@ -138,9 +138,9 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	select {
 	case s := <-interrupt:
 		l.Info("app - Run - signal:", slog.String("signal", s.String()))
-	case err := <-httpServer.Notify():
+	case err = <-httpServer.Notify():
 		l.Error("app - Run - http_server.Notify:", logger.Err(err))
-	case err := <-grpcServer.Notify():
+	case err = <-grpcServer.Notify():
 		l.Error("app - Run - grpc_server.Notify:", logger.Err(err))
 	}
 

@@ -26,7 +26,7 @@ func (s *UseCase) GetAccount(ctx context.Context, accID uuid.UUID) (out domain.A
 
 func (s *UseCase) ListAccounts(ctx context.Context, userID uuid.UUID) (out []domain.Account, err error) {
 	//todo: get accountIDs via userID
-	out, err = s.banking.ListAccounts(ctx, []string)
+	out, err = s.banking.ListAccounts(ctx, []string{})
 	if err != nil {
 		return out, fmt.Errorf("banking service -> list accounts: %w", err)
 	}
