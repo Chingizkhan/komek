@@ -6,6 +6,7 @@ import (
 	"komek/internal/dto"
 	"komek/internal/mapper"
 	"komek/pkg/logger"
+	"log"
 	"net/http"
 )
 
@@ -61,6 +62,7 @@ func (h *Handler) userRegister(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.user.Register(r.Context(), req)
 	if err != nil {
+		log.Println("err:", err)
 		h.l.Error("userRegister - h.user.Register", logger.Err(err))
 		h.Error(w, err, http.StatusInternalServerError)
 		return

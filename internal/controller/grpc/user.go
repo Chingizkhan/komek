@@ -4,7 +4,8 @@ import (
 	"context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"komek/internal/domain"
+	"komek/internal/domain/password"
+	"komek/internal/domain/phone"
 	"komek/internal/dto"
 	"komek/internal/mapper"
 	"komek/pb"
@@ -14,8 +15,8 @@ import (
 func (s *Server) RegisterUser(ctx context.Context, r *pb.RegisterUserRequest) (*pb.RegisterUserResponse, error) {
 	req := dto.UserRegisterRequest{
 		Login:    r.Login,
-		Phone:    domain.Phone(r.Phone),
-		Password: domain.Password(r.Password),
+		Phone:    phone.Phone(r.Phone),
+		Password: password.Password(r.Password),
 		Roles:    mapper.ConvRolesToDomain(r.Roles),
 	}
 	if err := req.Validate(); err != nil {

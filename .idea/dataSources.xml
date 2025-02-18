@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="local" uuid="785f0614-bc27-4e0e-af84-369d501beffb">
+    <data-source source="LOCAL" name="app@localhost" uuid="dfd0bf85-f7fe-4274-b188-a93328fcd081">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5433/app</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="redis" uuid="9632fb1f-e40e-45f1-b833-839d9285850b">
+    <data-source source="LOCAL" name="0@localhost" uuid="19321a09-f2b0-426a-b720-5e61f5749b32">
       <driver-ref>redis</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>jdbc.RedisDriver</jdbc-driver>
-      <jdbc-url>jdbc:redis://localhost:6380/0</jdbc-url>
+      <jdbc-url>jdbc:redis://localhost:6381/0</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

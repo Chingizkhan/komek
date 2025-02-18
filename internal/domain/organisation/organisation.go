@@ -1,4 +1,4 @@
-package domain
+package organisation
 
 type Organisation struct {
 	Name string

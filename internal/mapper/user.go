@@ -3,18 +3,20 @@ package mapper
 import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"komek/db/sqlc"
-	"komek/internal/domain"
+	"komek/internal/domain/email"
+	"komek/internal/domain/phone"
+	"komek/internal/domain/user/entity"
 	"komek/internal/dto"
 	"komek/pb"
 )
 
-func ConvUserToDomain(user sqlc.User) domain.User {
-	return domain.User{
+func ConvUserToDomain(user sqlc.User) entity.User {
+	return entity.User{
 		ID:                user.ID.Bytes,
 		Name:              user.Name.String,
-		Phone:             domain.Phone(user.Phone.String),
+		Phone:             phone.Phone(user.Phone.String),
 		Login:             user.Login,
-		Email:             domain.Email(user.Email.String),
+		Email:             email.Email(user.Email.String),
 		EmailVerified:     user.EmailVerified.Bool,
 		PasswordHash:      user.PasswordHash,
 		Roles:             ConvRolesFromStringToDomain(user.Roles),
@@ -24,7 +26,7 @@ func ConvUserToDomain(user sqlc.User) domain.User {
 	}
 }
 
-func ConvUserResponse(user domain.User) dto.UserResponse {
+func ConvUserResponse(user entity.User) dto.UserResponse {
 	return dto.UserResponse{
 		ID:                user.ID,
 		Name:              user.Name,
@@ -39,7 +41,7 @@ func ConvUserResponse(user domain.User) dto.UserResponse {
 	}
 }
 
-func ConvUserPb(user domain.User) *pb.User {
+func ConvUserPb(user entity.User) *pb.User {
 	return &pb.User{
 		Id:                user.ID.String(),
 		Name:              user.Name,

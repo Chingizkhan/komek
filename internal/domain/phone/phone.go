@@ -1,4 +1,4 @@
-package domain
+package phone
 
 type Phone string
 

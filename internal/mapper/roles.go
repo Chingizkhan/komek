@@ -1,19 +1,19 @@
 package mapper
 
 import (
-	"komek/internal/domain"
+	"komek/internal/domain/role"
 	"strings"
 )
 
-func ConvRolesFromStringToDomain(rolesStr string) domain.Roles {
+func ConvRolesFromStringToDomain(rolesStr string) role.Roles {
 	roles := strings.Split(rolesStr, ",")
 	return ConvRolesToDomain(roles)
 }
 
-func ConvRolesToDomain(roles []string) domain.Roles {
-	resRoles := make(domain.Roles, 0, len(roles))
+func ConvRolesToDomain(roles []string) role.Roles {
+	resRoles := make(role.Roles, 0, len(roles))
 	for _, r := range roles {
-		resRoles = append(resRoles, domain.Role(r))
+		resRoles = append(resRoles, role.Role(r))
 	}
 	return resRoles
 }

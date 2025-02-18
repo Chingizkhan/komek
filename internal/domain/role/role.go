@@ -1,4 +1,4 @@
-package domain
+package role
 
 import "strings"
 
@@ -6,26 +6,26 @@ type Role string
 type Roles []Role
 
 const (
-	RoleUser    Role = "user"
-	RoleAdmin   Role = "admin"
-	RoleManager Role = "manager"
+	User    Role = "user"
+	Admin   Role = "admin"
+	Manager Role = "manager"
 )
 
-var roles = Roles{RoleUser, RoleAdmin, RoleManager}
+var roles = Roles{User, Admin, Manager}
 
 func (r Role) IsUser() bool {
-	return r == RoleUser
+	return r == User
 }
 
 func (r Role) IsAdmin() bool {
-	return r == RoleAdmin
+	return r == Admin
 }
 
 func (r Role) IsManager() bool {
-	return r == RoleManager
+	return r == Manager
 }
 
-func (rs Roles) ConvString() string {
+func (rs Roles) ToString() string {
 	rolesStr := make([]string, 0, len(rs))
 
 	for _, r := range rs {

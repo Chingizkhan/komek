@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
-	"komek/internal/domain"
+	"komek/internal/domain/email"
+	"komek/internal/domain/password"
+	"komek/internal/domain/phone"
+	"komek/internal/domain/role"
 	"net/http"
 	"strconv"
 	"time"
@@ -13,20 +16,20 @@ import (
 
 type (
 	UserUpdateRequest struct {
-		ID            uuid.UUID    `json:"id"`
-		Name          string       `json:"name"`
-		Login         string       `json:"login"`
-		Email         domain.Email `json:"email"`
-		EmailVerified *bool        `json:"email_verified"`
-		Phone         domain.Phone `json:"phone"`
-		PasswordHash  string       `json:"password_hash"`
-		Roles         domain.Roles `json:"roles"`
+		ID            uuid.UUID   `json:"id"`
+		Name          string      `json:"name"`
+		Login         string      `json:"login"`
+		Email         email.Email `json:"email"`
+		EmailVerified *bool       `json:"email_verified"`
+		Phone         phone.Phone `json:"phone"`
+		PasswordHash  string      `json:"password_hash"`
+		Roles         role.Roles  `json:"roles"`
 	}
 
 	UserChangePasswordRequest struct {
-		ID          uuid.UUID       `json:"id"`
-		OldPassword domain.Password `json:"old_password"`
-		NewPassword domain.Password `json:"new_password"`
+		ID          uuid.UUID         `json:"id"`
+		OldPassword password.Password `json:"old_password"`
+		NewPassword password.Password `json:"new_password"`
 	}
 
 	UserDeleteRequest struct {
@@ -34,23 +37,23 @@ type (
 	}
 
 	UserRegisterRequest struct {
-		Login    string          `json:"login"`
-		Phone    domain.Phone    `json:"phone"`
-		Password domain.Password `json:"password"`
-		Roles    domain.Roles    `json:"roles"`
+		Login    string            `json:"login"`
+		Phone    phone.Phone       `json:"phone"`
+		Password password.Password `json:"password"`
+		Roles    role.Roles        `json:"roles"`
 	}
 
 	UserResponse struct {
-		ID                uuid.UUID    `json:"id"`
-		Name              string       `json:"name"`
-		Phone             domain.Phone `json:"phone"`
-		Login             string       `json:"login"`
-		Email             domain.Email `json:"email"`
-		EmailVerified     bool         `json:"email_verified"`
-		Roles             domain.Roles `json:"roles"`
-		CreatedAt         int64        `json:"created_at"`
-		UpdatedAt         int64        `json:"updated_at"`
-		PasswordChangedAt int64        `json:"password_changed_at"`
+		ID                uuid.UUID   `json:"id"`
+		Name              string      `json:"name"`
+		Phone             phone.Phone `json:"phone"`
+		Login             string      `json:"login"`
+		Email             email.Email `json:"email"`
+		EmailVerified     bool        `json:"email_verified"`
+		Roles             role.Roles  `json:"roles"`
+		CreatedAt         int64       `json:"created_at"`
+		UpdatedAt         int64       `json:"updated_at"`
+		PasswordChangedAt int64       `json:"password_changed_at"`
 	}
 
 	UserLoginRequest struct {
@@ -81,16 +84,17 @@ type (
 
 	UserGetRequest struct {
 		ID        uuid.UUID
-		Phone     domain.Phone
-		Email     domain.Email
+		Name      string
+		Phone     phone.Phone
+		Email     email.Email
 		Login     string
 		AccountID int64
 	}
 
 	UserFindRequest struct {
-		Name  string       `json:"name"`
-		Login string       `json:"login"`
-		Email domain.Email `json:"email"`
+		Name  string      `json:"name"`
+		Login string      `json:"login"`
+		Email email.Email `json:"email"`
 	}
 )
 
@@ -174,14 +178,14 @@ func (req *UserGetRequest) ParseAndValidate(r *http.Request) error {
 		req.ID = id
 	}
 
-	phone := r.URL.Query().Get("phone")
-	if phone != "" {
-		req.Phone = domain.Phone(phone)
+	phoneArg := r.URL.Query().Get("phone")
+	if phoneArg != "" {
+		req.Phone = phone.Phone(phoneArg)
 	}
 
-	email := r.URL.Query().Get("email")
-	if email != "" {
-		req.Email = domain.Email(email)
+	emailArg := r.URL.Query().Get("email")
+	if emailArg != "" {
+		req.Email = email.Email(emailArg)
 	}
 
 	req.Login = r.URL.Query().Get("login")

@@ -5,9 +5,10 @@ import (
 	"komek/config"
 	"komek/internal/controller/grpc"
 	"komek/internal/controller/http/v1"
+	"komek/internal/domain/user/repository"
+	"komek/internal/domain/user/service"
 	"komek/internal/repo/session_repo"
 	"komek/internal/repo/tx"
-	"komek/internal/repo/user_repo"
 	"komek/internal/service/banking"
 	"komek/internal/service/hasher"
 	"komek/internal/service/identity"
@@ -16,7 +17,7 @@ import (
 	"komek/internal/service/token"
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/banking_uc"
-	"komek/internal/usecase/user_uc"
+	"komek/internal/usecase/user"
 	"komek/pkg/grpcserver"
 	"komek/pkg/httpserver"
 	"komek/pkg/logger"
@@ -53,7 +54,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 
 	oauthServerClient := oauth_service.New(time.Second*10, cfg.Oauth2Raw.ServiceAddr)
-	userRepo := user_repo.New(pg)
+	userRepo := repository.New(pg)
 	sessionRepo := session_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
 	im := identity.NewIdentityManager("localhost:8181", "komek", "", "")
@@ -105,8 +106,10 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		os.Exit(1)
 	}
 
+	userService := service.New(userRepo)
+
 	// get usecases
-	userUC := user_uc.New(userRepo, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
+	userUC := user.New(userService, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
 
 	// start http server
 	r := chi.NewRouter()

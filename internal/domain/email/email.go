@@ -1,4 +1,4 @@
-package domain
+package email
 
 type Email string
 
