@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users(
     id uuid PRIMARY KEY default gen_random_uuid(),
     name varchar(30),
-    login varchar(30) UNIQUE NOT NULL,
+    login varchar(30) UNIQUE,
     email varchar(30) UNIQUE,
     email_verified bool DEFAULT FALSE,
     password_hash varchar(100) NOT NULL,

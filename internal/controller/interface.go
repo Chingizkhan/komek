@@ -10,7 +10,7 @@ import (
 
 type (
 	User interface {
-		Register(ctx context.Context, req dto.UserRegisterRequest) (entity.User, error)
+		Register(ctx context.Context, req entity.RegisterIn) (entity.User, error)
 		Get(ctx context.Context, req dto.UserGetRequest) (entity.User, error)
 		Delete(ctx context.Context, req dto.UserDeleteRequest) error
 		ChangePassword(ctx context.Context, req dto.UserChangePasswordRequest) error

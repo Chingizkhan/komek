@@ -129,7 +129,7 @@ func (req *UserDeleteRequest) ParseAndValidate(r *http.Request) error {
 	return nil
 }
 
-func (req *UserRegisterRequest) ParseAndValidate(r *http.Request) error {
+func (req *UserRegisterRequest) Parse(r *http.Request) error {
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
 		return fmt.Errorf("can not decode body: %w", err)

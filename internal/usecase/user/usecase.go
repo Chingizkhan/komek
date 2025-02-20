@@ -44,21 +44,22 @@ func New(
 	}
 }
 
-func (u *UseCase) Register(ctx context.Context, req dto.UserRegisterRequest) (entity.User, error) {
+func (u *UseCase) Register(ctx context.Context, req entity.RegisterIn) (user entity.User, err error) {
 	passHash, err := u.hasher.Hash(string(req.Password))
 	if err != nil {
 		return entity.User{}, fmt.Errorf("u.hasher.Hash - %w", err)
 	}
+	req.PasswordHash = passHash
 
-	user := entity.User{
-		Phone:        req.Phone,
-		Login:        req.Login,
-		Roles:        req.Roles,
-		PasswordHash: passHash,
-	}
+	//user := entity.User{
+	//	Phone:        req.Phone,
+	//	Login:        req.Login,
+	//	Roles:        req.Roles,
+	//	PasswordHash: passHash,
+	//}
 
 	fn := func(txCtx context.Context) error {
-		if user, err = u.s.Save(txCtx, user); err != nil {
+		if user, err = u.s.Register(txCtx, req); err != nil {
 			return fmt.Errorf("u.s.Save - %w", err)
 		}
 		return nil

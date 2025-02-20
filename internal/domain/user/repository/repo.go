@@ -16,7 +16,6 @@ import (
 	"komek/internal/dto"
 	"komek/internal/errs"
 	"komek/internal/mapper"
-	"komek/internal/repo"
 	"komek/internal/service/transactional"
 	"komek/pkg/null_value"
 	"komek/pkg/postgres"
@@ -39,7 +38,7 @@ func New(pg *postgres.Postgres) *Repository {
 func (r *Repository) GetByID(ctx context.Context, userID uuid.UUID) (entity.User, error) {
 	qtx := r.queries(ctx)
 
-	u, err := qtx.GetUserByID(ctx, repo.ConvertToUUID(userID))
+	u, err := qtx.GetUserByID(ctx, null_value.UUID(userID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.User{}, errs.ErrUserNotFound
@@ -52,7 +51,7 @@ func (r *Repository) GetByID(ctx context.Context, userID uuid.UUID) (entity.User
 func (r *Repository) GetByLogin(ctx context.Context, login string) (entity.User, error) {
 	qtx := r.queries(ctx)
 
-	u, err := qtx.GetUserByLogin(ctx, login)
+	u, err := qtx.GetUserByLogin(ctx, null_value.String(login))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.User{}, errs.ErrUserNotFound
@@ -65,7 +64,7 @@ func (r *Repository) GetByLogin(ctx context.Context, login string) (entity.User,
 func (r *Repository) GetByPhone(ctx context.Context, phone phone.Phone) (entity.User, error) {
 	qtx := r.queries(ctx)
 
-	u, err := qtx.GetUserByPhone(ctx, repo.ConvertToNullStr(string(phone)))
+	u, err := qtx.GetUserByPhone(ctx, null_value.String(string(phone)))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.User{}, errs.ErrUserNotFound
@@ -78,7 +77,7 @@ func (r *Repository) GetByPhone(ctx context.Context, phone phone.Phone) (entity.
 func (r *Repository) GetByEmail(ctx context.Context, email email.Email) (entity.User, error) {
 	qtx := r.queries(ctx)
 
-	u, err := qtx.GetUserByEmail(ctx, repo.ConvertToNullStr(string(email)))
+	u, err := qtx.GetUserByEmail(ctx, null_value.String(string(email)))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.User{}, errs.ErrUserNotFound
@@ -105,7 +104,7 @@ func (r *Repository) Save(ctx context.Context, u entity.User) (entity.User, erro
 	qtx := r.queries(ctx)
 
 	user, err := qtx.SaveUser(ctx, sqlc.SaveUserParams{
-		Login:        u.Login,
+		Login:        null_value.String(u.Login),
 		Phone:        null_value.String(string(u.Phone)),
 		PasswordHash: u.PasswordHash,
 		Roles:        u.Roles.ToString(),
@@ -127,14 +126,14 @@ func (r *Repository) Update(ctx context.Context, req dto.UserUpdateRequest) (ent
 	qtx := r.queries(ctx)
 
 	u, err := qtx.UpdateUser(ctx, sqlc.UpdateUserParams{
-		ID:            repo.ConvertToUUID(req.ID),
-		Name:          repo.ConvertToNullStr(req.Name),
-		PasswordHash:  repo.ConvertToNullStr(req.PasswordHash),
-		Login:         repo.ConvertToNullStr(req.Login),
-		Email:         repo.ConvertToNullStr(string(req.Email)),
-		Phone:         repo.ConvertToNullStr(string(req.Phone)),
-		Roles:         repo.ConvertToNullStr(req.Roles.ToString()),
-		EmailVerified: repo.ConvertToNullBool(req.EmailVerified),
+		ID:            null_value.UUID(req.ID),
+		Name:          null_value.String(req.Name),
+		PasswordHash:  null_value.String(req.PasswordHash),
+		Login:         null_value.String(req.Login),
+		Email:         null_value.String(string(req.Email)),
+		Phone:         null_value.String(string(req.Phone)),
+		Roles:         null_value.String(req.Roles.ToString()),
+		EmailVerified: null_value.Bool(req.EmailVerified),
 	})
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -151,7 +150,7 @@ func (r *Repository) Update(ctx context.Context, req dto.UserUpdateRequest) (ent
 func (r *Repository) Delete(ctx context.Context, id uuid.UUID) error {
 	qtx := r.queries(ctx)
 
-	_, err := qtx.RemoveUser(ctx, repo.ConvertToUUID(id))
+	_, err := qtx.RemoveUser(ctx, null_value.UUID(id))
 	if err != nil {
 		return fmt.Errorf("qtx.RemoveUser: %w", err)
 	}

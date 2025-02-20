@@ -15,7 +15,7 @@ func ConvUserToDomain(user sqlc.User) entity.User {
 		ID:                user.ID.Bytes,
 		Name:              user.Name.String,
 		Phone:             phone.Phone(user.Phone.String),
-		Login:             user.Login,
+		Login:             user.Login.String,
 		Email:             email.Email(user.Email.String),
 		EmailVerified:     user.EmailVerified.Bool,
 		PasswordHash:      user.PasswordHash,

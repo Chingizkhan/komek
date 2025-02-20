@@ -3,10 +3,10 @@ package v1
 import (
 	"github.com/go-chi/chi/v5"
 	customMiddleware "komek/internal/controller/http/middleware"
+	"komek/internal/domain/user/entity"
 	"komek/internal/dto"
 	"komek/internal/mapper"
 	"komek/pkg/logger"
-	"log"
 	"net/http"
 )
 
@@ -53,22 +53,21 @@ func (h *Handler) userRefreshToken(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) userRegister(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserRegisterRequest{}
-	if err := req.ParseAndValidate(r); err != nil {
-		h.l.Error("userRegister - ParseAndValidate", logger.Err(err))
+	req := entity.RegisterIn{}
+	if err := req.ParseHttpBody(r); err != nil {
+		h.l.Error("userRegister - Parse", logger.Err(err))
 		h.Error(w, err, http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.user.Register(r.Context(), req)
 	if err != nil {
-		log.Println("err:", err)
 		h.l.Error("userRegister - h.user.Register", logger.Err(err))
 		h.Error(w, err, http.StatusInternalServerError)
 		return
 	}
 
-	h.Resp(w, mapper.ConvUserResponse(user), http.StatusOK)
+	h.Resp(w, user.ToResponse(), http.StatusOK)
 }
 
 func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +154,7 @@ func (h *Handler) userLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) userLogout(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserRegisterRequest{}
+	req := dto.UserLogoutRequest{}
 	if err := req.ParseAndValidate(r); err != nil {
 		h.l.Error("userRegister - ParseAndValidate", logger.Err(err))
 		h.Err(w, err.Error(), http.StatusBadRequest)
@@ -184,7 +183,7 @@ func (h *Handler) userGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) usersFind(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserRegisterRequest{}
+	req := dto.UserFindRequest{}
 	if err := req.ParseAndValidate(r); err != nil {
 		h.l.Error("usersFind - ParseAndValidate", logger.Err(err))
 		h.Error(w, err, http.StatusBadRequest)

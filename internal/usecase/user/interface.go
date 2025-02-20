@@ -14,7 +14,7 @@ import (
 
 type (
 	Service interface {
-		Save(ctx context.Context, u entity.User) (entity.User, error)
+		Register(ctx context.Context, u entity.RegisterIn) (entity.User, error)
 		Update(ctx context.Context, req dto.UserUpdateRequest) (entity.User, error)
 		Delete(ctx context.Context, id uuid.UUID) error
 		Get(ctx context.Context, req entity.GetRequest) (entity.User, error)

@@ -20,8 +20,14 @@ func New(r UserRepository) *Service {
 	}
 }
 
-func (s *Service) Save(ctx context.Context, u entity.User) (entity.User, error) {
-	return s.r.Save(ctx, u)
+func (s *Service) Register(ctx context.Context, in entity.RegisterIn) (entity.User, error) {
+	if err := in.Validate(); err != nil {
+		return entity.User{}, fmt.Errorf("validate: %w", err)
+	}
+
+	// create empty account and save it connected to user
+
+	return s.r.Save(ctx, in.ToEntity())
 }
 
 func (s *Service) Update(ctx context.Context, req dto.UserUpdateRequest) (entity.User, error) {
