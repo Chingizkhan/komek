@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users(
     password_hash varchar(100) NOT NULL,
     phone varchar(15) UNIQUE,
     roles text NOT NULL,
-    password_changed_at timestamp(6),
+    password_changed_at timestamp(6) default null,
     created_at timestamp(6) NOT NULL default current_timestamp(6),
     updated_at timestamp(6) NOT NULL default current_timestamp(6)
 );

@@ -2,6 +2,7 @@ package token
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -35,4 +36,12 @@ func Get(r *http.Request) (string, error) {
 		return "", ErrUnsupportedAuthType
 	}
 	return fields[1], nil
+}
+
+func GetFromCookie(r *http.Request) (string, error) {
+	token, err := r.Cookie(AccessToken)
+	if err != nil {
+		return "", fmt.Errorf("access_token not found in cookie: %w", err)
+	}
+	return token.Value, nil
 }

@@ -7,7 +7,6 @@ import (
 	"komek/internal/domain/email"
 	"komek/internal/domain/phone"
 	"komek/internal/domain/user/entity"
-	"komek/internal/dto"
 )
 
 type Service struct {
@@ -30,7 +29,7 @@ func (s *Service) Register(ctx context.Context, in entity.RegisterIn) (entity.Us
 	return s.r.Save(ctx, in.ToEntity())
 }
 
-func (s *Service) Update(ctx context.Context, req dto.UserUpdateRequest) (entity.User, error) {
+func (s *Service) Update(ctx context.Context, req entity.UpdateIn) (entity.User, error) {
 	return s.r.Update(ctx, req)
 }
 
@@ -38,7 +37,7 @@ func (s *Service) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.r.Delete(ctx, id)
 }
 
-func (s *Service) Get(ctx context.Context, in entity.GetRequest) (user entity.User, err error) {
+func (s *Service) Get(ctx context.Context, in entity.GetIn) (user entity.User, err error) {
 	if in.ID != uuid.Nil {
 		user, err = s.r.GetByID(ctx, in.ID)
 		if err != nil {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	customMiddleware "komek/internal/controller/http/middleware"
 	"komek/internal/service/token"
+	"komek/pkg/logger"
 	"net/http"
 )
 
@@ -17,6 +18,7 @@ func (h *Handler) Err(w http.ResponseWriter, msg string, status int) {
 }
 
 func (h *Handler) Error(w http.ResponseWriter, err error, status int) {
+	h.l.Error("error http", logger.Err(err))
 	err = h.Unwrap(err)
 	h.Resp(w, ErrorResponse{Error: err.Error()}, status)
 }

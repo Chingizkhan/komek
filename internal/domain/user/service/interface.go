@@ -6,7 +6,6 @@ import (
 	"komek/internal/domain/email"
 	"komek/internal/domain/phone"
 	"komek/internal/domain/user/entity"
-	"komek/internal/dto"
 )
 
 type UserRepository interface {
@@ -16,7 +15,7 @@ type UserRepository interface {
 	GetByEmail(ctx context.Context, email email.Email) (entity.User, error)
 	GetByLogin(ctx context.Context, login string) (entity.User, error)
 	GetByAccount(ctx context.Context, accountID int64) (entity.User, error)
-	Update(ctx context.Context, req dto.UserUpdateRequest) (entity.User, error)
+	Update(ctx context.Context, req entity.UpdateIn) (entity.User, error)
 	Delete(ctx context.Context, id uuid.UUID) error
-	Find(ctx context.Context, req dto.UserFindRequest) ([]entity.User, error)
+	Find(ctx context.Context, req entity.FindRequest) ([]entity.User, error)
 }

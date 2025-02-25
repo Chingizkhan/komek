@@ -11,12 +11,12 @@ import (
 type (
 	User interface {
 		Register(ctx context.Context, req entity.RegisterIn) (entity.User, error)
-		Get(ctx context.Context, req dto.UserGetRequest) (entity.User, error)
-		Delete(ctx context.Context, req dto.UserDeleteRequest) error
-		ChangePassword(ctx context.Context, req dto.UserChangePasswordRequest) error
-		Update(ctx context.Context, req dto.UserUpdateRequest) (entity.User, error)
-		Login(ctx context.Context, in dto.UserLoginRequest) (*dto.UserLoginResponse, error)
-		RefreshTokens(ctx context.Context, in dto.UserRefreshTokensIn) (*dto.UserRefreshTokensOut, error)
+		Get(ctx context.Context, req entity.GetIn) (entity.User, error)
+		Delete(ctx context.Context, req entity.DeleteIn) error
+		ChangePassword(ctx context.Context, req entity.ChangePasswordIn) error
+		Update(ctx context.Context, req entity.UpdateIn) (entity.User, error)
+		Login(ctx context.Context, in entity.LoginIn) (*entity.LoginOut, error)
+		RefreshTokens(ctx context.Context, in entity.RefreshTokensIn) (*entity.RefreshTokensOut, error)
 		Logout(ctx context.Context) error
 	}
 

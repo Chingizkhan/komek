@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"komek/internal/domain"
 	"komek/internal/domain/user/entity"
-	"komek/internal/dto"
 	"komek/internal/errs"
 	"komek/internal/service/token"
 	"time"
@@ -51,13 +50,6 @@ func (u *UseCase) Register(ctx context.Context, req entity.RegisterIn) (user ent
 	}
 	req.PasswordHash = passHash
 
-	//user := entity.User{
-	//	Phone:        req.Phone,
-	//	Login:        req.Login,
-	//	Roles:        req.Roles,
-	//	PasswordHash: passHash,
-	//}
-
 	fn := func(txCtx context.Context) error {
 		if user, err = u.s.Register(txCtx, req); err != nil {
 			return fmt.Errorf("u.s.Save - %w", err)
@@ -87,15 +79,8 @@ func (u *UseCase) Register(ctx context.Context, req entity.RegisterIn) (user ent
 	return user, nil
 }
 
-func (u *UseCase) Get(ctx context.Context, in dto.UserGetRequest) (entity.User, error) {
-	user, err := u.s.Get(ctx, entity.GetRequest{
-		ID:        in.ID,
-		Name:      in.Name,
-		Login:     in.Login,
-		Phone:     in.Phone,
-		Email:     in.Email,
-		AccountID: in.AccountID,
-	})
+func (u *UseCase) Get(ctx context.Context, in entity.GetIn) (entity.User, error) {
+	user, err := u.s.Get(ctx, in)
 	if err != nil {
 		return entity.User{}, fmt.Errorf("get user via service: %w", err)
 	}
@@ -103,9 +88,11 @@ func (u *UseCase) Get(ctx context.Context, in dto.UserGetRequest) (entity.User, 
 	return user, nil
 }
 
-func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.UserLoginResponse, error) {
-	user, err := u.s.Get(ctx, entity.GetRequest{
+func (u *UseCase) Login(ctx context.Context, in entity.LoginIn) (*entity.LoginOut, error) {
+	user, err := u.s.Get(ctx, entity.GetIn{
 		Login: in.Login,
+		Phone: in.Phone,
+		Email: in.Email,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("get user by login via service: %w", err)
@@ -145,13 +132,13 @@ func (u *UseCase) Login(ctx context.Context, in dto.UserLoginRequest) (*dto.User
 		return nil, fmt.Errorf("session.Save: %w", err)
 	}
 
-	return &dto.UserLoginResponse{
+	return &entity.LoginOut{
 		SessionID:             createdSession.ID,
 		AccessToken:           accessToken,
 		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
 		RefreshToken:          refreshToken,
 		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
-		User: dto.UserResponse{
+		User: entity.UserResponse{
 			ID:            user.ID,
 			Name:          user.Name,
 			Login:         user.Login,
@@ -168,7 +155,7 @@ func (u *UseCase) Logout(ctx context.Context) error {
 	return nil
 }
 
-func (u *UseCase) Delete(ctx context.Context, in dto.UserDeleteRequest) error {
+func (u *UseCase) Delete(ctx context.Context, in entity.DeleteIn) error {
 	err := u.tr.ExecContext(ctx, func(txCtx context.Context) error {
 		err := u.s.Delete(txCtx, in.ID)
 		if err != nil {
@@ -182,8 +169,8 @@ func (u *UseCase) Delete(ctx context.Context, in dto.UserDeleteRequest) error {
 	return nil
 }
 
-func (u *UseCase) ChangePassword(ctx context.Context, in dto.UserChangePasswordRequest) error {
-	user, err := u.s.Get(ctx, entity.GetRequest{
+func (u *UseCase) ChangePassword(ctx context.Context, in entity.ChangePasswordIn) error {
+	user, err := u.s.Get(ctx, entity.GetIn{
 		ID: in.ID,
 	})
 	if err != nil {
@@ -201,7 +188,7 @@ func (u *UseCase) ChangePassword(ctx context.Context, in dto.UserChangePasswordR
 	}
 
 	if err = u.tr.ExecContext(ctx, func(txCtx context.Context) error {
-		_, err = u.s.Update(txCtx, dto.UserUpdateRequest{
+		_, err = u.s.Update(txCtx, entity.UpdateIn{
 			ID:           in.ID,
 			PasswordHash: passwordHash,
 		})
@@ -215,7 +202,7 @@ func (u *UseCase) ChangePassword(ctx context.Context, in dto.UserChangePasswordR
 	return nil
 }
 
-func (u *UseCase) Update(ctx context.Context, req dto.UserUpdateRequest) (entity.User, error) {
+func (u *UseCase) Update(ctx context.Context, req entity.UpdateIn) (entity.User, error) {
 	var (
 		user entity.User
 		err  error
@@ -232,7 +219,7 @@ func (u *UseCase) Update(ctx context.Context, req dto.UserUpdateRequest) (entity
 	return user, nil
 }
 
-func (u *UseCase) RefreshTokens(ctx context.Context, in dto.UserRefreshTokensIn) (*dto.UserRefreshTokensOut, error) {
+func (u *UseCase) RefreshTokens(ctx context.Context, in entity.RefreshTokensIn) (*entity.RefreshTokensOut, error) {
 	payload, err := u.tokenMaker.VerifyToken(in.RefreshToken)
 	if err != nil {
 		return nil, fmt.Errorf("verify token: %w", err)
@@ -264,8 +251,15 @@ func (u *UseCase) RefreshTokens(ctx context.Context, in dto.UserRefreshTokensIn)
 		u.accessTokenLifetime,
 	)
 
-	return &dto.UserRefreshTokensOut{
-		AccessToken:          accessToken,
-		AccessTokenExpiresAt: accessPayload.ExpiredAt,
+	refreshToken, refreshPayload, err := u.tokenMaker.CreateToken(
+		payload.UserID,
+		u.refreshTokenLifetime,
+	)
+
+	return &entity.RefreshTokensOut{
+		AccessToken:           accessToken,
+		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
 	}, nil
 }

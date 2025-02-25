@@ -4,7 +4,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	customMiddleware "komek/internal/controller/http/middleware"
 	"komek/internal/domain/user/entity"
-	"komek/internal/dto"
 	"komek/internal/mapper"
 	"komek/pkg/logger"
 	"net/http"
@@ -35,8 +34,8 @@ func (h *Handler) userRoutes(r *chi.Mux) {
 }
 
 func (h *Handler) userRefreshToken(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserRefreshTokensIn{}
-	if err := req.ParseAndValidate(r); err != nil {
+	req := entity.RefreshTokensIn{}
+	if err := req.ParseHttpBody(r); err != nil {
 		h.l.Error("userRefreshToken - ParseAndValidate", logger.Err(err))
 		h.Error(w, err, http.StatusBadRequest)
 		return
@@ -71,16 +70,18 @@ func (h *Handler) userRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserDeleteRequest{}
+	req := entity.DeleteIn{}
 
-	if err := req.ParseAndValidate(r); err != nil {
+	if err := req.ParseHttpBody(r); err != nil {
 		h.l.Error("userDelete - ParseAndValidate", logger.Err(err))
 		h.Error(w, err, http.StatusBadRequest)
 		return
 	}
 
 	payload := h.payload(r)
-	err := h.user.Delete(r.Context(), dto.UserDeleteRequest{ID: payload.UserID})
+	req.ID = payload.UserID
+
+	err := h.user.Delete(r.Context(), req)
 	if err != nil {
 		h.l.Error("userDelete - ParseAndValidate", logger.Err(err))
 		h.Error(w, err, http.StatusBadRequest)
@@ -93,8 +94,8 @@ func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) userChangePassword(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserChangePasswordRequest{}
-	if err := req.ParseAndValidate(r); err != nil {
+	req := entity.ChangePasswordIn{}
+	if err := req.ParseHttpBody(r); err != nil {
 		h.l.Error("userChangePassword - ParseAndValidate", logger.Err(err))
 		h.Error(w, err, http.StatusBadRequest)
 		return
@@ -116,8 +117,8 @@ func (h *Handler) userChangePassword(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) userUpdate(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserUpdateRequest{}
-	if err := req.ParseAndValidate(r); err != nil {
+	req := entity.UpdateIn{}
+	if err := req.ParseHttpBody(r); err != nil {
 		h.l.Error("userUpdate - ParseAndValidate", logger.Err(err))
 		h.Error(w, err, http.StatusBadRequest)
 		return
@@ -136,9 +137,9 @@ func (h *Handler) userUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) userLogin(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserLoginRequest{}
-	if err := req.ParseAndValidate(r); err != nil {
-		h.l.Error("userLogin - ParseAndValidate", logger.Err(err))
+	req := entity.LoginIn{}
+	if err := req.ParseHttpBody(r); err != nil {
+		h.l.Error("userLogin - Parse", logger.Err(err))
 		h.Error(w, err, http.StatusBadRequest)
 		return
 	}
@@ -154,9 +155,9 @@ func (h *Handler) userLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) userLogout(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserLogoutRequest{}
-	if err := req.ParseAndValidate(r); err != nil {
-		h.l.Error("userRegister - ParseAndValidate", logger.Err(err))
+	req := entity.LogoutIn{}
+	if err := req.ParseHttpBody(r); err != nil {
+		h.l.Error("userRegister - Parse", logger.Err(err))
 		h.Err(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -165,12 +166,10 @@ func (h *Handler) userLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) userGet(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserGetRequest{}
-	if err := req.ParseAndValidate(r); err != nil {
-		h.l.Error("userGet - ParseAndValidate", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
-		return
-	}
+	req := entity.GetIn{}
+
+	payload := h.payload(r)
+	req.ID = payload.UserID
 
 	user, err := h.user.Get(r.Context(), req)
 	if err != nil {
@@ -183,8 +182,8 @@ func (h *Handler) userGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) usersFind(w http.ResponseWriter, r *http.Request) {
-	req := dto.UserFindRequest{}
-	if err := req.ParseAndValidate(r); err != nil {
+	req := entity.FindRequest{}
+	if err := req.ParseHttpBody(r); err != nil {
 		h.l.Error("usersFind - ParseAndValidate", logger.Err(err))
 		h.Error(w, err, http.StatusBadRequest)
 		return

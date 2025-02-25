@@ -6,7 +6,6 @@ import (
 	"komek/internal/domain/email"
 	"komek/internal/domain/phone"
 	"komek/internal/domain/user/entity"
-	"komek/internal/dto"
 	"komek/pb"
 )
 
@@ -26,8 +25,8 @@ func ConvUserToDomain(user sqlc.User) entity.User {
 	}
 }
 
-func ConvUserResponse(user entity.User) dto.UserResponse {
-	return dto.UserResponse{
+func ConvUserResponse(user entity.User) entity.UserResponse {
+	return entity.UserResponse{
 		ID:                user.ID,
 		Name:              user.Name,
 		Login:             user.Login,

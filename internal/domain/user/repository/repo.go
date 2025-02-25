@@ -13,7 +13,6 @@ import (
 	"komek/internal/domain/email"
 	"komek/internal/domain/phone"
 	"komek/internal/domain/user/entity"
-	"komek/internal/dto"
 	"komek/internal/errs"
 	"komek/internal/mapper"
 	"komek/internal/service/transactional"
@@ -122,7 +121,7 @@ func (r *Repository) Save(ctx context.Context, u entity.User) (entity.User, erro
 	return mapper.ConvUserToDomain(user), nil
 }
 
-func (r *Repository) Update(ctx context.Context, req dto.UserUpdateRequest) (entity.User, error) {
+func (r *Repository) Update(ctx context.Context, req entity.UpdateIn) (entity.User, error) {
 	qtx := r.queries(ctx)
 
 	u, err := qtx.UpdateUser(ctx, sqlc.UpdateUserParams{
@@ -157,7 +156,7 @@ func (r *Repository) Delete(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-func (r *Repository) Find(ctx context.Context, req dto.UserFindRequest) ([]entity.User, error) {
+func (r *Repository) Find(ctx context.Context, req entity.FindRequest) ([]entity.User, error) {
 	qtx := r.queries(ctx)
 
 	users, err := qtx.FindUsers(ctx, sqlc.FindUsersParams{
