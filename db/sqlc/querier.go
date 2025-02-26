@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error)
+	BindClientCategories(ctx context.Context, arg BindClientCategoriesParams) error
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
 	CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
@@ -23,6 +24,7 @@ type Querier interface {
 	FindUsers(ctx context.Context, arg FindUsersParams) ([]User, error)
 	GetAccount(ctx context.Context, id int64) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id int64) (Account, error)
+	GetClientByID(ctx context.Context, id pgtype.UUID) (GetClientByIDRow, error)
 	GetEntry(ctx context.Context, id int64) (Entry, error)
 	GetOrganisation(ctx context.Context, id pgtype.UUID) (Organisation, error)
 	GetSession(ctx context.Context, id pgtype.UUID) (Session, error)
@@ -33,11 +35,14 @@ type Querier interface {
 	GetUserByLogin(ctx context.Context, login pgtype.Text) (User, error)
 	GetUserByPhone(ctx context.Context, phone pgtype.Text) (User, error)
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
+	ListClients(ctx context.Context) ([]ListClientsRow, error)
 	ListEntries(ctx context.Context, arg ListEntriesParams) ([]Entry, error)
 	ListOrganisation(ctx context.Context) ([]Organisation, error)
 	ListTransfers(ctx context.Context, arg ListTransfersParams) ([]Transfer, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	RemoveUser(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
+	SaveClient(ctx context.Context, arg SaveClientParams) (Client, error)
+	SaveClientCategories(ctx context.Context, names []string) ([]Category, error)
 	SaveOrganisation(ctx context.Context, arg SaveOrganisationParams) error
 	SaveUser(ctx context.Context, arg SaveUserParams) (User, error)
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)

@@ -3,6 +3,7 @@ package null_value
 import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"math/big"
 	"time"
 )
 
@@ -40,6 +41,16 @@ func Timestamp(value time.Time) (nullValue pgtype.Timestamptz) {
 	if !value.IsZero() {
 		nullValue = pgtype.Timestamptz{
 			Time:  value,
+			Valid: true,
+		}
+	}
+	return
+}
+
+func Number(value *int) (nullValue pgtype.Numeric) {
+	if value != nil {
+		nullValue = pgtype.Numeric{
+			Int:   big.NewInt(int64(*value)),
 			Valid: true,
 		}
 	}

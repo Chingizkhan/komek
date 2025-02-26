@@ -11,6 +11,7 @@ import (
 type (
 	Transactional interface {
 		Exec(ctx context.Context, fn func(tx pgx.Tx) error) error
+		ExecContext(ctx context.Context, fn func(ctx context.Context) error) error
 	}
 
 	BankingService interface {

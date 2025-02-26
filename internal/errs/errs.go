@@ -9,5 +9,7 @@ var (
 	ErrUserLoginAlreadyExists = errors.New("login_already_exists")
 	ErrUserEmailAlreadyExists = errors.New("email_already_exists")
 
+	ErrClientNotFound = errors.New("client_not_found")
+
 	IncorrectPassword = errors.New("incorrect_password")
 )

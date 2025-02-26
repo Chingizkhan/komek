@@ -5,8 +5,10 @@ import (
 	"komek/config"
 	"komek/internal/controller/grpc"
 	"komek/internal/controller/http/v1"
-	"komek/internal/domain/user/repository"
-	"komek/internal/domain/user/service"
+	clientRepo "komek/internal/domain/client/repository"
+	clientSrv "komek/internal/domain/client/service"
+	userRepo "komek/internal/domain/user/repository"
+	userSrv "komek/internal/domain/user/service"
 	"komek/internal/repo/session_repo"
 	"komek/internal/repo/tx"
 	"komek/internal/service/banking"
@@ -17,6 +19,7 @@ import (
 	"komek/internal/service/token"
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/banking_uc"
+	"komek/internal/usecase/client"
 	"komek/internal/usecase/user"
 	"komek/pkg/grpcserver"
 	"komek/pkg/httpserver"
@@ -54,7 +57,8 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	}
 
 	oauthServerClient := oauth_service.New(time.Second*10, cfg.Oauth2Raw.ServiceAddr)
-	userRepo := repository.New(pg)
+	userRepository := userRepo.New(pg)
+	clientRepository := clientRepo.New(pg)
 	sessionRepo := session_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
 	im := identity.NewIdentityManager("localhost:8181", "komek", "", "")
@@ -106,10 +110,12 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		os.Exit(1)
 	}
 
-	userService := service.New(userRepo)
+	userService := userSrv.New(userRepository)
+	clientService := clientSrv.New(clientRepository)
 
 	// get usecases
 	userUC := user.New(userService, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
+	clientUC := client.New(clientService, transactionalRepo)
 
 	// start http server
 	r := chi.NewRouter()
@@ -118,6 +124,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		Cfg:               cfg,
 		User:              userUC,
 		Banking:           bankingUC,
+		Client:            clientUC,
 		TokenMaker:        tokenMaker,
 		CookieSecret:      []byte(cfg.Cookie.Secret),
 		OauthServerClient: oauthServerClient,

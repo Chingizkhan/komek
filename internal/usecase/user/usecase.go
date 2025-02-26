@@ -8,12 +8,13 @@ import (
 	"komek/internal/domain/user/entity"
 	"komek/internal/errs"
 	"komek/internal/service/token"
+	"komek/internal/usecase"
 	"time"
 )
 
 type UseCase struct {
 	s                    Service
-	tr                   Transactional
+	tr                   usecase.Transactional
 	hasher               Hasher
 	session              SessionRepository
 	im                   IdentityManager
@@ -24,7 +25,7 @@ type UseCase struct {
 
 func New(
 	s Service,
-	tr Transactional,
+	tr usecase.Transactional,
 	hasher Hasher,
 	session SessionRepository,
 	im IdentityManager,

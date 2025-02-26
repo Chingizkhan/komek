@@ -35,10 +35,6 @@ type (
 		CreateUser(ctx context.Context, user gocloak.User, password, role string) (*gocloak.User, error)
 	}
 
-	Transactional interface {
-		ExecContext(ctx context.Context, fn func(ctx context.Context) error) error
-	}
-
 	Hasher interface {
 		Hash(value string) (string, error)
 		CheckHash(password, hash string) bool

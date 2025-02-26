@@ -16,6 +16,38 @@ type Account struct {
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
+type Accumulation struct {
+	ID        pgtype.UUID    `json:"id"`
+	Goal      pgtype.Numeric `json:"goal"`
+	Collected pgtype.Numeric `json:"collected"`
+	AccountID int64          `json:"account_id"`
+}
+
+type Category struct {
+	ID   pgtype.UUID `json:"id"`
+	Name pgtype.Text `json:"name"`
+}
+
+type Client struct {
+	ID            pgtype.UUID      `json:"id"`
+	Name          pgtype.Text      `json:"name"`
+	Phone         pgtype.Text      `json:"phone"`
+	Email         pgtype.Text      `json:"email"`
+	Age           pgtype.Numeric   `json:"age"`
+	City          pgtype.Text      `json:"city"`
+	Address       pgtype.Text      `json:"address"`
+	Description   pgtype.Text      `json:"description"`
+	Circumstances pgtype.Text      `json:"circumstances"`
+	ImageUrl      pgtype.Text      `json:"image_url"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	UpdatedAt     pgtype.Timestamp `json:"updated_at"`
+}
+
+type ClientCategory struct {
+	ClientID   pgtype.UUID `json:"client_id"`
+	CategoryID pgtype.UUID `json:"category_id"`
+}
+
 type Entry struct {
 	ID        int64 `json:"id"`
 	AccountID int64 `json:"account_id"`
