@@ -12,4 +12,6 @@ var (
 	ErrClientNotFound = errors.New("client_not_found")
 
 	IncorrectPassword = errors.New("incorrect_password")
+
+	AccountStatusInvalid = errors.New("invalid_account_status")
 )

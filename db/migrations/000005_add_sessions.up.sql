@@ -1,6 +1,6 @@
 begin;
 
-CREATE TABLE if not exists "sessions" (
+CREATE TABLE if not exists "session" (
     "id" uuid PRIMARY KEY,
     "user_id" uuid not null,
     "refresh_token" varchar not null,
@@ -11,6 +11,6 @@ CREATE TABLE if not exists "sessions" (
     "created_at" timestamptz not null default (now())
 );
 
-alter table "sessions" add foreign key ("user_id") references "users" ("id");
+alter table "session" add constraint "fk_user_id" foreign key ("user_id") references "user" ("id");
 
 end;

@@ -37,8 +37,8 @@ create table if not exists "accumulations"(
     id uuid primary key default gen_random_uuid(),
     goal numeric not null,
     collected numeric not null default 0,
-    account_id bigint not null,
-    constraint fk_account_id foreign key (account_id) references accounts(id)
+    account_id uuid not null,
+    constraint fk_account_id foreign key (account_id) references account(id)
 );
 
 end;

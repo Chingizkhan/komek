@@ -1,5 +1,5 @@
 begin;
 
-drop table if exists "sessions";
+drop table if exists "session";
 
 end;

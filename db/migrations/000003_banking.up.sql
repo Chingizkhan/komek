@@ -1,42 +1,52 @@
-CREATE TABLE "accounts" (
-                            "id" bigserial PRIMARY KEY,
-                            "owner" uuid NOT NULL,
-                            "balance" bigint NOT NULL,
-                            "currency" varchar NOT NULL,
-                            "created_at" timestamptz NOT NULL DEFAULT (now())
+DROP TYPE IF EXISTS operation_type;
+CREATE TYPE operation_type AS ENUM (
+    'refill',
+    'withdraw',
+    'hold',
+    'clear',
+    'commission'
 );
 
-CREATE TABLE "entries" (
-                           "id" bigserial PRIMARY KEY,
-                           "account_id" bigint NOT NULL,
-                           "amount" bigint NOT NULL,
-                           "created_at" timestamptz NOT NULL DEFAULT (now())
+DROP TYPE IF EXISTS account_status;
+CREATE TYPE account_status AS ENUM (
+    'active',
+    'blocked',
+    'closed'
 );
 
-CREATE TABLE "transfers" (
-                             "id" bigserial PRIMARY KEY,
-                             "from_account_id" bigint NOT NULL,
-                             "to_account_id" bigint NOT NULL,
-                             "amount" bigint NOT NULL,
-                             "created_at" timestamptz NOT NULL DEFAULT (now())
+create table if not exists account(
+    id uuid primary key default gen_random_uuid(),
+    owner uuid not null,
+    balance bigint not null check ( balance >= 0 ) default 0,
+    hold_balance bigint not null check ( hold_balance >= 0 ) default 0,
+    country varchar(6) not null,
+    currency varchar(6) not null,
+    created_at timestamp(6) not null default current_timestamp(6),
+    updated_at timestamp(6) not null default current_timestamp(6),
+    status account_status not null default 'active'
+
+--     constraint fk_owner_id foreign key (owner) references "user"(id)
 );
 
-ALTER TABLE "entries" ADD FOREIGN KEY ("account_id") REFERENCES "accounts" ("id");
+create table if not exists transaction(
+    id uuid PRIMARY KEY default gen_random_uuid(),
+    from_account_id uuid not null,
+    to_account_id uuid not null,
+    amount bigint not null,
+    created_at timestamp(6) not null default current_timestamp(6),
+    constraint fk_from_account_id foreign key (from_account_id) references account(id),
+    constraint fk_to_account_id foreign key (to_account_id) references account(id)
+);
 
-ALTER TABLE "transfers" ADD FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("id");
-
-ALTER TABLE "transfers" ADD FOREIGN KEY ("to_account_id") REFERENCES "accounts" ("id");
-
-CREATE INDEX ON "accounts" ("owner");
-
-CREATE INDEX ON "entries" ("account_id");
-
-CREATE INDEX ON "transfers" ("from_account_id");
-
-CREATE INDEX ON "transfers" ("to_account_id");
-
-CREATE INDEX ON "transfers" ("from_account_id", "to_account_id");
-
-COMMENT ON COLUMN "entries"."amount" IS 'can be negative or positive';
-
-COMMENT ON COLUMN "transfers"."amount" IS 'must be positive';
+create table if not exists operation(
+    id uuid PRIMARY KEY default gen_random_uuid(),
+    transaction_id uuid not null,
+    account_id uuid not null,
+    type operation_type not null,
+    amount bigint not null,
+    balance_before bigint not null,
+    balance_after bigint not null,
+    created_at timestamp(6) not null default current_timestamp(6),
+    constraint fk_transaction_id foreign key (transaction_id) references transaction(id),
+    constraint fk_account_id foreign key (account_id) references account(id)
+);
