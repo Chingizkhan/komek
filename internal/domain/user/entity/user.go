@@ -5,12 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	account "komek/internal/domain/account/entity"
+	country "komek/internal/domain/country/entity"
+	currency "komek/internal/domain/currency/entity"
 	"komek/internal/domain/email"
 	"komek/internal/domain/password"
 	"komek/internal/domain/phone"
 	"komek/internal/domain/role"
+	"komek/internal/errs"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -29,17 +32,25 @@ type (
 		PasswordChangedAt time.Time
 	}
 
+	AccountResponse struct {
+		ID       uuid.UUID         `json:"id"`
+		Balance  float64           `json:"balance"`
+		Currency currency.Currency `json:"currency"`
+		Country  country.Country   `json:"country"`
+	}
+
 	UserResponse struct {
-		ID                uuid.UUID   `json:"id"`
-		Name              string      `json:"name"`
-		Phone             phone.Phone `json:"phone"`
-		Login             string      `json:"login"`
-		Email             email.Email `json:"email"`
-		EmailVerified     bool        `json:"email_verified"`
-		Roles             role.Roles  `json:"roles"`
-		CreatedAt         int64       `json:"created_at"`
-		UpdatedAt         int64       `json:"updated_at"`
-		PasswordChangedAt int64       `json:"password_changed_at"`
+		ID                uuid.UUID       `json:"id"`
+		Name              string          `json:"name"`
+		Phone             phone.Phone     `json:"phone"`
+		Login             string          `json:"login"`
+		Email             email.Email     `json:"email"`
+		EmailVerified     bool            `json:"email_verified"`
+		Roles             role.Roles      `json:"roles"`
+		CreatedAt         int64           `json:"created_at"`
+		UpdatedAt         int64           `json:"updated_at"`
+		PasswordChangedAt int64           `json:"password_changed_at"`
+		Account           AccountResponse `json:"account"`
 	}
 
 	RegisterIn struct {
@@ -87,7 +98,12 @@ type (
 		Login     string
 		Phone     phone.Phone
 		Email     email.Email
-		AccountID int64
+		AccountID uuid.UUID
+	}
+
+	GetOut struct {
+		User    User
+		Account account.Account
 	}
 
 	DeleteIn struct {
@@ -195,17 +211,20 @@ func (req *GetIn) ParseHttpBody(r *http.Request) error {
 
 	accountID := r.URL.Query().Get("account_id")
 	if accountID != "" {
-		accID, err := strconv.Atoi(accountID)
+		accID, err := uuid.Parse(accountID)
 		if err != nil {
 			return fmt.Errorf("%s: %w", err, errors.New("invalid_account_id"))
 		}
-		req.AccountID = int64(accID)
+		req.AccountID = accID
 	}
 
-	if req.ID == uuid.Nil && req.Login == "" && req.Email == "" && req.Phone == "" && req.AccountID == 0 {
-		return errors.New("params_not_specified")
-	}
+	return nil
+}
 
+func (req *GetIn) Validate() error {
+	if req.ID == uuid.Nil && req.Login == "" && req.Email == "" && req.Phone == "" && req.AccountID == uuid.Nil {
+		return errs.UserGetParamsNotSpecified
+	}
 	return nil
 }
 

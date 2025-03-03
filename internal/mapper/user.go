@@ -7,6 +7,7 @@ import (
 	"komek/internal/domain/phone"
 	"komek/internal/domain/user/entity"
 	"komek/pb"
+	"komek/pkg/money"
 )
 
 func ConvUserToDomain(user sqlc.User) entity.User {
@@ -25,18 +26,24 @@ func ConvUserToDomain(user sqlc.User) entity.User {
 	}
 }
 
-func ConvUserResponse(user entity.User) entity.UserResponse {
+func ConvUserResponse(out entity.GetOut) entity.UserResponse {
 	return entity.UserResponse{
-		ID:                user.ID,
-		Name:              user.Name,
-		Login:             user.Login,
-		Phone:             user.Phone,
-		Email:             user.Email,
-		EmailVerified:     user.EmailVerified,
-		Roles:             user.Roles,
-		CreatedAt:         user.CreatedAt.Unix(),
-		UpdatedAt:         user.UpdatedAt.Unix(),
-		PasswordChangedAt: user.PasswordChangedAt.Unix(),
+		ID:                out.User.ID,
+		Name:              out.User.Name,
+		Login:             out.User.Login,
+		Phone:             out.User.Phone,
+		Email:             out.User.Email,
+		EmailVerified:     out.User.EmailVerified,
+		Roles:             out.User.Roles,
+		CreatedAt:         out.User.CreatedAt.Unix(),
+		UpdatedAt:         out.User.UpdatedAt.Unix(),
+		PasswordChangedAt: out.User.PasswordChangedAt.Unix(),
+		Account: entity.AccountResponse{
+			ID:       out.Account.ID,
+			Balance:  money.ToFloat(out.Account.Balance),
+			Currency: out.Account.Currency,
+			Country:  out.Account.Country,
+		},
 	}
 }
 

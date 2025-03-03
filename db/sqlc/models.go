@@ -5,22 +5,117 @@
 package sqlc
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AccountStatus string
+
+const (
+	AccountStatusActive  AccountStatus = "active"
+	AccountStatusBlocked AccountStatus = "blocked"
+	AccountStatusClosed  AccountStatus = "closed"
+)
+
+func (e *AccountStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AccountStatus(s)
+	case string:
+		*e = AccountStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AccountStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAccountStatus struct {
+	AccountStatus AccountStatus `json:"account_status"`
+	Valid         bool          `json:"valid"` // Valid is true if AccountStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAccountStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AccountStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AccountStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAccountStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AccountStatus), nil
+}
+
+type OperationType string
+
+const (
+	OperationTypeRefill     OperationType = "refill"
+	OperationTypeWithdraw   OperationType = "withdraw"
+	OperationTypeHold       OperationType = "hold"
+	OperationTypeClear      OperationType = "clear"
+	OperationTypeCommission OperationType = "commission"
+)
+
+func (e *OperationType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OperationType(s)
+	case string:
+		*e = OperationType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OperationType: %T", src)
+	}
+	return nil
+}
+
+type NullOperationType struct {
+	OperationType OperationType `json:"operation_type"`
+	Valid         bool          `json:"valid"` // Valid is true if OperationType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOperationType) Scan(value interface{}) error {
+	if value == nil {
+		ns.OperationType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OperationType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOperationType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OperationType), nil
+}
+
 type Account struct {
-	ID        int64              `json:"id"`
-	Owner     pgtype.UUID        `json:"owner"`
-	Balance   int64              `json:"balance"`
-	Currency  string             `json:"currency"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	ID          pgtype.UUID      `json:"id"`
+	Owner       pgtype.UUID      `json:"owner"`
+	Balance     int64            `json:"balance"`
+	HoldBalance int64            `json:"hold_balance"`
+	Country     string           `json:"country"`
+	Currency    string           `json:"currency"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
+	Status      AccountStatus    `json:"status"`
 }
 
 type Accumulation struct {
 	ID        pgtype.UUID    `json:"id"`
 	Goal      pgtype.Numeric `json:"goal"`
 	Collected pgtype.Numeric `json:"collected"`
-	AccountID int64          `json:"account_id"`
+	AccountID pgtype.UUID    `json:"account_id"`
 }
 
 type Category struct {
@@ -48,12 +143,15 @@ type ClientCategory struct {
 	CategoryID pgtype.UUID `json:"category_id"`
 }
 
-type Entry struct {
-	ID        int64 `json:"id"`
-	AccountID int64 `json:"account_id"`
-	// can be negative or positive
-	Amount    int64              `json:"amount"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+type Operation struct {
+	ID            pgtype.UUID      `json:"id"`
+	TransactionID pgtype.UUID      `json:"transaction_id"`
+	AccountID     pgtype.UUID      `json:"account_id"`
+	Type          OperationType    `json:"type"`
+	Amount        int64            `json:"amount"`
+	BalanceBefore int64            `json:"balance_before"`
+	BalanceAfter  int64            `json:"balance_after"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
 }
 
 type Organisation struct {
@@ -75,13 +173,12 @@ type Session struct {
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
 
-type Transfer struct {
-	ID            int64 `json:"id"`
-	FromAccountID int64 `json:"from_account_id"`
-	ToAccountID   int64 `json:"to_account_id"`
-	// must be positive
-	Amount    int64              `json:"amount"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
+type Transaction struct {
+	ID            pgtype.UUID      `json:"id"`
+	FromAccountID pgtype.UUID      `json:"from_account_id"`
+	ToAccountID   pgtype.UUID      `json:"to_account_id"`
+	Amount        int64            `json:"amount"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
 }
 
 type User struct {

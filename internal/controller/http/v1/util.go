@@ -17,8 +17,8 @@ func (h *Handler) Err(w http.ResponseWriter, msg string, status int) {
 	h.Resp(w, ErrorResponse{Error: msg}, status)
 }
 
-func (h *Handler) Error(w http.ResponseWriter, err error, status int) {
-	h.l.Error("error http", logger.Err(err))
+func (h *Handler) Error(w http.ResponseWriter, err error, status int, msg string) {
+	h.l.Error(msg, logger.Err(err))
 	err = h.Unwrap(err)
 	h.Resp(w, ErrorResponse{Error: err.Error()}, status)
 }

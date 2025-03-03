@@ -86,10 +86,10 @@ func (r *Repository) GetByEmail(ctx context.Context, email email.Email) (entity.
 	return mapper.ConvUserToDomain(u), nil
 }
 
-func (r *Repository) GetByAccount(ctx context.Context, accountID int64) (entity.User, error) {
+func (r *Repository) GetByAccount(ctx context.Context, accountID uuid.UUID) (entity.User, error) {
 	qtx := r.queries(ctx)
 
-	u, err := qtx.GetUserByAccount(ctx, accountID)
+	u, err := qtx.GetUserByAccount(ctx, null_value.UUID(accountID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.User{}, errs.ErrUserNotFound

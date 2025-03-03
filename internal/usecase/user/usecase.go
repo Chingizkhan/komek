@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"komek/internal/domain"
+	account "komek/internal/domain/account/entity"
+	country "komek/internal/domain/country/entity"
+	currency "komek/internal/domain/currency/entity"
 	"komek/internal/domain/user/entity"
 	"komek/internal/errs"
 	"komek/internal/service/token"
@@ -14,6 +17,7 @@ import (
 
 type UseCase struct {
 	s                    Service
+	account              AccountService
 	tr                   usecase.Transactional
 	hasher               Hasher
 	session              SessionRepository
@@ -25,6 +29,7 @@ type UseCase struct {
 
 func New(
 	s Service,
+	account AccountService,
 	tr usecase.Transactional,
 	hasher Hasher,
 	session SessionRepository,
@@ -34,6 +39,7 @@ func New(
 ) *UseCase {
 	return &UseCase{
 		s,
+		account,
 		tr,
 		hasher,
 		session,
@@ -52,8 +58,18 @@ func (u *UseCase) Register(ctx context.Context, req entity.RegisterIn) (user ent
 	req.PasswordHash = passHash
 
 	fn := func(txCtx context.Context) error {
+		// create user
 		if user, err = u.s.Register(txCtx, req); err != nil {
 			return fmt.Errorf("u.s.Save - %w", err)
+		}
+		// create account
+		if _, err = u.account.Create(txCtx, account.CreateIn{
+			Owner:    user.ID,
+			Balance:  0,
+			Country:  country.KAZ,
+			Currency: currency.KZT,
+		}); err != nil {
+			return fmt.Errorf("u.account.Create - %w", err)
 		}
 		return nil
 	}
@@ -80,13 +96,21 @@ func (u *UseCase) Register(ctx context.Context, req entity.RegisterIn) (user ent
 	return user, nil
 }
 
-func (u *UseCase) Get(ctx context.Context, in entity.GetIn) (entity.User, error) {
+func (u *UseCase) Get(ctx context.Context, in entity.GetIn) (entity.GetOut, error) {
 	user, err := u.s.Get(ctx, in)
 	if err != nil {
-		return entity.User{}, fmt.Errorf("get user via service: %w", err)
+		return entity.GetOut{}, fmt.Errorf("get user via service: %w", err)
 	}
 
-	return user, nil
+	acc, err := u.account.GetByUserID(ctx, user.ID)
+	if err != nil {
+		return entity.GetOut{}, fmt.Errorf("get account via service: %w", err)
+	}
+
+	return entity.GetOut{
+		User:    user,
+		Account: acc,
+	}, nil
 }
 
 func (u *UseCase) Login(ctx context.Context, in entity.LoginIn) (*entity.LoginOut, error) {
@@ -96,7 +120,7 @@ func (u *UseCase) Login(ctx context.Context, in entity.LoginIn) (*entity.LoginOu
 		Email: in.Email,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("get user by login via service: %w", err)
+		return nil, fmt.Errorf("get user via service: %w", err)
 	}
 
 	// check password

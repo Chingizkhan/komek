@@ -12,7 +12,7 @@ import (
 )
 
 const createSession = `-- name: CreateSession :one
-INSERT INTO "sessions" (
+INSERT INTO "session" (
     id,
     user_id,
     refresh_token,
@@ -60,7 +60,7 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 }
 
 const getSession = `-- name: GetSession :one
-SELECT id, user_id, refresh_token, user_agent, client_ip, is_blocked, expires_at, created_at FROM sessions
+SELECT id, user_id, refresh_token, user_agent, client_ip, is_blocked, expires_at, created_at FROM session
 WHERE id = $1 LIMIT 1
 `
 

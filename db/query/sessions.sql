@@ -1,5 +1,5 @@
 -- name: CreateSession :one
-INSERT INTO "sessions" (
+INSERT INTO "session" (
     id,
     user_id,
     refresh_token,
@@ -12,5 +12,5 @@ INSERT INTO "sessions" (
 ) RETURNING *;
 
 -- name: GetSession :one
-SELECT * FROM sessions
+SELECT * FROM session
 WHERE id = $1 LIMIT 1;

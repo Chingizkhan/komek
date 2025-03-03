@@ -11,7 +11,7 @@ import (
 type (
 	User interface {
 		Register(ctx context.Context, req entity.RegisterIn) (entity.User, error)
-		Get(ctx context.Context, req entity.GetIn) (entity.User, error)
+		Get(ctx context.Context, req entity.GetIn) (entity.GetOut, error)
 		Delete(ctx context.Context, req entity.DeleteIn) error
 		ChangePassword(ctx context.Context, req entity.ChangePasswordIn) error
 		Update(ctx context.Context, req entity.UpdateIn) (entity.User, error)

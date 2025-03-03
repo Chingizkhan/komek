@@ -5,6 +5,8 @@ import (
 	"komek/config"
 	"komek/internal/controller/grpc"
 	"komek/internal/controller/http/v1"
+	accountRepo "komek/internal/domain/account/repository"
+	accountSrv "komek/internal/domain/account/service"
 	clientRepo "komek/internal/domain/client/repository"
 	clientSrv "komek/internal/domain/client/service"
 	userRepo "komek/internal/domain/user/repository"
@@ -59,6 +61,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	oauthServerClient := oauth_service.New(time.Second*10, cfg.Oauth2Raw.ServiceAddr)
 	userRepository := userRepo.New(pg)
 	clientRepository := clientRepo.New(pg)
+	accountRepository := accountRepo.New(pg)
 	sessionRepo := session_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
 	im := identity.NewIdentityManager("localhost:8181", "komek", "", "")
@@ -112,9 +115,10 @@ func Run(cfg *config.Config, l *logger.Logger) {
 
 	userService := userSrv.New(userRepository)
 	clientService := clientSrv.New(clientRepository)
+	accountService := accountSrv.New(accountRepository)
 
 	// get usecases
-	userUC := user.New(userService, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
+	userUC := user.New(userService, accountService, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
 	clientUC := client.New(clientService, transactionalRepo)
 
 	// start http server

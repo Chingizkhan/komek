@@ -1,39 +1,39 @@
 -- name: GetUserByID :one
-SELECT * FROM users
+SELECT * FROM "user"
 WHERE id = $1 LIMIT 1;
 
 -- name: GetUserByPhone :one
-SELECT * FROM users
+SELECT * FROM "user"
 WHERE phone = $1 LIMIT 1;
 
 -- name: GetUserByEmail :one
-SELECT * FROM users
+SELECT * FROM "user"
 WHERE email = $1 LIMIT 1;
 
 -- name: GetUserByLogin :one
-SELECT * FROM users
+SELECT * FROM "user"
 WHERE "login" = $1 LIMIT 1;
 
 -- name: GetUserByAccount :one
-SELECT * FROM users as u
+SELECT * FROM "user" as u
 WHERE u.id = (
-    SELECT a.owner FROM accounts as a
+    SELECT a.owner FROM account as a
     WHERE a.id = $1 LIMIT 1
 );
 
 -- name: ListUsers :many
-SELECT * FROM users
+SELECT * FROM "user"
 ORDER BY created_at DESC;
 
 -- name: SaveUser :one
-INSERT INTO users(
+INSERT INTO "user"(
     name, login, email, password_hash, phone, roles
 ) VALUES (
     $1, $2, $3, $4, $5, $6
 ) RETURNING *;
 
 -- name: UpdateUser :one
-UPDATE users
+UPDATE "user"
 SET name = coalesce(sqlc.narg(name), name),
     login = coalesce(sqlc.narg(login), login),
     email = coalesce(sqlc.narg(email), email),
@@ -47,13 +47,13 @@ WHERE id = sqlc.arg(id)
 RETURNING *;
 
 -- name: RemoveUser :one
-DELETE FROM users
+DELETE FROM "user"
 WHERE id = $1
 RETURNING id;
 
 -- name: FindUsers :many
 SELECT *
-FROM users
+FROM "user"
 WHERE (@name::varchar = '' OR name = @name)
 AND (@login::varchar = '' OR login = @login)
 AND (@email::varchar = '' OR email = @email)

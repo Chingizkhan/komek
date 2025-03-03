@@ -13,7 +13,7 @@ import (
 
 const findUsers = `-- name: FindUsers :many
 SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at
-FROM users
+FROM "user"
 WHERE ($1::varchar = '' OR name = $1)
 AND ($2::varchar = '' OR login = $2)
 AND ($3::varchar = '' OR email = $3)
@@ -61,14 +61,14 @@ func (q *Queries) FindUsers(ctx context.Context, arg FindUsersParams) ([]User, e
 }
 
 const getUserByAccount = `-- name: GetUserByAccount :one
-SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM users as u
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM "user" as u
 WHERE u.id = (
-    SELECT a.owner FROM accounts as a
+    SELECT a.owner FROM account as a
     WHERE a.id = $1 LIMIT 1
 )
 `
 
-func (q *Queries) GetUserByAccount(ctx context.Context, id int64) (User, error) {
+func (q *Queries) GetUserByAccount(ctx context.Context, id pgtype.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByAccount, id)
 	var i User
 	err := row.Scan(
@@ -88,7 +88,7 @@ func (q *Queries) GetUserByAccount(ctx context.Context, id int64) (User, error) 
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM users
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM "user"
 WHERE email = $1 LIMIT 1
 `
 
@@ -112,7 +112,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (User, 
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM users
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM "user"
 WHERE id = $1 LIMIT 1
 `
 
@@ -136,7 +136,7 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 }
 
 const getUserByLogin = `-- name: GetUserByLogin :one
-SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM users
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM "user"
 WHERE "login" = $1 LIMIT 1
 `
 
@@ -160,7 +160,7 @@ func (q *Queries) GetUserByLogin(ctx context.Context, login pgtype.Text) (User, 
 }
 
 const getUserByPhone = `-- name: GetUserByPhone :one
-SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM users
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM "user"
 WHERE phone = $1 LIMIT 1
 `
 
@@ -184,7 +184,7 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone pgtype.Text) (User, 
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM users
+SELECT id, name, login, email, email_verified, password_hash, phone, roles, password_changed_at, created_at, updated_at FROM "user"
 ORDER BY created_at DESC
 `
 
@@ -221,7 +221,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 }
 
 const removeUser = `-- name: RemoveUser :one
-DELETE FROM users
+DELETE FROM "user"
 WHERE id = $1
 RETURNING id
 `
@@ -233,7 +233,7 @@ func (q *Queries) RemoveUser(ctx context.Context, id pgtype.UUID) (pgtype.UUID, 
 }
 
 const saveUser = `-- name: SaveUser :one
-INSERT INTO users(
+INSERT INTO "user"(
     name, login, email, password_hash, phone, roles
 ) VALUES (
     $1, $2, $3, $4, $5, $6
@@ -276,7 +276,7 @@ func (q *Queries) SaveUser(ctx context.Context, arg SaveUserParams) (User, error
 }
 
 const updateUser = `-- name: UpdateUser :one
-UPDATE users
+UPDATE "user"
 SET name = coalesce($1, name),
     login = coalesce($2, login),
     email = coalesce($3, email),

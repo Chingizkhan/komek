@@ -12,15 +12,15 @@ import (
 )
 
 const addAccountBalance = `-- name: AddAccountBalance :one
-UPDATE accounts
+UPDATE account
 SET balance = balance + $1
 WHERE id = $2
-RETURNING id, owner, balance, currency, created_at
+RETURNING id, owner, balance, hold_balance, country, currency, created_at, updated_at, status
 `
 
 type AddAccountBalanceParams struct {
-	Amount int64 `json:"amount"`
-	ID     int64 `json:"id"`
+	Amount int64       `json:"amount"`
+	ID     pgtype.UUID `json:"id"`
 }
 
 func (q *Queries) AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error) {
@@ -30,95 +30,141 @@ func (q *Queries) AddAccountBalance(ctx context.Context, arg AddAccountBalancePa
 		&i.ID,
 		&i.Owner,
 		&i.Balance,
+		&i.HoldBalance,
+		&i.Country,
 		&i.Currency,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Status,
 	)
 	return i, err
 }
 
 const createAccount = `-- name: CreateAccount :one
-INSERT INTO accounts(
+INSERT INTO account(
     owner,
     balance,
+    country,
     currency
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4
 )
-RETURNING id, owner, balance, currency, created_at
+RETURNING id, owner, balance, hold_balance, country, currency, created_at, updated_at, status
 `
 
 type CreateAccountParams struct {
 	Owner    pgtype.UUID `json:"owner"`
 	Balance  int64       `json:"balance"`
+	Country  string      `json:"country"`
 	Currency string      `json:"currency"`
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
-	row := q.db.QueryRow(ctx, createAccount, arg.Owner, arg.Balance, arg.Currency)
+	row := q.db.QueryRow(ctx, createAccount,
+		arg.Owner,
+		arg.Balance,
+		arg.Country,
+		arg.Currency,
+	)
 	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Owner,
 		&i.Balance,
+		&i.HoldBalance,
+		&i.Country,
 		&i.Currency,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Status,
 	)
 	return i, err
 }
 
 const deleteAccount = `-- name: DeleteAccount :exec
-DELETE FROM accounts WHERE id = $1
+DELETE FROM account WHERE id = $1
 `
 
-func (q *Queries) DeleteAccount(ctx context.Context, id int64) error {
+func (q *Queries) DeleteAccount(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, deleteAccount, id)
 	return err
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, owner, balance, currency, created_at
-FROM accounts
+SELECT id, owner, balance, hold_balance, country, currency, created_at, updated_at, status
+FROM account
 WHERE id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetAccount(ctx context.Context, id int64) (Account, error) {
+func (q *Queries) GetAccount(ctx context.Context, id pgtype.UUID) (Account, error) {
 	row := q.db.QueryRow(ctx, getAccount, id)
 	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Owner,
 		&i.Balance,
+		&i.HoldBalance,
+		&i.Country,
 		&i.Currency,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Status,
 	)
 	return i, err
 }
 
 const getAccountForUpdate = `-- name: GetAccountForUpdate :one
-SELECT id, owner, balance, currency, created_at
-FROM accounts
+SELECT id, owner, balance, hold_balance, country, currency, created_at, updated_at, status
+FROM account
 WHERE id = $1
 LIMIT 1
 FOR NO KEY UPDATE
 `
 
-func (q *Queries) GetAccountForUpdate(ctx context.Context, id int64) (Account, error) {
+func (q *Queries) GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error) {
 	row := q.db.QueryRow(ctx, getAccountForUpdate, id)
 	var i Account
 	err := row.Scan(
 		&i.ID,
 		&i.Owner,
 		&i.Balance,
+		&i.HoldBalance,
+		&i.Country,
 		&i.Currency,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Status,
+	)
+	return i, err
+}
+
+const getAccountsByUserID = `-- name: GetAccountsByUserID :one
+SELECT id, owner, balance, hold_balance, country, currency, created_at, updated_at, status
+FROM account
+WHERE owner = $1
+`
+
+func (q *Queries) GetAccountsByUserID(ctx context.Context, userID pgtype.UUID) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccountsByUserID, userID)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Balance,
+		&i.HoldBalance,
+		&i.Country,
+		&i.Currency,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Status,
 	)
 	return i, err
 }
 
 const listAccounts = `-- name: ListAccounts :many
-SELECT id, owner, balance, currency, created_at
-FROM accounts
+SELECT id, owner, balance, hold_balance, country, currency, created_at, updated_at, status
+FROM account
 ORDER BY id
 LIMIT $1
 OFFSET $2
@@ -142,8 +188,12 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 			&i.ID,
 			&i.Owner,
 			&i.Balance,
+			&i.HoldBalance,
+			&i.Country,
 			&i.Currency,
 			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Status,
 		); err != nil {
 			return nil, err
 		}
@@ -156,15 +206,15 @@ func (q *Queries) ListAccounts(ctx context.Context, arg ListAccountsParams) ([]A
 }
 
 const updateAccount = `-- name: UpdateAccount :one
-UPDATE accounts
+UPDATE account
 SET balance = $2
 WHERE id = $1
-RETURNING id, owner, balance, currency, created_at
+RETURNING id, owner, balance, hold_balance, country, currency, created_at, updated_at, status
 `
 
 type UpdateAccountParams struct {
-	ID      int64 `json:"id"`
-	Balance int64 `json:"balance"`
+	ID      pgtype.UUID `json:"id"`
+	Balance int64       `json:"balance"`
 }
 
 func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error) {
@@ -174,8 +224,12 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) (A
 		&i.ID,
 		&i.Owner,
 		&i.Balance,
+		&i.HoldBalance,
+		&i.Country,
 		&i.Currency,
 		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Status,
 	)
 	return i, err
 }

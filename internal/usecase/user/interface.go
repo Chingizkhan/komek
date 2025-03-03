@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"komek/internal/domain"
+	account "komek/internal/domain/account/entity"
 	"komek/internal/domain/email"
 	"komek/internal/domain/phone"
 	"komek/internal/domain/user/entity"
@@ -17,6 +18,12 @@ type (
 		Update(ctx context.Context, req entity.UpdateIn) (entity.User, error)
 		Delete(ctx context.Context, id uuid.UUID) error
 		Get(ctx context.Context, req entity.GetIn) (entity.User, error)
+	}
+
+	AccountService interface {
+		Create(ctx context.Context, in account.CreateIn) (account.Account, error)
+		GetByID(ctx context.Context, id uuid.UUID) (account.Account, error)
+		GetByUserID(ctx context.Context, userID uuid.UUID) (account.Account, error)
 	}
 
 	UserRepository interface {

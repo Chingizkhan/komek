@@ -5,7 +5,6 @@ import (
 	customMiddleware "komek/internal/controller/http/middleware"
 	"komek/internal/domain/user/entity"
 	"komek/internal/mapper"
-	"komek/pkg/logger"
 	"net/http"
 )
 
@@ -36,15 +35,13 @@ func (h *Handler) userRoutes(r *chi.Mux) {
 func (h *Handler) userRefreshToken(w http.ResponseWriter, r *http.Request) {
 	req := entity.RefreshTokensIn{}
 	if err := req.ParseHttpBody(r); err != nil {
-		h.l.Error("userRefreshToken - ParseAndValidate", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "userRefreshToken - ParseAndValidate")
 		return
 	}
 
 	refreshTokenResponse, err := h.user.RefreshTokens(r.Context(), req)
 	if err != nil {
-		h.l.Error("userRefreshToken - h.user.RefreshTokens", logger.Err(err))
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "userRefreshToken - h.user.RefreshTokens")
 		return
 	}
 
@@ -54,15 +51,13 @@ func (h *Handler) userRefreshToken(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) userRegister(w http.ResponseWriter, r *http.Request) {
 	req := entity.RegisterIn{}
 	if err := req.ParseHttpBody(r); err != nil {
-		h.l.Error("userRegister - Parse", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "userRegister - Parse")
 		return
 	}
 
 	user, err := h.user.Register(r.Context(), req)
 	if err != nil {
-		h.l.Error("userRegister - h.user.Register", logger.Err(err))
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "userRegister - h.user.Register")
 		return
 	}
 
@@ -73,8 +68,7 @@ func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request) {
 	req := entity.DeleteIn{}
 
 	if err := req.ParseHttpBody(r); err != nil {
-		h.l.Error("userDelete - ParseAndValidate", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "userDelete - ParseAndValidate")
 		return
 	}
 
@@ -83,8 +77,7 @@ func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request) {
 
 	err := h.user.Delete(r.Context(), req)
 	if err != nil {
-		h.l.Error("userDelete - ParseAndValidate", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "userDelete - ParseAndValidate")
 		return
 	}
 
@@ -96,8 +89,7 @@ func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) userChangePassword(w http.ResponseWriter, r *http.Request) {
 	req := entity.ChangePasswordIn{}
 	if err := req.ParseHttpBody(r); err != nil {
-		h.l.Error("userChangePassword - ParseAndValidate", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "userChangePassword - ParseAndValidate")
 		return
 	}
 
@@ -106,8 +98,7 @@ func (h *Handler) userChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	err := h.user.ChangePassword(r.Context(), req)
 	if err != nil {
-		h.l.Error("userChangePassword - user.ChangePassword", logger.Err(err))
-		h.Error(w, err, http.StatusConflict)
+		h.Error(w, err, http.StatusConflict, "userChangePassword - user.ChangePassword")
 		return
 	}
 
@@ -119,35 +110,33 @@ func (h *Handler) userChangePassword(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) userUpdate(w http.ResponseWriter, r *http.Request) {
 	req := entity.UpdateIn{}
 	if err := req.ParseHttpBody(r); err != nil {
-		h.l.Error("userUpdate - ParseAndValidate", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "userUpdate - ParseAndValidate")
 		return
 	}
 
 	payload := h.payload(r)
 	req.ID = payload.UserID
-	user, err := h.user.Update(r.Context(), req)
+	response, err := h.user.Update(r.Context(), req)
 	if err != nil {
-		h.l.Error("userUpdate - h.user.Update", logger.Err(err))
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "userUpdate - h.user.Update")
 		return
 	}
 
-	h.Resp(w, mapper.ConvUserResponse(user), http.StatusOK)
+	_ = response
+
+	//h.Resp(w, mapper.ConvUserResponse(response), http.StatusOK)
 }
 
 func (h *Handler) userLogin(w http.ResponseWriter, r *http.Request) {
 	req := entity.LoginIn{}
 	if err := req.ParseHttpBody(r); err != nil {
-		h.l.Error("userLogin - Parse", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "userLogin - Parse")
 		return
 	}
 
 	response, err := h.user.Login(r.Context(), req)
 	if err != nil {
-		h.l.Error("h.user.Login", logger.Err(err))
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "h.user.Login")
 		return
 	}
 
@@ -157,8 +146,7 @@ func (h *Handler) userLogin(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) userLogout(w http.ResponseWriter, r *http.Request) {
 	req := entity.LogoutIn{}
 	if err := req.ParseHttpBody(r); err != nil {
-		h.l.Error("userRegister - Parse", logger.Err(err))
-		h.Err(w, err.Error(), http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "userRegister - Parse")
 		return
 	}
 
@@ -173,8 +161,7 @@ func (h *Handler) userGet(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.user.Get(r.Context(), req)
 	if err != nil {
-		h.l.Error("userGet - h.user.Get", logger.Err(err))
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "userGet - h.user.Get")
 		return
 	}
 
@@ -184,8 +171,7 @@ func (h *Handler) userGet(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) usersFind(w http.ResponseWriter, r *http.Request) {
 	req := entity.FindRequest{}
 	if err := req.ParseHttpBody(r); err != nil {
-		h.l.Error("usersFind - ParseAndValidate", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "usersFind - ParseAndValidate")
 		return
 	}
 

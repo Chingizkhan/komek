@@ -35,22 +35,22 @@ func main() {
 	service := clientSrv.New(clientsRepository)
 	ctx := context.Background()
 
-	categories := []entity.Category{
-		{Name: "Животные"},
-		{Name: "Пожилые"},
-	}
+	//categories := []entity.Category{
+	//	{Name: "Животные"},
+	//	{Name: "Пожилые"},
+	//}
+	//
+	//_, err = clientsRepository.SaveCategories(ctx, categories)
+	//if err != nil {
+	//	l.Error("app - Run - clients.SaveCategories:", logger.Err(err))
+	//	return
+	//}
 
-	_, err = clientsRepository.SaveCategories(ctx, categories)
-	if err != nil {
-		l.Error("app - Run - clients.SaveCategories:", logger.Err(err))
-		return
-	}
-
-	animalCategoryID, err := uuid.Parse("57d25187-74b4-47d9-9efc-8595a7db4e3e")
+	animalCategoryID, err := uuid.Parse("cf4001c6-c20f-4933-9234-c7c206642f3a")
 	if err != nil {
 		l.Error("app - Run - uuid.Parse animalCategoryID:", logger.Err(err))
 	}
-	oldCategoryID, err := uuid.Parse("de960e16-8eb0-4108-a8c3-064137e8c216")
+	oldCategoryID, err := uuid.Parse("a082da62-0076-429a-b2f3-4ecbb4478ced")
 	if err != nil {
 		l.Error("app - Run - uuid.Parse oldCategoryID:", logger.Err(err))
 	}

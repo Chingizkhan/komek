@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -9,7 +10,6 @@ import (
 	"komek/db/sqlc"
 	"komek/internal/domain/account/entity"
 	"komek/internal/errs"
-	"komek/internal/mapper"
 	"komek/internal/service/transactional"
 	"komek/pkg/null_value"
 	"komek/pkg/postgres"
@@ -27,14 +27,39 @@ func New(pg *postgres.Postgres) *Repository {
 func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (entity.Account, error) {
 	qtx := r.queries(ctx)
 
-	u, err := qtx.GetUserByID(ctx, null_value.UUID(userID))
+	acc, err := qtx.GetAccount(ctx, null_value.UUID(id))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return entity.User{}, errs.ErrUserNotFound
+			return entity.Account{}, errs.AccountNotFound
 		}
-		return entity.User{}, fmt.Errorf("r.q.GetUser: %w", err)
+		return entity.Account{}, fmt.Errorf("r.q.GetAccount: %w", err)
 	}
-	return mapper.ConvUserToDomain(u), nil
+	return r.mapAccount(acc), nil
+}
+
+func (r *Repository) GetByUserID(ctx context.Context, userID uuid.UUID) (entity.Account, error) {
+	qtx := r.queries(ctx)
+
+	acc, err := qtx.GetAccountsByUserID(ctx, null_value.UUID(userID))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entity.Account{}, errs.AccountNotFound
+		}
+		return entity.Account{}, fmt.Errorf("r.q.GetAccountsByUserID: %w", err)
+	}
+
+	return r.mapAccount(acc), nil
+}
+
+func (r *Repository) Create(ctx context.Context, in entity.CreateIn) (entity.Account, error) {
+	qtx := r.queries(ctx)
+
+	account, err := qtx.CreateAccount(ctx, CreateAccountRequest{in: in}.toSqlc())
+	if err != nil {
+		return entity.Account{}, fmt.Errorf("r.q.CreateAccount: %w", err)
+	}
+
+	return r.mapAccount(account), nil
 }
 
 func (r *Repository) queries(ctx context.Context) *sqlc.Queries {

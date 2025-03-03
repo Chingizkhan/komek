@@ -9,6 +9,8 @@ import (
 )
 
 type (
+	Accounts []Account
+
 	Account struct {
 		// The id of the account
 		// required: true
@@ -21,6 +23,13 @@ type (
 		Country     country.Country   `json:"country"`
 		CreatedAt   time.Time         `json:"created_at"`
 		UpdatedAt   time.Time         `json:"updated_at"`
+	}
+
+	CreateIn struct {
+		Owner    uuid.UUID         `json:"owner"`
+		Balance  int64             `json:"balance"`
+		Country  country.Country   `json:"country"`
+		Currency currency.Currency `json:"currency"`
 	}
 )
 

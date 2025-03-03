@@ -6,7 +6,6 @@ import (
 	customMiddleware "komek/internal/controller/http/middleware"
 	"komek/internal/domain"
 	"komek/internal/dto"
-	"komek/pkg/logger"
 	"net/http"
 )
 
@@ -49,8 +48,7 @@ type accountCreateResponseWrapper struct {
 func (h *Handler) accountCreate(w http.ResponseWriter, r *http.Request) {
 	req := dto.CreateAccountIn{}
 	if err := req.ParseAndValidate(r); err != nil {
-		h.l.Error("accountCreate - ParseAndValidate", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "accountCreate - ParseAndValidate")
 		return
 	}
 
@@ -58,8 +56,7 @@ func (h *Handler) accountCreate(w http.ResponseWriter, r *http.Request) {
 	req.Owner = payload.UserID
 	account, err := h.banking.CreateAccount(r.Context(), req)
 	if err != nil {
-		h.l.Error("accountCreate - banking.CreateAccount", logger.Err(err))
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "accountCreate - banking.CreateAccount")
 		return
 	}
 
@@ -83,16 +80,13 @@ type accountIDWrapper struct {
 func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
 	req := dto.GetAccountIn{}
 	if err := req.ParseAndValidate(r); err != nil {
-		h.l.Error("accountGet - ParseAndValidate", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "accountGet - ParseAndValidate")
 		return
 	}
 
 	account, err := h.banking.GetAccount(r.Context(), req.ID)
 	if err != nil {
-		h.l.Error("accountGet - banking_uc.CreateAccount", logger.Err(err))
-		h.Err(w, err.Error(), http.StatusInternalServerError)
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "accountGet - banking_uc.CreateAccount")
 		return
 	}
 
@@ -106,9 +100,7 @@ func (h *Handler) accountsList(w http.ResponseWriter, r *http.Request) {
 	req.UserID = payload.UserID
 	account, err := h.banking.ListAccounts(r.Context(), req.UserID)
 	if err != nil {
-		h.l.Error("accountGet - banking_uc.CreateAccount", logger.Err(err))
-		h.Err(w, err.Error(), http.StatusInternalServerError)
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "accountGet - banking_uc.CreateAccount")
 		return
 	}
 
@@ -136,15 +128,13 @@ type transferResponse struct {
 func (h *Handler) operationTransfer(w http.ResponseWriter, r *http.Request) {
 	req := dto.TransferIn{}
 	if err := req.ParseAndValidate(r); err != nil {
-		h.l.Error("operationTransfer - ParseAndValidate", logger.Err(err))
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "operationTransfer - ParseAndValidate")
 		return
 	}
 
 	transfer, err := h.banking.Transfer(r.Context(), req)
 	if err != nil {
-		h.l.Error("operationTransfer - banking_uc.Transfer", logger.Err(err))
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "operationTransfer - banking_uc.Transfer")
 		return
 	}
 

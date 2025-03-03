@@ -32,7 +32,7 @@ func (h *Handler) clientRoutes(r *chi.Mux) {
 func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	clients, err := h.client.List(r.Context())
 	if err != nil {
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "listClients - h.client.List")
 		return
 	}
 
@@ -44,13 +44,13 @@ func (h *Handler) getByID(w http.ResponseWriter, r *http.Request) {
 
 	clientID, err := uuid.Parse(clientIDParam)
 	if err != nil {
-		h.Error(w, err, http.StatusBadRequest)
+		h.Error(w, err, http.StatusBadRequest, "getClientByID - uuid.Parse")
 		return
 	}
 
 	clients, err := h.client.GetByID(r.Context(), clientID)
 	if err != nil {
-		h.Error(w, err, http.StatusInternalServerError)
+		h.Error(w, err, http.StatusInternalServerError, "getClientByID - h.client.GetByID")
 		return
 	}
 
