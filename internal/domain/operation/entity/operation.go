@@ -12,10 +12,19 @@ type (
 		ID            uuid.UUID `json:"id"`
 		TransactionID uuid.UUID `json:"transaction_id"`
 		Type          Type      `json:"type"`
-		Amount        float64   `json:"amount"`
+		Amount        int64     `json:"amount"`
 		BalanceBefore int64     `json:"balance_before"`
 		BalanceAfter  int64     `json:"balance_after"`
 		CreatedAt     time.Time `json:"created_at"`
+	}
+
+	CreateIn struct {
+		TransactionID uuid.UUID `json:"transaction_id"`
+		AccountID     uuid.UUID `json:"account_id"`
+		Type          Type      `json:"type"`
+		Amount        int64     `json:"amount"`
+		BalanceBefore int64     `json:"balance_before"`
+		BalanceAfter  int64     `json:"balance_after"`
 	}
 )
 

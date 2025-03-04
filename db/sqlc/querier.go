@@ -14,6 +14,7 @@ type Querier interface {
 	AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error)
 	BindClientCategories(ctx context.Context, arg BindClientCategoriesParams) error
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
+	CreateOperation(ctx context.Context, arg CreateOperationParams) (Operation, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	DeleteAccount(ctx context.Context, id pgtype.UUID) error
 	DeleteOrganisation(ctx context.Context, id pgtype.UUID) error
@@ -24,6 +25,28 @@ type Querier interface {
 	GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error)
 	GetAccountsByUserID(ctx context.Context, userID pgtype.UUID) (Account, error)
 	GetClientByID(ctx context.Context, id pgtype.UUID) (GetClientByIDRow, error)
+	// -- name: CreateEntry :one
+	// INSERT INTO entries(
+	//     account_id,
+	//     amount
+	// ) VALUES (
+	//     $1, $2
+	// )
+	// RETURNING *;
+	//
+	// -- name: GetEntry :one
+	// SELECT *
+	// FROM entries
+	// WHERE id = $1
+	// LIMIT 1;
+	//
+	// -- name: ListEntries :many
+	// SELECT *
+	// FROM entries
+	// ORDER BY id
+	// LIMIT $1
+	// OFFSET $2;
+	GetOperationsByTransactionID(ctx context.Context, transactionID pgtype.UUID) ([]Operation, error)
 	GetOrganisation(ctx context.Context, id pgtype.UUID) (Organisation, error)
 	GetSession(ctx context.Context, id pgtype.UUID) (Session, error)
 	GetUserByAccount(ctx context.Context, id pgtype.UUID) (User, error)

@@ -17,4 +17,10 @@ var (
 	// account
 	AccountNotFound      = errors.New("account_not_found")
 	AccountStatusInvalid = errors.New("invalid_account_status")
+
+	// operation
+	OperationNotFound = errors.New("operation_not_found")
+
+	// transaction
+	TransactionNotFound = errors.New("transaction_not_found")
 )

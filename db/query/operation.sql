@@ -19,3 +19,16 @@
 -- ORDER BY id
 -- LIMIT $1
 -- OFFSET $2;
+
+-- name: GetOperationsByTransactionID :many
+SELECT *
+FROM operation
+WHERE transaction_id = $1
+ORDER BY created_at;
+
+-- name: CreateOperation :one
+INSERT INTO operation(
+    transaction_id, account_id, type, amount, balance_before, balance_after
+) VALUES (
+    $1, $2, $3, $4, $5, $6
+) RETURNING *;

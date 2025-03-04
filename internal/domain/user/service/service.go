@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"komek/internal/domain/user/entity"
-	"log"
 )
 
 type Service struct {
@@ -46,7 +45,6 @@ func (s *Service) Get(ctx context.Context, in entity.GetIn) (user entity.User, e
 			return user, fmt.Errorf("get user by id via repo: %w", err)
 		}
 	case in.Phone != "":
-		log.Println("in.Phone:", in.Phone)
 		user, err = s.r.GetByPhone(ctx, in.Phone)
 		if err != nil {
 			return user, fmt.Errorf("get user by phone via repo: %w", err)
