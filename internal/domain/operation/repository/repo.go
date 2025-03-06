@@ -34,6 +34,9 @@ func (r *Repository) Create(ctx context.Context, in entity.CreateIn) (entity.Ope
 		BalanceAfter:  in.BalanceAfter,
 	})
 	if err != nil {
+		if err = r.checkConstraints(err); err != nil {
+			return entity.Operation{}, fmt.Errorf("constraint: %w", err)
+		}
 		return entity.Operation{}, fmt.Errorf("create operation: %w", err)
 	}
 

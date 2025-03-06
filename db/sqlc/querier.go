@@ -16,6 +16,29 @@ type Querier interface {
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
 	CreateOperation(ctx context.Context, arg CreateOperationParams) (Operation, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
+	// -- name: CreateTransfer :one
+	// INSERT INTO transfers(
+	//     from_account_id,
+	//     to_account_id,
+	//     amount
+	// ) VALUES (
+	//     $1, $2, $3
+	// )
+	// RETURNING *;
+	//
+	// -- name: GetTransfer :one
+	// SELECT *
+	// FROM transfers
+	// WHERE id = $1
+	// LIMIT 1;
+	//
+	// -- name: ListTransfers :many
+	// SELECT *
+	// FROM transfers
+	// ORDER BY id
+	// LIMIT $1
+	// OFFSET $2;
+	CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error)
 	DeleteAccount(ctx context.Context, id pgtype.UUID) error
 	DeleteOrganisation(ctx context.Context, id pgtype.UUID) error
 	// AND email_verified = $4
@@ -49,6 +72,8 @@ type Querier interface {
 	GetOperationsByTransactionID(ctx context.Context, transactionID pgtype.UUID) ([]Operation, error)
 	GetOrganisation(ctx context.Context, id pgtype.UUID) (Organisation, error)
 	GetSession(ctx context.Context, id pgtype.UUID) (Session, error)
+	GetTransactionByAccountID(ctx context.Context, accountID pgtype.UUID) ([]Transaction, error)
+	GetTransactionByID(ctx context.Context, id pgtype.UUID) (Transaction, error)
 	GetUserByAccount(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByEmail(ctx context.Context, email pgtype.Text) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)

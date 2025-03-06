@@ -3,7 +3,6 @@ package banking_uc
 import (
 	"context"
 	"github.com/jackc/pgx/v5"
-	"komek/db/sqlc"
 	"komek/internal/domain"
 	"komek/internal/dto"
 	"komek/internal/usecase"
@@ -12,12 +11,8 @@ import (
 type (
 	UseCase struct {
 		tr      usecase.Transactional
+		account usecase.AccountService
 		banking usecase.BankingService
-		tx      Store
-	}
-
-	Store interface {
-		Exec(ctx context.Context, fn func(*sqlc.Queries) error) error
 	}
 
 	AccountRepo interface {
@@ -28,10 +23,14 @@ type (
 
 var txKey = struct{}{}
 
-func New(tr usecase.Transactional, banking usecase.BankingService, store Store) *UseCase {
+func New(
+	tr usecase.Transactional,
+	banking usecase.BankingService,
+	account usecase.AccountService,
+) *UseCase {
 	return &UseCase{
-		tr,
-		banking,
-		store,
+		tr:      tr,
+		account: account,
+		banking: banking,
 	}
 }

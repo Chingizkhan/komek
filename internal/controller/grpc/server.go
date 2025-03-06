@@ -3,19 +3,19 @@ package grpc
 import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"komek/internal/controller"
 	"komek/internal/controller/grpc/middleware"
+	"komek/internal/usecase/user"
 	"komek/pb"
 	"komek/pkg/logger"
 )
 
 type Server struct {
-	user controller.User
+	user *user.UseCase
 	l    logger.ILogger
 	pb.UnimplementedKomekServer
 }
 
-func Register(l logger.ILogger, user controller.User) *grpc.Server {
+func Register(l logger.ILogger, user *user.UseCase) *grpc.Server {
 	server := &Server{
 		user: user,
 		l:    l,

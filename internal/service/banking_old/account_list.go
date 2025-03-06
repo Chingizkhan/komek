@@ -1,11 +1,11 @@
-package banking
+package banking_old
 
 import (
 	"context"
 	"fmt"
 	"komek/internal/domain"
 	"komek/internal/mapper"
-	"komek/internal/service/banking/pb"
+	"komek/internal/service/banking_old/pb"
 )
 
 func (s *Banking) ListAccounts(ctx context.Context, accountIDs []string) (out []domain.Account, err error) {

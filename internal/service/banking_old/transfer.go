@@ -1,11 +1,11 @@
-package banking
+package banking_old
 
 import (
 	"context"
 	"fmt"
 	"komek/internal/dto"
 	"komek/internal/mapper"
-	"komek/internal/service/banking/pb"
+	"komek/internal/service/banking_old/pb"
 )
 
 func (s *Banking) Transfer(ctx context.Context, in dto.TransferIn) (out dto.TransferOut, err error) {

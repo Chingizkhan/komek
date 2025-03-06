@@ -31,6 +31,12 @@ type (
 		Country  country.Country   `json:"country"`
 		Currency currency.Currency `json:"currency"`
 	}
+
+	AddBalanceIn struct {
+		Amount      int64     `json:"amount"`
+		HoldBalance int64     `json:"hold_balance"`
+		AccountID   uuid.UUID `json:"account_id"`
+	}
 )
 
 type AccountStatus string

@@ -25,3 +25,7 @@ func (s *Service) GetByUserID(ctx context.Context, userID uuid.UUID) (entity.Acc
 func (s *Service) Create(ctx context.Context, in entity.CreateIn) (entity.Account, error) {
 	return s.r.Create(ctx, in)
 }
+
+func (s *Service) AddBalance(ctx context.Context, in entity.AddBalanceIn) (acc entity.Account, err error) {
+	return s.r.AddBalance(ctx, in)
+}

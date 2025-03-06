@@ -9,11 +9,15 @@ import (
 	accountSrv "komek/internal/domain/account/service"
 	clientRepo "komek/internal/domain/client/repository"
 	clientSrv "komek/internal/domain/client/service"
+	operation_repo "komek/internal/domain/operation/repository"
+	operation_service "komek/internal/domain/operation/service"
+	transaction_repo "komek/internal/domain/transaction/repository"
+	transaction_service "komek/internal/domain/transaction/service"
 	userRepo "komek/internal/domain/user/repository"
 	userSrv "komek/internal/domain/user/service"
 	"komek/internal/repo/session_repo"
-	"komek/internal/repo/tx"
-	"komek/internal/service/banking"
+	banking "komek/internal/service/banking/service"
+	"komek/internal/service/banking_old"
 	"komek/internal/service/hasher"
 	"komek/internal/service/identity"
 	"komek/internal/service/locker"
@@ -65,25 +69,24 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	sessionRepo := session_repo.New(pg)
 	transactionalRepo := transactional.New(pg)
 	im := identity.NewIdentityManager("localhost:8181", "komek", "", "")
+	operationRepo := operation_repo.New(pg)
+	transactionRepo := transaction_repo.New(pg)
 
-	bankingService, err := banking.New(cfg.BankingService.Addr, cfg.BankingService.EnableTLS)
+	bankingOldService, err := banking_old.New(cfg.BankingService.Addr, cfg.BankingService.EnableTLS)
 	if err != nil {
 		l.Error("app - Run - bankingService:", logger.Err(err))
 		os.Exit(1)
 	}
+	_ = bankingOldService
 
 	hash := hasher.New()
 	lock := locker.New(cache.Client, cfg.LockTimeout)
-	txRepo := tx.NewTX(pg)
 	tokenMaker, err := token.NewPasetoMaker("12312312312312312312312312312312")
 	if err != nil {
 		l.Error("app - Run - token.NewPasetoMaker:", logger.Err(err))
 		os.Exit(1)
 	}
 
-	bankingUC := banking_uc.New(transactionalRepo, bankingService, txRepo)
-
-	//
 	//sso := sso_client.New(sso_client.Config{
 	//	CookieSecret:   "secret",
 	//	CookieLifetime: 10 * time.Minute,
@@ -116,10 +119,14 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	userService := userSrv.New(userRepository)
 	clientService := clientSrv.New(clientRepository)
 	accountService := accountSrv.New(accountRepository)
+	operationService := operation_service.New(operationRepo)
+	transactionService := transaction_service.New(transactionRepo)
+	bankingService := banking.New(operationService, transactionService, accountRepository)
 
 	// get usecases
 	userUC := user.New(userService, accountService, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
 	clientUC := client.New(clientService, transactionalRepo)
+	bankingUC := banking_uc.New(transactionalRepo, bankingService, accountService)
 
 	// start http server
 	r := chi.NewRouter()

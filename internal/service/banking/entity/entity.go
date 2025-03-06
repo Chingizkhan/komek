@@ -1,0 +1,48 @@
+package entity
+
+import (
+	"github.com/google/uuid"
+	operation "komek/internal/domain/operation/entity"
+	transaction "komek/internal/domain/transaction/entity"
+	"time"
+)
+
+type (
+	Transaction struct {
+		ID            uuid.UUID             `json:"id"`
+		FromAccountID uuid.UUID             `json:"from_account_id"`
+		ToAccountID   uuid.UUID             `json:"to_account_id"`
+		Amount        int64                 `json:"amount"`
+		CreatedAt     time.Time             `json:"created_at"`
+		Operations    []operation.Operation `json:"operations"`
+	}
+
+	TransferIn struct {
+		ToAccountID   uuid.UUID
+		FromAccountID uuid.UUID
+		Amount        int64
+	}
+
+	WithdrawIn struct {
+		TransactionID uuid.UUID
+		AccountID     uuid.UUID
+		Amount        int64
+	}
+
+	RefillIn struct {
+		TransactionID uuid.UUID
+		AccountID     uuid.UUID
+		Amount        int64
+	}
+)
+
+func NewTransaction(tr transaction.Transaction, ops ...operation.Operation) Transaction {
+	return Transaction{
+		ID:            tr.ID,
+		FromAccountID: tr.FromAccountID,
+		ToAccountID:   tr.ToAccountID,
+		Amount:        tr.Amount,
+		CreatedAt:     tr.CreatedAt,
+		Operations:    ops,
+	}
+}

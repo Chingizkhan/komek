@@ -5,11 +5,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	openAPIMiddleware "github.com/go-openapi/runtime/middleware"
 	"komek/config"
-	"komek/internal/controller"
 	customMiddleware "komek/internal/controller/http/middleware"
 	"komek/internal/service/oauth_service"
 	"komek/internal/service/token"
+	"komek/internal/usecase/banking_uc"
 	"komek/internal/usecase/client"
+	"komek/internal/usecase/user"
 	"komek/pkg/logger"
 	"net/http"
 	"time"
@@ -19,8 +20,8 @@ type (
 	Handler struct {
 		l                 logger.ILogger
 		cfg               *config.Config
-		user              controller.User
-		banking           controller.Banking
+		user              *user.UseCase
+		banking           *banking_uc.UseCase
 		client            *client.UseCase
 		tokenMaker        token.Maker
 		cookieSecret      []byte
@@ -31,8 +32,8 @@ type (
 	HandlerParams struct {
 		Logger            logger.ILogger
 		Cfg               *config.Config
-		User              controller.User
-		Banking           controller.Banking
+		User              *user.UseCase
+		Banking           *banking_uc.UseCase
 		Client            *client.UseCase
 		TokenMaker        token.Maker
 		CookieSecret      []byte

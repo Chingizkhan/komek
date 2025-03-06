@@ -1,11 +1,11 @@
-package banking
+package banking_old
 
 import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
 	"komek/internal/domain"
-	"komek/internal/service/banking/pb"
+	"komek/internal/service/banking_old/pb"
 )
 
 func (s *Banking) InfoAccount(ctx context.Context, accountID uuid.UUID) (out domain.Account, err error) {

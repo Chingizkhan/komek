@@ -1,4 +1,4 @@
-package banking
+package banking_old
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"komek/internal/domain"
 	"komek/internal/dto"
 	"komek/internal/mapper"
-	"komek/internal/service/banking/pb"
+	"komek/internal/service/banking_old/pb"
 )
 
 func (s *Banking) CreateAccount(ctx context.Context, in dto.CreateAccountIn) (out domain.Account, err error) {

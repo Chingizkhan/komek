@@ -62,6 +62,20 @@ func (r *Repository) Create(ctx context.Context, in entity.CreateIn) (entity.Acc
 	return r.mapAccount(account), nil
 }
 
+func (r *Repository) AddBalance(ctx context.Context, in entity.AddBalanceIn) (acc entity.Account, err error) {
+	qtx := r.queries(ctx)
+
+	account, err := qtx.AddAccountBalance(ctx, sqlc.AddAccountBalanceParams{
+		Amount: in.Amount,
+		ID:     null_value.UUID(in.AccountID),
+	})
+	if err != nil {
+		return acc, fmt.Errorf("r.q.AddAccountBalance: %w", err)
+	}
+
+	return r.mapAccount(account), nil
+}
+
 func (r *Repository) queries(ctx context.Context) *sqlc.Queries {
 	tx, ok := ctx.Value(transactional.TxKey).(pgx.Tx)
 	if ok {

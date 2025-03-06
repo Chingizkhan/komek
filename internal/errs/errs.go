@@ -23,4 +23,7 @@ var (
 
 	// transaction
 	TransactionNotFound = errors.New("transaction_not_found")
+
+	InsufficientAmount = errors.New("insufficient_amount")
+	NotEnoughBalance   = errors.New("not_enough_balance")
 )

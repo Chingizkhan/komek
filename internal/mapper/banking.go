@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"komek/internal/domain"
-	"komek/internal/service/banking/pb"
+	"komek/internal/service/banking_old/pb"
 )
 
 func ConvAccountProtoToDomain(acc *pb.Account) (domain.Account, error) {

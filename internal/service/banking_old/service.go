@@ -1,4 +1,4 @@
-package banking
+package banking_old
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-	"komek/internal/service/banking/pb"
+	"komek/internal/service/banking_old/pb"
 	"time"
 )
 
