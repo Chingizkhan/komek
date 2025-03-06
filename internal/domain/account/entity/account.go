@@ -1,10 +1,13 @@
 package entity
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
 	country "komek/internal/domain/country/entity"
 	currency "komek/internal/domain/currency/entity"
 	"komek/internal/errs"
+	"net/http"
 	"time"
 )
 
@@ -57,5 +60,14 @@ func (s AccountStatus) Validate() error {
 			return errs.AccountStatusInvalid
 		}
 	}
+	return nil
+}
+
+func (req *CreateIn) ParseHttpBody(r *http.Request) error {
+	err := json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		return fmt.Errorf("can not decode body: %w", err)
+	}
+	defer r.Body.Close()
 	return nil
 }

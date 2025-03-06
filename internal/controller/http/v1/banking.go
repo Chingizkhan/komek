@@ -4,8 +4,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	customMiddleware "komek/internal/controller/http/middleware"
-	"komek/internal/domain"
-	"komek/internal/dto"
+	"komek/internal/domain/account/entity"
+	banking "komek/internal/service/banking/entity"
 	"net/http"
 )
 
@@ -25,13 +25,13 @@ func (h *Handler) bankingRoutes(r *chi.Mux) {
 type accountResponseWrapper struct {
 	// All: account in the system
 	// in: body
-	Body domain.Account
+	//Body domain.Account
 }
 
 // swagger:parameters AccountCreateRequest
 type accountCreateRequestWrapper struct {
 	// in: body
-	Body dto.CreateAccountIn
+	//Body dto.CreateAccountIn
 }
 
 // swagger:response
@@ -46,9 +46,9 @@ type accountCreateResponseWrapper struct {
 
 // accountCreate - creates and returns account connected with User
 func (h *Handler) accountCreate(w http.ResponseWriter, r *http.Request) {
-	req := dto.CreateAccountIn{}
-	if err := req.ParseAndValidate(r); err != nil {
-		h.Error(w, err, http.StatusBadRequest, "accountCreate - ParseAndValidate")
+	req := entity.CreateIn{}
+	if err := req.ParseHttpBody(r); err != nil {
+		h.Error(w, err, http.StatusBadRequest, "accountCreate - Parse")
 		return
 	}
 
@@ -78,13 +78,9 @@ type accountIDWrapper struct {
 
 // accountGet - Returns account info connected with User
 func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
-	req := dto.GetAccountIn{}
-	if err := req.ParseAndValidate(r); err != nil {
-		h.Error(w, err, http.StatusBadRequest, "accountGet - ParseAndValidate")
-		return
-	}
+	payload := h.payload(r)
 
-	account, err := h.banking.GetAccount(r.Context(), req.ID)
+	account, err := h.banking.GetAccount(r.Context(), payload.UserID)
 	if err != nil {
 		h.Error(w, err, http.StatusInternalServerError, "accountGet - banking_uc.CreateAccount")
 		return
@@ -94,29 +90,29 @@ func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
 }
 
 // accountGet - Returns account info connected with User
-func (h *Handler) accountsList(w http.ResponseWriter, r *http.Request) {
-	var req dto.ListAccountsIn
-	payload := h.payload(r)
-	req.UserID = payload.UserID
-	account, err := h.banking.ListAccounts(r.Context(), req.UserID)
-	if err != nil {
-		h.Error(w, err, http.StatusInternalServerError, "accountGet - banking_uc.CreateAccount")
-		return
-	}
-
-	h.Resp(w, account, http.StatusOK)
-}
+//func (h *Handler) accountsList(w http.ResponseWriter, r *http.Request) {
+//	var req dto.ListAccountsIn
+//	payload := h.payload(r)
+//	req.UserID = payload.UserID
+//	account, err := h.banking.GetAccountByUserID(r.Context(), req.UserID)
+//	if err != nil {
+//		h.Error(w, err, http.StatusInternalServerError, "accountGet - banking_uc.CreateAccount")
+//		return
+//	}
+//
+//	h.Resp(w, account, http.StatusOK)
+//}
 
 // swagger:parameters OperationTransferRequest
 type transferRequest struct {
 	// in: body
-	Body dto.TransferIn
+	//Body dto.TransferIn
 }
 
 // swagger:response OperationTransferResponse
 type transferResponse struct {
 	// in: body
-	Body dto.TransferOut
+	//Body dto.TransferOut
 }
 
 // swagger:route POST /operation/transfer Operations OperationTransferRequest
@@ -126,11 +122,14 @@ type transferResponse struct {
 
 // operationTransfer - Process transfer between two accounts
 func (h *Handler) operationTransfer(w http.ResponseWriter, r *http.Request) {
-	req := dto.TransferIn{}
-	if err := req.ParseAndValidate(r); err != nil {
+	req := banking.TransferIn{}
+	if err := req.ParseHttpBody(r); err != nil {
 		h.Error(w, err, http.StatusBadRequest, "operationTransfer - ParseAndValidate")
 		return
 	}
+
+	payload := h.payload(r)
+	req.FromAccountID = payload.UserID
 
 	transfer, err := h.banking.Transfer(r.Context(), req)
 	if err != nil {

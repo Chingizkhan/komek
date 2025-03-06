@@ -1,9 +1,12 @@
 package entity
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
 	operation "komek/internal/domain/operation/entity"
 	transaction "komek/internal/domain/transaction/entity"
+	"net/http"
 	"time"
 )
 
@@ -45,4 +48,13 @@ func NewTransaction(tr transaction.Transaction, ops ...operation.Operation) Tran
 		CreatedAt:     tr.CreatedAt,
 		Operations:    ops,
 	}
+}
+
+func (req *TransferIn) ParseHttpBody(r *http.Request) error {
+	err := json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		return fmt.Errorf("can not decode body: %w", err)
+	}
+	defer r.Body.Close()
+	return nil
 }
