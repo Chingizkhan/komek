@@ -41,19 +41,27 @@ func (uc *UseCase) GetClientByID(ctx context.Context, clientID uuid.UUID) (entit
 	return client, nil
 }
 
-func (uc *UseCase) CreateClient(ctx context.Context, in entity.CreateIn) (entity.Client, error) {
-	client, err := uc.client.Create(ctx, in)
-	if err != nil {
-		return entity.Client{}, fmt.Errorf("create client via service: %w", err)
+func (uc *UseCase) CreateClient(ctx context.Context, in entity.CreateIn) (client entity.Client, err error) {
+	if err = uc.tr.ExecContext(ctx, func(txCtx context.Context) error {
+		if client, err = uc.client.Create(txCtx, in); err != nil {
+			return fmt.Errorf("create client via service: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return client, fmt.Errorf("exec via transaction: %w", err)
 	}
 
 	return client, nil
 }
 
-func (uc *UseCase) CreateFundraise(ctx context.Context, in fundraise.CreateIn) (fundraise.Fundraise, error) {
-	fund, err := uc.fundraise.Create(ctx, in)
-	if err != nil {
-		return fundraise.Fundraise{}, fmt.Errorf("create fundraise via service: %w", err)
+func (uc *UseCase) CreateFundraise(ctx context.Context, in fundraise.CreateIn) (fund fundraise.Fundraise, err error) {
+	if err = uc.tr.ExecContext(ctx, func(txCtx context.Context) error {
+		if fund, err = uc.fundraise.Create(txCtx, in); err != nil {
+			return fmt.Errorf("create fundraise via service: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return fund, fmt.Errorf("exec via transaction: %w", err)
 	}
 
 	return fund, nil
