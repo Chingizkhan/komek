@@ -14,6 +14,7 @@ type Querier interface {
 	AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error)
 	BindClientCategories(ctx context.Context, arg BindClientCategoriesParams) error
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
+	CreateFundraise(ctx context.Context, arg CreateFundraiseParams) (Fundraise, error)
 	CreateOperation(ctx context.Context, arg CreateOperationParams) (Operation, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	// -- name: CreateTransfer :one
@@ -48,6 +49,8 @@ type Querier interface {
 	GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error)
 	GetAccountsByUserID(ctx context.Context, userID pgtype.UUID) (Account, error)
 	GetClientByID(ctx context.Context, id pgtype.UUID) (GetClientByIDRow, error)
+	GetFundraiseByID(ctx context.Context, id pgtype.UUID) (Fundraise, error)
+	GetFundraisesByAccountID(ctx context.Context, accountID pgtype.UUID) ([]Fundraise, error)
 	// -- name: CreateEntry :one
 	// INSERT INTO entries(
 	//     account_id,
@@ -80,7 +83,9 @@ type Querier interface {
 	GetUserByLogin(ctx context.Context, login pgtype.Text) (User, error)
 	GetUserByPhone(ctx context.Context, phone pgtype.Text) (User, error)
 	ListAccounts(ctx context.Context, arg ListAccountsParams) ([]Account, error)
+	ListActiveFundraises(ctx context.Context) ([]Fundraise, error)
 	ListClients(ctx context.Context) ([]ListClientsRow, error)
+	ListFinishedFundraises(ctx context.Context) ([]Fundraise, error)
 	ListOrganisation(ctx context.Context) ([]Organisation, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	RemoveUser(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)

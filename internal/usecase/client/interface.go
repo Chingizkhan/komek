@@ -3,13 +3,20 @@ package client
 import (
 	"context"
 	"github.com/google/uuid"
-	"komek/internal/domain/client/entity"
+	client "komek/internal/domain/client/entity"
+	fundraise "komek/internal/domain/fundraise/entity"
 )
 
 type (
 	ClientService interface {
-		GetByID(ctx context.Context, id uuid.UUID) (entity.Client, error)
-		List(ctx context.Context) (entity.Clients, error)
-		Create(ctx context.Context, in entity.CreateIn) (client entity.Client, err error)
+		GetByID(ctx context.Context, id uuid.UUID) (client.Client, error)
+		List(ctx context.Context) (client.Clients, error)
+		Create(ctx context.Context, in client.CreateIn) (client client.Client, err error)
+	}
+
+	FundraiseService interface {
+		GetByID(ctx context.Context, id uuid.UUID) (fundraise.Fundraise, error)
+		Create(ctx context.Context, in fundraise.CreateIn) (fundraise.Fundraise, error)
+		ListActive(ctx context.Context) ([]fundraise.Fundraise, error)
 	}
 )

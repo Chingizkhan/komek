@@ -33,11 +33,12 @@ create table if not exists "client_categories"(
     constraint fk_category_id foreign key (category_id) references categories(id)
 );
 
-create table if not exists "accumulations"(
+create table if not exists "fundraises"(
     id uuid primary key default gen_random_uuid(),
     goal numeric not null,
     collected numeric not null default 0,
     account_id uuid not null,
+    is_active bool not null default true,
     constraint fk_account_id foreign key (account_id) references account(id)
 );
 

@@ -56,3 +56,13 @@ func Number(value *int) (nullValue pgtype.Numeric) {
 	}
 	return
 }
+
+func Int64(value *int64) (nullValue pgtype.Numeric) {
+	if value != nil {
+		nullValue = pgtype.Numeric{
+			Int:   big.NewInt(*value),
+			Valid: true,
+		}
+	}
+	return
+}

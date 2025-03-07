@@ -105,45 +105,6 @@ func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
 //	h.Resp(w, account, http.StatusOK)
 //}
 
-// swagger:parameters OperationTransferRequest
-type transferRequest struct {
-	// in: body
-	//Body dto.TransferIn
-}
-
-// swagger:response OperationTransferResponse
-type transferResponse struct {
-	// in: body
-	//Body dto.TransferOut
-}
-
-// swagger:route POST /operation/transfer Operations OperationTransferRequest
-// Process transfer between two accounts
-// responses:
-// 200: OperationTransferResponse
-
-// operationTransfer - Process transfer between two accounts
-func (h *Handler) operationTransfer(w http.ResponseWriter, r *http.Request) {
-	req := banking.TransferIn{}
-	if err := req.ParseHttpBody(r); err != nil {
-		h.Error(w, err, http.StatusBadRequest, "operationTransfer - ParseAndValidate")
-		return
-	}
-
-	payload := h.payload(r)
-	req.FromUserID = payload.UserID
-
-	req.Amount = money.ToInt(req.AmountFloat)
-
-	tr, err := h.banking.Transfer(r.Context(), req)
-	if err != nil {
-		h.Error(w, err, http.StatusInternalServerError, "operationTransfer - banking_uc.Transfer")
-		return
-	}
-
-	h.Resp(w, Transaction{}.FromDomain(tr), http.StatusOK)
-}
-
 type (
 	Transaction struct {
 		ID            uuid.UUID   `json:"id"`
@@ -192,4 +153,43 @@ func (op Operation) FromDomain(operationDomain operation.Operation) Operation {
 		BalanceAfter:  money.ToFloat(operationDomain.BalanceAfter),
 		CreatedAt:     operationDomain.CreatedAt.Unix(),
 	}
+}
+
+// swagger:parameters OperationTransferRequest
+type transferRequest struct {
+	// in: body
+	//Body dto.TransferIn
+}
+
+// swagger:response OperationTransferResponse
+type transferResponse struct {
+	// in: body
+	//Body dto.TransferOut
+}
+
+// swagger:route POST /operation/transfer Operations OperationTransferRequest
+// Process transfer between two accounts
+// responses:
+// 200: OperationTransferResponse
+
+// operationTransfer - Process transfer between two accounts
+func (h *Handler) operationTransfer(w http.ResponseWriter, r *http.Request) {
+	req := banking.TransferIn{}
+	if err := req.ParseHttpBody(r); err != nil {
+		h.Error(w, err, http.StatusBadRequest, "operationTransfer - ParseAndValidate")
+		return
+	}
+
+	payload := h.payload(r)
+	req.FromUserID = payload.UserID
+
+	req.Amount = money.ToInt(req.AmountFloat)
+
+	tr, err := h.banking.Transfer(r.Context(), req)
+	if err != nil {
+		h.Error(w, err, http.StatusInternalServerError, "operationTransfer - banking_uc.Transfer")
+		return
+	}
+
+	h.Resp(w, Transaction{}.FromDomain(tr), http.StatusOK)
 }

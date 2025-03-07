@@ -111,13 +111,6 @@ type Account struct {
 	Status      AccountStatus    `json:"status"`
 }
 
-type Accumulation struct {
-	ID        pgtype.UUID    `json:"id"`
-	Goal      pgtype.Numeric `json:"goal"`
-	Collected pgtype.Numeric `json:"collected"`
-	AccountID pgtype.UUID    `json:"account_id"`
-}
-
 type Category struct {
 	ID   pgtype.UUID `json:"id"`
 	Name pgtype.Text `json:"name"`
@@ -141,6 +134,14 @@ type Client struct {
 type ClientCategory struct {
 	ClientID   pgtype.UUID `json:"client_id"`
 	CategoryID pgtype.UUID `json:"category_id"`
+}
+
+type Fundraise struct {
+	ID        pgtype.UUID    `json:"id"`
+	Goal      pgtype.Numeric `json:"goal"`
+	Collected pgtype.Numeric `json:"collected"`
+	AccountID pgtype.UUID    `json:"account_id"`
+	IsActive  bool           `json:"is_active"`
 }
 
 type Operation struct {
