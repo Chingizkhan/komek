@@ -12,6 +12,7 @@ import (
 	"komek/internal/errs"
 	"komek/internal/service/token"
 	"komek/internal/usecase"
+	"komek/pkg/money"
 	"time"
 )
 
@@ -50,10 +51,37 @@ func New(
 	}
 }
 
-func (u *UseCase) Register(ctx context.Context, req entity.RegisterIn) (user entity.User, err error) {
+func (u *UseCase) userResponse(user entity.User, acc account.Account) entity.UserResponse {
+	return entity.UserResponse{
+		ID:                user.ID,
+		Name:              user.Name,
+		Phone:             user.Phone,
+		Login:             user.Login,
+		Email:             user.Email,
+		EmailVerified:     user.EmailVerified,
+		Roles:             user.Roles,
+		CreatedAt:         user.CreatedAt.Unix(),
+		UpdatedAt:         user.UpdatedAt.Unix(),
+		PasswordChangedAt: user.PasswordChangedAt.Unix(),
+		Account: entity.AccountResponse{
+			ID:       user.ID,
+			Balance:  money.ToFloat(acc.Balance),
+			Currency: acc.Currency,
+			Country:  acc.Country,
+			Status:   acc.Status,
+		},
+	}
+}
+
+func (u *UseCase) Register(ctx context.Context, req entity.RegisterIn) (resp entity.UserResponse, err error) {
+	var (
+		user entity.User
+		acc  account.Account
+	)
+
 	passHash, err := u.hasher.Hash(string(req.Password))
 	if err != nil {
-		return entity.User{}, fmt.Errorf("u.hasher.Hash - %w", err)
+		return resp, fmt.Errorf("u.hasher.Hash - %w", err)
 	}
 	req.PasswordHash = passHash
 
@@ -63,7 +91,7 @@ func (u *UseCase) Register(ctx context.Context, req entity.RegisterIn) (user ent
 			return fmt.Errorf("u.s.Save - %w", err)
 		}
 		// create account
-		if _, err = u.account.Create(txCtx, account.CreateIn{
+		if acc, err = u.account.Create(txCtx, account.CreateIn{
 			Owner:    user.ID,
 			Balance:  0,
 			Country:  country.KAZ,
@@ -75,7 +103,7 @@ func (u *UseCase) Register(ctx context.Context, req entity.RegisterIn) (user ent
 	}
 
 	if err = u.tr.ExecContext(ctx, fn); err != nil {
-		return entity.User{}, fmt.Errorf("tr.Exec: %w", err)
+		return resp, fmt.Errorf("tr.Exec: %w", err)
 	}
 
 	// todo: send email to verify mail
@@ -93,7 +121,7 @@ func (u *UseCase) Register(ctx context.Context, req entity.RegisterIn) (user ent
 	//	return entity.User{}, fmt.Errorf("unable to create keycloak user: %w", err)
 	//}
 
-	return user, nil
+	return u.userResponse(user, acc), nil
 }
 
 func (u *UseCase) Get(ctx context.Context, in entity.GetIn) (entity.GetOut, error) {
@@ -126,6 +154,11 @@ func (u *UseCase) Login(ctx context.Context, in entity.LoginIn) (*entity.LoginOu
 	// check password
 	if !u.hasher.CheckHash(in.Password, user.PasswordHash) {
 		return nil, errs.IncorrectPassword
+	}
+
+	acc, err := u.account.GetByUserID(ctx, user.ID)
+	if err != nil {
+		return nil, fmt.Errorf("get account via service: %w", err)
 	}
 
 	// get access token
@@ -163,16 +196,7 @@ func (u *UseCase) Login(ctx context.Context, in entity.LoginIn) (*entity.LoginOu
 		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
 		RefreshToken:          refreshToken,
 		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
-		User: entity.UserResponse{
-			ID:            user.ID,
-			Name:          user.Name,
-			Login:         user.Login,
-			Email:         user.Email,
-			EmailVerified: user.EmailVerified,
-			Roles:         user.Roles,
-			CreatedAt:     user.CreatedAt.Unix(),
-			UpdatedAt:     user.UpdatedAt.Unix(),
-		},
+		User:                  u.userResponse(user, acc),
 	}, nil
 }
 

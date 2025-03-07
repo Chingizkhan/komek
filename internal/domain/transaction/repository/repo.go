@@ -42,6 +42,9 @@ func (r *Repository) Create(ctx context.Context, transaction entity.Transaction)
 		Amount:        transaction.Amount,
 	})
 	if err != nil {
+		if err = checkConstraints(err); err != nil {
+			return entity.Transaction{}, err
+		}
 		return entity.Transaction{}, fmt.Errorf("create transaction: %w", err)
 	}
 

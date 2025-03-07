@@ -55,13 +55,13 @@ func (h *Handler) userRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.user.Register(r.Context(), req)
+	response, err := h.user.Register(r.Context(), req)
 	if err != nil {
 		h.Error(w, err, http.StatusInternalServerError, "userRegister - h.user.Register")
 		return
 	}
 
-	h.Resp(w, user.ToResponse(), http.StatusOK)
+	h.Resp(w, response, http.StatusOK)
 }
 
 func (h *Handler) userDelete(w http.ResponseWriter, r *http.Request) {

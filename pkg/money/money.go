@@ -3,8 +3,8 @@ package money
 import "math"
 
 // ToInt из тенге в тиины
-func ToInt(f float64) int {
-	return int(math.RoundToEven(f * 100))
+func ToInt(f float64) int64 {
+	return int64(math.RoundToEven(f * 100))
 }
 
 // ToFloat из тиины в тенге

@@ -21,8 +21,11 @@ type (
 	}
 
 	TransferIn struct {
-		ToAccountID   uuid.UUID
-		FromAccountID uuid.UUID
+		FromUserID    uuid.UUID `json:"from_user_id"`
+		ToUserID      uuid.UUID `json:"to_user_id"`
+		ToAccountID   uuid.UUID `json:"to_account_id"`
+		FromAccountID uuid.UUID `json:"from_account_id"`
+		AmountFloat   float64   `json:"amount"`
 		Amount        int64
 	}
 

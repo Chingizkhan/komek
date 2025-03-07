@@ -63,6 +63,14 @@ func (s AccountStatus) Validate() error {
 	return nil
 }
 
+func (s AccountStatus) IsActive() bool {
+	return s == AccountStatusActive
+}
+
+func (s AccountStatus) IsBlocked() bool {
+	return s == AccountStatusBlocked
+}
+
 func (req *CreateIn) ParseHttpBody(r *http.Request) error {
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {

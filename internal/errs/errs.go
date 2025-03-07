@@ -15,8 +15,13 @@ var (
 	IncorrectPassword = errors.New("incorrect_password")
 
 	// account
-	AccountNotFound      = errors.New("account_not_found")
-	AccountStatusInvalid = errors.New("invalid_account_status")
+	AccountNotFound       = errors.New("account_not_found")
+	AccountStatusInvalid  = errors.New("invalid_account_status")
+	InactiveAccountStatus = errors.New("inactive_account_status")
+	FromAccountNotFound   = errors.New("from_account_not_found")
+	ToAccountNotFound     = errors.New("to_account_not_found")
+
+	CurrencyMismatch = errors.New("currency_mismatch")
 
 	// operation
 	OperationNotFound = errors.New("operation_not_found")

@@ -32,7 +32,7 @@ locker:
   lock_timeout: '3m'
 
 token:
-  access_token_lifetime: '15m'
+  access_token_lifetime: '4h'
   refresh_token_lifetime: '24h'
 
 oauth2:

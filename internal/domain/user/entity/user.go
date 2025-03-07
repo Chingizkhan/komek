@@ -33,10 +33,11 @@ type (
 	}
 
 	AccountResponse struct {
-		ID       uuid.UUID         `json:"id"`
-		Balance  float64           `json:"balance"`
-		Currency currency.Currency `json:"currency"`
-		Country  country.Country   `json:"country"`
+		ID       uuid.UUID             `json:"id"`
+		Balance  float64               `json:"balance"`
+		Currency currency.Currency     `json:"currency"`
+		Country  country.Country       `json:"country"`
+		Status   account.AccountStatus `json:"status"`
 	}
 
 	UserResponse struct {
