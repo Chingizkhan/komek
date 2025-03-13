@@ -37,12 +37,34 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (entity.Fundrais
 	return r.mapFundraise(fundraise), nil
 }
 
+func (r *Repository) GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]entity.Fundraise, error) {
+	qtx := r.queries(ctx)
+
+	fundraises, err := qtx.GetFundraisesByAccountID(ctx, null_value.UUID(accountID))
+	if err != nil {
+		return nil, fmt.Errorf("r.q.GetFundraisesByAccountID: %w", err)
+	}
+
+	return r.mapFundraises(fundraises), nil
+}
+
+func (r *Repository) CreateType(ctx context.Context, name string) error {
+	qtx := r.queries(ctx)
+
+	if _, err := qtx.CreateFundraiseType(ctx, name); err != nil {
+		return fmt.Errorf("r.q.CreateFundraiseType: %w", err)
+	}
+
+	return nil
+}
+
 func (r *Repository) Create(ctx context.Context, in entity.CreateIn) (entity.Fundraise, error) {
 	qtx := r.queries(ctx)
 
 	fundraise, err := qtx.CreateFundraise(ctx, sqlc.CreateFundraiseParams{
-		Goal:      null_value.Int64(&in.Goal),
-		Collected: null_value.Int64(&in.Collected),
+		Goal:      in.Goal,
+		Collected: in.Collected,
+		Type:      null_value.UUID(in.TypeID),
 		AccountID: null_value.UUID(in.AccountID),
 		IsActive:  null_value.Bool(in.IsActive),
 	})

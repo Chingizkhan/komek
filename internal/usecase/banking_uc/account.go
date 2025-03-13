@@ -15,5 +15,5 @@ func (uc *UseCase) GetAccount(ctx context.Context, accID uuid.UUID) (out entity.
 }
 
 func (uc *UseCase) GetAccountByUserID(ctx context.Context, userID uuid.UUID) (out entity.Account, err error) {
-	return uc.account.GetByUserID(ctx, userID)
+	return uc.account.GetByOwnerID(ctx, userID)
 }

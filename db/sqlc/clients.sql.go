@@ -12,7 +12,7 @@ import (
 )
 
 const bindClientCategories = `-- name: BindClientCategories :exec
-INSERT INTO client_categories(
+INSERT INTO client_category_map(
     client_id, category_id
 ) VALUES (
     $1, unnest($2::uuid[])
@@ -39,9 +39,9 @@ SELECT
 FROM
     clients cl
 JOIN
-    client_categories cl_ct on cl.id = cl_ct.client_id
+    client_category_map cl_ct on cl.id = cl_ct.client_id
 JOIN
-    categories ct on cl_ct.category_id = ct.id
+    client_category ct on cl_ct.category_id = ct.id
 WHERE
     cl.id = $1
 GROUP BY
@@ -96,9 +96,9 @@ SELECT
 FROM
     clients cl
 JOIN
-    client_categories cl_ct on cl.id = cl_ct.client_id
+    client_category_map cl_ct on cl.id = cl_ct.client_id
 JOIN
-    categories ct on cl_ct.category_id = ct.id
+    client_category ct on cl_ct.category_id = ct.id
 GROUP BY
     cl.id
 ORDER BY
@@ -206,7 +206,7 @@ func (q *Queries) SaveClient(ctx context.Context, arg SaveClientParams) (Client,
 }
 
 const saveClientCategories = `-- name: SaveClientCategories :many
-INSERT INTO categories(
+INSERT INTO client_category(
     name
 ) VALUES (
     unnest($1::text[])
@@ -214,15 +214,15 @@ INSERT INTO categories(
 RETURNING id, name
 `
 
-func (q *Queries) SaveClientCategories(ctx context.Context, names []string) ([]Category, error) {
+func (q *Queries) SaveClientCategories(ctx context.Context, names []string) ([]ClientCategory, error) {
 	rows, err := q.db.Query(ctx, saveClientCategories, names)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Category{}
+	items := []ClientCategory{}
 	for rows.Next() {
-		var i Category
+		var i ClientCategory
 		if err := rows.Scan(&i.ID, &i.Name); err != nil {
 			return nil, err
 		}

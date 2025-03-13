@@ -37,15 +37,15 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (entity.Account,
 	return r.mapAccount(acc), nil
 }
 
-func (r *Repository) GetByUserID(ctx context.Context, userID uuid.UUID) (entity.Account, error) {
+func (r *Repository) GetByOwnerID(ctx context.Context, ownerID uuid.UUID) (entity.Account, error) {
 	qtx := r.queries(ctx)
 
-	acc, err := qtx.GetAccountsByUserID(ctx, null_value.UUID(userID))
+	acc, err := qtx.GetAccountByOwnerID(ctx, null_value.UUID(ownerID))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return entity.Account{}, errs.AccountNotFound
 		}
-		return entity.Account{}, fmt.Errorf("r.q.GetAccountsByUserID: %w", err)
+		return entity.Account{}, fmt.Errorf("r.q.GetAccountByOwnerID: %w", err)
 	}
 
 	return r.mapAccount(acc), nil

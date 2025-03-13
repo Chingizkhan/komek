@@ -16,9 +16,9 @@ func (r *Repository) mapFundraises(fundraises []sqlc.Fundraise) []entity.Fundrai
 func (r *Repository) mapFundraise(f sqlc.Fundraise) entity.Fundraise {
 	return entity.Fundraise{
 		ID:        f.ID.Bytes,
-		Goal:      f.Goal.Int.Int64(),
-		Collected: f.Collected.Int.Int64(),
+		Goal:      f.Goal,
+		Collected: f.Collected,
 		AccountID: f.AccountID.Bytes,
-		IsActive:  f.IsActive,
+		IsActive:  f.IsActive.Bool,
 	}
 }

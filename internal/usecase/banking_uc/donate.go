@@ -23,6 +23,8 @@ func (uc *UseCase) Donate(ctx context.Context, in DonateIn) error {
 		return fmt.Errorf("banking.Transfer: %w", err)
 	}
 
+	_ = tr
+
 	// accumulations
 	//
 

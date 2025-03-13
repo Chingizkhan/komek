@@ -14,14 +14,14 @@ func (uc *UseCase) Transfer(ctx context.Context, in banking.TransferIn) (out ban
 		fromAccount account.Account
 	)
 	if in.ToAccountID == uuid.Nil {
-		if toAccount, err = uc.account.GetByUserID(ctx, in.ToUserID); err != nil {
+		if toAccount, err = uc.account.GetByOwnerID(ctx, in.ToUserID); err != nil {
 			return out, fmt.Errorf("get to_account by user_id via service: %w", err)
 		}
 		in.ToAccountID = toAccount.ID
 	}
 
 	if in.FromAccountID == uuid.Nil {
-		if fromAccount, err = uc.account.GetByUserID(ctx, in.FromUserID); err != nil {
+		if fromAccount, err = uc.account.GetByOwnerID(ctx, in.FromUserID); err != nil {
 			return out, fmt.Errorf("get from_account by user_id via service: %w", err)
 		}
 		in.FromAccountID = fromAccount.ID

@@ -24,7 +24,7 @@ type (
 	AccountService interface {
 		GetByID(ctx context.Context, id uuid.UUID) (entity.Account, error)
 		Create(ctx context.Context, in entity.CreateIn) (entity.Account, error)
-		GetByUserID(ctx context.Context, userID uuid.UUID) (entity.Account, error)
+		GetByOwnerID(ctx context.Context, ownerID uuid.UUID) (entity.Account, error)
 
 		//CreateAccount(ctx context.Context, in dto.CreateAccountIn) (domain.Account, error)
 		//InfoAccount(ctx context.Context, accountID uuid.UUID) (out domain.Account, err error)

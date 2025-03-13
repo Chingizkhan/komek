@@ -22,10 +22,11 @@ WHERE id = $1
 LIMIT 1
 FOR NO KEY UPDATE;
 
--- name: GetAccountsByUserID :one
+-- name: GetAccountByOwnerID :one
 SELECT *
 FROM account
-WHERE owner = sqlc.arg(user_id);
+WHERE owner = sqlc.arg(owner_id)
+LIMIT 1;
 
 -- name: ListAccounts :many
 SELECT *

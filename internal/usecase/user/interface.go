@@ -23,7 +23,7 @@ type (
 	AccountService interface {
 		Create(ctx context.Context, in account.CreateIn) (account.Account, error)
 		GetByID(ctx context.Context, id uuid.UUID) (account.Account, error)
-		GetByUserID(ctx context.Context, userID uuid.UUID) (account.Account, error)
+		GetByOwnerID(ctx context.Context, ownerID uuid.UUID) (account.Account, error)
 	}
 
 	UserRepository interface {

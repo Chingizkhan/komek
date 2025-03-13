@@ -15,6 +15,7 @@ type Querier interface {
 	BindClientCategories(ctx context.Context, arg BindClientCategoriesParams) error
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
 	CreateFundraise(ctx context.Context, arg CreateFundraiseParams) (Fundraise, error)
+	CreateFundraiseType(ctx context.Context, name string) (FundraiseType, error)
 	CreateOperation(ctx context.Context, arg CreateOperationParams) (Operation, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	// -- name: CreateTransfer :one
@@ -46,8 +47,8 @@ type Querier interface {
 	// AND phone = $5
 	FindUsers(ctx context.Context, arg FindUsersParams) ([]User, error)
 	GetAccount(ctx context.Context, id pgtype.UUID) (Account, error)
+	GetAccountByOwnerID(ctx context.Context, ownerID pgtype.UUID) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error)
-	GetAccountsByUserID(ctx context.Context, userID pgtype.UUID) (Account, error)
 	GetClientByID(ctx context.Context, id pgtype.UUID) (GetClientByIDRow, error)
 	GetFundraiseByID(ctx context.Context, id pgtype.UUID) (Fundraise, error)
 	GetFundraisesByAccountID(ctx context.Context, accountID pgtype.UUID) ([]Fundraise, error)
@@ -90,7 +91,7 @@ type Querier interface {
 	ListUsers(ctx context.Context) ([]User, error)
 	RemoveUser(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	SaveClient(ctx context.Context, arg SaveClientParams) (Client, error)
-	SaveClientCategories(ctx context.Context, names []string) ([]Category, error)
+	SaveClientCategories(ctx context.Context, names []string) ([]ClientCategory, error)
 	SaveOrganisation(ctx context.Context, arg SaveOrganisationParams) error
 	SaveUser(ctx context.Context, arg SaveUserParams) (User, error)
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)

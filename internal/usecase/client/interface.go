@@ -16,7 +16,9 @@ type (
 
 	FundraiseService interface {
 		GetByID(ctx context.Context, id uuid.UUID) (fundraise.Fundraise, error)
+		GetByAccountID(ctx context.Context, id uuid.UUID) ([]fundraise.Fundraise, error)
 		Create(ctx context.Context, in fundraise.CreateIn) (fundraise.Fundraise, error)
+		CreateType(ctx context.Context, name string) error
 		ListActive(ctx context.Context) ([]fundraise.Fundraise, error)
 	}
 )

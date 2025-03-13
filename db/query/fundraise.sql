@@ -9,19 +9,27 @@ select *
 from fundraises
 where is_active = true;
 
+-- name: GetFundraisesByAccountID :many
+select *
+from fundraises
+where account_id = $1
+and is_active;
+
 -- name: ListFinishedFundraises :many
 select *
 from fundraises
 where is_active = false;
 
--- name: GetFundraisesByAccountID :many
-select *
-from fundraises
-where account_id = $1;
+-- name: CreateFundraiseType :one
+insert into fundraise_types(
+    name
+) values (
+    $1
+) returning *;
 
 -- name: CreateFundraise :one
 insert into fundraises(
-    goal, collected, account_id, is_active
+    goal, collected, type, account_id, is_active
 ) values (
-    $1, $2, $3, sqlc.narg('is_active')
+    $1, $2, $3, $4, sqlc.narg('is_active')
 ) returning *;

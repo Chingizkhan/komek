@@ -4,9 +4,16 @@ import (
 	"context"
 	"github.com/google/uuid"
 	"komek/config"
+	accountRepo "komek/internal/domain/account/repository"
+	accountSrv "komek/internal/domain/account/service"
 	"komek/internal/domain/client/entity"
 	clientRepo "komek/internal/domain/client/repository"
 	clientSrv "komek/internal/domain/client/service"
+	fundraise "komek/internal/domain/fundraise/entity"
+	fundraise_repo "komek/internal/domain/fundraise/repository"
+	fundraise_service "komek/internal/domain/fundraise/service"
+	"komek/internal/service/transactional"
+	"komek/internal/usecase/client"
 	"komek/pkg/logger"
 	"komek/pkg/postgres"
 	"log"
@@ -32,8 +39,19 @@ func main() {
 	defer pg.Close()
 
 	clientsRepository := clientRepo.New(pg)
-	service := clientSrv.New(clientsRepository)
+	accountRepository := accountRepo.New(pg)
+	fundraiseRepository := fundraise_repo.New(pg)
+	transactionService := transactional.New(pg)
+
+	accountService := accountSrv.New(accountRepository)
+	clientService := clientSrv.New(clientsRepository)
+	fundraiseService := fundraise_service.New(fundraiseRepository)
+
+	clientUseCase := client.New(clientService, fundraiseService, accountService, transactionService)
+
 	ctx := context.Background()
+
+	// create client categories
 
 	//categories := []entity.Category{
 	//	{Name: "Животные"},
@@ -46,27 +64,30 @@ func main() {
 	//	return
 	//}
 
-	animalCategoryID, err := uuid.Parse("cf4001c6-c20f-4933-9234-c7c206642f3a")
+	// // create fundraise types
+
+	//if err = clientUseCase.CreateFundraiseType(ctx, "monthly"); err != nil {
+	//	l.Error("app - Run - clientUseCase.CreateFundraiseType:", logger.Err(err))
+	//	return
+	//}
+
+	monthlyFundraiseType, err := uuid.Parse("e4c61f9f-d249-459d-aea0-4b2206960fe8")
+	if err != nil {
+		l.Error("app - Run - uuid.Parse monthlyFundraiseType:", logger.Err(err))
+		return
+	}
+
+	animalCategoryID, err := uuid.Parse("1e15f5c2-31e9-4967-b47a-0650bb9b8f62")
 	if err != nil {
 		l.Error("app - Run - uuid.Parse animalCategoryID:", logger.Err(err))
+		return
 	}
-	oldCategoryID, err := uuid.Parse("a082da62-0076-429a-b2f3-4ecbb4478ced")
+	oldCategoryID, err := uuid.Parse("daa9a412-e5df-4d25-9290-7e708a17bd93")
 	if err != nil {
 		l.Error("app - Run - uuid.Parse oldCategoryID:", logger.Err(err))
+		return
 	}
 	creates := []entity.CreateIn{
-		{
-			Name:          "Волосатый көт",
-			Phone:         "",
-			Email:         "",
-			Age:           3,
-			City:          "Almaty",
-			Address:       "Санкт-Петербург, Невский пр., д. 25",
-			Description:   "Работала учителем, воспитывала двоих детей...",
-			Circumstances: "После пожара осталась без жилья и нуждается в помощи.",
-			ImageURL:      "/kot.png",
-			CategoryIDs:   []uuid.UUID{animalCategoryID},
-		},
 		{
 			Name:          "Талас (обычный көт)",
 			Phone:         "87058113795",
@@ -79,12 +100,35 @@ func main() {
 			ImageURL:      "/talas.png",
 			CategoryIDs:   []uuid.UUID{oldCategoryID},
 		},
+		{
+			Name:          "Волосатый көт",
+			Phone:         "",
+			Email:         "",
+			Age:           3,
+			City:          "Almaty",
+			Address:       "Санкт-Петербург, Невский пр., д. 25",
+			Description:   "Работала учителем, воспитывала двоих детей...",
+			Circumstances: "После пожара осталась без жилья и нуждается в помощи.",
+			ImageURL:      "/kot.png",
+			CategoryIDs:   []uuid.UUID{animalCategoryID},
+		},
 	}
 
 	for _, create := range creates {
-		_, err = service.Create(ctx, create)
+		cl, err := clientUseCase.CreateClient(ctx, create)
 		if err != nil {
-			l.Error("app - Run - service.Create:", logger.Err(err))
+			l.Error("app - Run - clientUseCase.CreateClient:", logger.Err(err))
+			return
+		}
+
+		_, err = clientUseCase.CreateFundraise(ctx, fundraise.CreateIn{
+			Goal:      3500,
+			Collected: 0,
+			AccountID: cl.Account.ID,
+			TypeID:    monthlyFundraiseType,
+		})
+		if err != nil {
+			l.Error("app - Run - clientUseCase.CreateFundraise:", logger.Err(err))
 			return
 		}
 	}

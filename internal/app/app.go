@@ -9,6 +9,8 @@ import (
 	accountSrv "komek/internal/domain/account/service"
 	clientRepo "komek/internal/domain/client/repository"
 	clientSrv "komek/internal/domain/client/service"
+	fundraise_repo "komek/internal/domain/fundraise/repository"
+	fundraise_service "komek/internal/domain/fundraise/service"
 	operation_repo "komek/internal/domain/operation/repository"
 	operation_service "komek/internal/domain/operation/service"
 	transaction_repo "komek/internal/domain/transaction/repository"
@@ -71,6 +73,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	im := identity.NewIdentityManager("localhost:8181", "komek", "", "")
 	operationRepo := operation_repo.New(pg)
 	transactionRepo := transaction_repo.New(pg)
+	fundraiseRepo := fundraise_repo.New(pg)
 
 	bankingOldService, err := banking_old.New(cfg.BankingService.Addr, cfg.BankingService.EnableTLS)
 	if err != nil {
@@ -122,10 +125,11 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	operationService := operation_service.New(operationRepo)
 	transactionService := transaction_service.New(transactionRepo)
 	bankingService := banking.New(operationService, transactionService, accountRepository)
+	fundraiseService := fundraise_service.New(fundraiseRepo)
 
 	// get usecases
 	userUC := user.New(userService, accountService, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
-	clientUC := client.New(clientService, transactionalRepo)
+	clientUC := client.New(clientService, fundraiseService, accountService, transactionalRepo)
 	bankingUC := banking_uc.New(transactionalRepo, bankingService, accountService)
 
 	// start http server

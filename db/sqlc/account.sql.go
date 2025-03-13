@@ -114,16 +114,15 @@ func (q *Queries) GetAccount(ctx context.Context, id pgtype.UUID) (Account, erro
 	return i, err
 }
 
-const getAccountForUpdate = `-- name: GetAccountForUpdate :one
+const getAccountByOwnerID = `-- name: GetAccountByOwnerID :one
 SELECT id, owner, balance, hold_balance, country, currency, created_at, updated_at, status
 FROM account
-WHERE id = $1
+WHERE owner = $1
 LIMIT 1
-FOR NO KEY UPDATE
 `
 
-func (q *Queries) GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error) {
-	row := q.db.QueryRow(ctx, getAccountForUpdate, id)
+func (q *Queries) GetAccountByOwnerID(ctx context.Context, ownerID pgtype.UUID) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccountByOwnerID, ownerID)
 	var i Account
 	err := row.Scan(
 		&i.ID,
@@ -139,14 +138,16 @@ func (q *Queries) GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Acco
 	return i, err
 }
 
-const getAccountsByUserID = `-- name: GetAccountsByUserID :one
+const getAccountForUpdate = `-- name: GetAccountForUpdate :one
 SELECT id, owner, balance, hold_balance, country, currency, created_at, updated_at, status
 FROM account
-WHERE owner = $1
+WHERE id = $1
+LIMIT 1
+FOR NO KEY UPDATE
 `
 
-func (q *Queries) GetAccountsByUserID(ctx context.Context, userID pgtype.UUID) (Account, error) {
-	row := q.db.QueryRow(ctx, getAccountsByUserID, userID)
+func (q *Queries) GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccountForUpdate, id)
 	var i Account
 	err := row.Scan(
 		&i.ID,

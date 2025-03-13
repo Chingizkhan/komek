@@ -8,9 +8,9 @@ SELECT
 FROM
     clients cl
 JOIN
-    client_categories cl_ct on cl.id = cl_ct.client_id
+    client_category_map cl_ct on cl.id = cl_ct.client_id
 JOIN
-    categories ct on cl_ct.category_id = ct.id
+    client_category ct on cl_ct.category_id = ct.id
 WHERE
     cl.id = $1
 GROUP BY
@@ -27,9 +27,9 @@ SELECT
 FROM
     clients cl
 JOIN
-    client_categories cl_ct on cl.id = cl_ct.client_id
+    client_category_map cl_ct on cl.id = cl_ct.client_id
 JOIN
-    categories ct on cl_ct.category_id = ct.id
+    client_category ct on cl_ct.category_id = ct.id
 GROUP BY
     cl.id
 ORDER BY
@@ -43,7 +43,7 @@ INSERT INTO clients(
 ) RETURNING *;
 
 -- name: SaveClientCategories :many
-INSERT INTO categories(
+INSERT INTO client_category(
     name
 ) VALUES (
     unnest(@names::text[])
@@ -51,7 +51,7 @@ INSERT INTO categories(
 RETURNING *;
 
 -- name: BindClientCategories :exec
-INSERT INTO client_categories(
+INSERT INTO client_category_map(
     client_id, category_id
 ) VALUES (
     $1, unnest(@category_ids::uuid[])

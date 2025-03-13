@@ -77,9 +77,9 @@ func (r *Repository) clientToDomain(m sqlc.Client) entity.Client {
 	}
 }
 
-func (r *Repository) categoriesToDomain(m sqlc.Category) entity.Category {
+func (r *Repository) categoriesToDomain(m sqlc.ClientCategory) entity.Category {
 	return entity.Category{
 		ID:   m.ID.Bytes,
-		Name: m.Name.String,
+		Name: m.Name,
 	}
 }

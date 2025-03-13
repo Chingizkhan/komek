@@ -48,11 +48,11 @@ func (h *Handler) getByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clients, err := h.client.GetClientByID(r.Context(), clientID)
+	client, err := h.client.GetClientByID(r.Context(), clientID)
 	if err != nil {
 		h.Error(w, err, http.StatusInternalServerError, "getClientByID - h.client.GetByID")
 		return
 	}
 
-	h.Resp(w, clients, http.StatusOK)
+	h.Resp(w, client, http.StatusOK)
 }

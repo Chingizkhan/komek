@@ -130,7 +130,7 @@ func (u *UseCase) Get(ctx context.Context, in entity.GetIn) (entity.GetOut, erro
 		return entity.GetOut{}, fmt.Errorf("get user via service: %w", err)
 	}
 
-	acc, err := u.account.GetByUserID(ctx, user.ID)
+	acc, err := u.account.GetByOwnerID(ctx, user.ID)
 	if err != nil {
 		return entity.GetOut{}, fmt.Errorf("get account via service: %w", err)
 	}
@@ -156,7 +156,7 @@ func (u *UseCase) Login(ctx context.Context, in entity.LoginIn) (*entity.LoginOu
 		return nil, errs.IncorrectPassword
 	}
 
-	acc, err := u.account.GetByUserID(ctx, user.ID)
+	acc, err := u.account.GetByOwnerID(ctx, user.ID)
 	if err != nil {
 		return nil, fmt.Errorf("get account via service: %w", err)
 	}

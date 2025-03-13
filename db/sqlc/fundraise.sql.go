@@ -13,29 +13,32 @@ import (
 
 const createFundraise = `-- name: CreateFundraise :one
 insert into fundraises(
-    goal, collected, account_id, is_active
+    goal, collected, type, account_id, is_active
 ) values (
-    $1, $2, $3, $4
-) returning id, goal, collected, account_id, is_active
+    $1, $2, $3, $4, $5
+) returning id, type, goal, collected, account_id, is_active
 `
 
 type CreateFundraiseParams struct {
-	Goal      pgtype.Numeric `json:"goal"`
-	Collected pgtype.Numeric `json:"collected"`
-	AccountID pgtype.UUID    `json:"account_id"`
-	IsActive  pgtype.Bool    `json:"is_active"`
+	Goal      int64       `json:"goal"`
+	Collected int64       `json:"collected"`
+	Type      pgtype.UUID `json:"type"`
+	AccountID pgtype.UUID `json:"account_id"`
+	IsActive  pgtype.Bool `json:"is_active"`
 }
 
 func (q *Queries) CreateFundraise(ctx context.Context, arg CreateFundraiseParams) (Fundraise, error) {
 	row := q.db.QueryRow(ctx, createFundraise,
 		arg.Goal,
 		arg.Collected,
+		arg.Type,
 		arg.AccountID,
 		arg.IsActive,
 	)
 	var i Fundraise
 	err := row.Scan(
 		&i.ID,
+		&i.Type,
 		&i.Goal,
 		&i.Collected,
 		&i.AccountID,
@@ -44,8 +47,23 @@ func (q *Queries) CreateFundraise(ctx context.Context, arg CreateFundraiseParams
 	return i, err
 }
 
+const createFundraiseType = `-- name: CreateFundraiseType :one
+insert into fundraise_types(
+    name
+) values (
+    $1
+) returning id, name
+`
+
+func (q *Queries) CreateFundraiseType(ctx context.Context, name string) (FundraiseType, error) {
+	row := q.db.QueryRow(ctx, createFundraiseType, name)
+	var i FundraiseType
+	err := row.Scan(&i.ID, &i.Name)
+	return i, err
+}
+
 const getFundraiseByID = `-- name: GetFundraiseByID :one
-select id, goal, collected, account_id, is_active
+select id, type, goal, collected, account_id, is_active
 from fundraises
 where id = $1
 limit 1
@@ -56,6 +74,7 @@ func (q *Queries) GetFundraiseByID(ctx context.Context, id pgtype.UUID) (Fundrai
 	var i Fundraise
 	err := row.Scan(
 		&i.ID,
+		&i.Type,
 		&i.Goal,
 		&i.Collected,
 		&i.AccountID,
@@ -65,9 +84,10 @@ func (q *Queries) GetFundraiseByID(ctx context.Context, id pgtype.UUID) (Fundrai
 }
 
 const getFundraisesByAccountID = `-- name: GetFundraisesByAccountID :many
-select id, goal, collected, account_id, is_active
+select id, type, goal, collected, account_id, is_active
 from fundraises
 where account_id = $1
+and is_active
 `
 
 func (q *Queries) GetFundraisesByAccountID(ctx context.Context, accountID pgtype.UUID) ([]Fundraise, error) {
@@ -81,6 +101,7 @@ func (q *Queries) GetFundraisesByAccountID(ctx context.Context, accountID pgtype
 		var i Fundraise
 		if err := rows.Scan(
 			&i.ID,
+			&i.Type,
 			&i.Goal,
 			&i.Collected,
 			&i.AccountID,
@@ -97,7 +118,7 @@ func (q *Queries) GetFundraisesByAccountID(ctx context.Context, accountID pgtype
 }
 
 const listActiveFundraises = `-- name: ListActiveFundraises :many
-select id, goal, collected, account_id, is_active
+select id, type, goal, collected, account_id, is_active
 from fundraises
 where is_active = true
 `
@@ -113,6 +134,7 @@ func (q *Queries) ListActiveFundraises(ctx context.Context) ([]Fundraise, error)
 		var i Fundraise
 		if err := rows.Scan(
 			&i.ID,
+			&i.Type,
 			&i.Goal,
 			&i.Collected,
 			&i.AccountID,
@@ -129,7 +151,7 @@ func (q *Queries) ListActiveFundraises(ctx context.Context) ([]Fundraise, error)
 }
 
 const listFinishedFundraises = `-- name: ListFinishedFundraises :many
-select id, goal, collected, account_id, is_active
+select id, type, goal, collected, account_id, is_active
 from fundraises
 where is_active = false
 `
@@ -145,6 +167,7 @@ func (q *Queries) ListFinishedFundraises(ctx context.Context) ([]Fundraise, erro
 		var i Fundraise
 		if err := rows.Scan(
 			&i.ID,
+			&i.Type,
 			&i.Goal,
 			&i.Collected,
 			&i.AccountID,
