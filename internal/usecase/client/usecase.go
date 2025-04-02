@@ -10,7 +10,6 @@ import (
 	currency "komek/internal/domain/currency/entity"
 	fundraise "komek/internal/domain/fundraise/entity"
 	"komek/internal/usecase"
-	"log"
 )
 
 type UseCase struct {
@@ -59,14 +58,9 @@ func (uc *UseCase) GetClientByID(ctx context.Context, clientID uuid.UUID) (cl Cl
 		return cl, fmt.Errorf("get fundraises by account_id via service: %w", err)
 	}
 
-	log.Printf("fundraises: %+v", fundraises[0])
-
-	cl.
-		Fill(client).
+	return *cl.Fill(client).
 		WithFundraises(fundraises).
-		WithAccount(acc)
-
-	return cl, nil
+		WithAccount(acc), nil
 }
 
 func (uc *UseCase) CreateClient(ctx context.Context, in entity.CreateIn) (client Client, err error) {
@@ -79,7 +73,7 @@ func (uc *UseCase) CreateClient(ctx context.Context, in entity.CreateIn) (client
 		client.Fill(clientEntity)
 
 		// create account for client
-		if client.Account, err = uc.account.Create(ctx, account.CreateIn{
+		if client.Account, err = uc.account.Create(txCtx, account.CreateIn{
 			Owner:    client.ID,
 			Balance:  0,
 			Country:  country.KAZ,

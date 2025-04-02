@@ -7,28 +7,50 @@ import (
 	"komek/internal/domain/email"
 	fundraise "komek/internal/domain/fundraise/entity"
 	"komek/internal/domain/phone"
+	"komek/pkg/money"
 	"time"
 )
 
 type (
 	Client struct {
-		ID            uuid.UUID             `json:"id"`
-		Name          string                `json:"name"`
-		Phone         phone.Phone           `json:"phone"`
-		Email         email.Email           `json:"email"`
-		Age           int                   `json:"age"`
-		City          string                `json:"city"`
-		Address       string                `json:"address"`
-		Description   string                `json:"description"`
-		Circumstances string                `json:"circumstances"`
-		ImageURL      string                `json:"image_url"`
-		Account       account.Account       `json:"account"`
-		Categories    entity.Categories     `json:"categories"`
-		Fundraises    []fundraise.Fundraise `json:"fundraises"`
-		CreatedAt     time.Time             `json:"created_at"`
-		UpdatedAt     time.Time             `json:"updated_at"`
+		ID            uuid.UUID         `json:"id"`
+		Name          string            `json:"name"`
+		Phone         phone.Phone       `json:"phone"`
+		Email         email.Email       `json:"email"`
+		Age           int               `json:"age"`
+		City          string            `json:"city"`
+		Address       string            `json:"address"`
+		Description   string            `json:"description"`
+		Circumstances string            `json:"circumstances"`
+		ImageURL      string            `json:"image_url"`
+		Account       account.Account   `json:"account"`
+		Categories    entity.Categories `json:"categories"`
+		Fundraises    []Fundraise       `json:"fundraises"`
+		CreatedAt     time.Time         `json:"created_at"`
+		UpdatedAt     time.Time         `json:"updated_at"`
+	}
+
+	Fundraise struct {
+		ID        uuid.UUID      `json:"id"`
+		Goal      float64        `json:"goal"`
+		Collected float64        `json:"collected"`
+		Type      fundraise.Type `json:"type"`
+		AccountID uuid.UUID      `json:"account_id"`
+		IsActive  bool           `json:"is_active"`
 	}
 )
+
+func (f *Fundraise) FromDomain(fundraise fundraise.Fundraise) Fundraise {
+	*f = Fundraise{
+		ID:        fundraise.ID,
+		Goal:      money.ToFloat(fundraise.Goal),
+		Collected: money.ToFloat(fundraise.Collected),
+		Type:      fundraise.Type,
+		AccountID: fundraise.AccountID,
+		IsActive:  fundraise.IsActive,
+	}
+	return *f
+}
 
 func (c *Client) Fill(client entity.Client) *Client {
 	*c = Client{
@@ -50,7 +72,11 @@ func (c *Client) Fill(client entity.Client) *Client {
 }
 
 func (c *Client) WithFundraises(fundraises []fundraise.Fundraise) *Client {
-	c.Fundraises = fundraises
+	funds := make([]Fundraise, 0, len(fundraises))
+	for _, fundraise := range fundraises {
+		funds = append(funds, new(Fundraise).FromDomain(fundraise))
+	}
+	c.Fundraises = funds
 	return c
 }
 
