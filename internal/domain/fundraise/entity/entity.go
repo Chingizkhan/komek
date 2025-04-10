@@ -6,12 +6,13 @@ import (
 
 type (
 	Fundraise struct {
-		ID        uuid.UUID `json:"id"`
-		Goal      int64     `json:"goal"`
-		Collected int64     `json:"collected"`
-		Type      Type      `json:"type"`
-		AccountID uuid.UUID `json:"account_id"`
-		IsActive  bool      `json:"is_active"`
+		ID                 uuid.UUID `json:"id"`
+		Goal               int64     `json:"goal"`
+		Collected          int64     `json:"collected"`
+		Type               Type      `json:"type"`
+		AccountID          uuid.UUID `json:"account_id"`
+		IsActive           bool      `json:"is_active"`
+		SupportersQuantity int64     `json:"supporters_quantity"`
 	}
 
 	Type struct {
@@ -38,13 +39,14 @@ type (
 	}
 
 	GetOut struct {
-		ID          uuid.UUID `json:"id"`
-		Name        string    `json:"name"`
-		ImageUrl    string    `json:"image_url"`
-		City        string    `json:"city"`
-		Categories  []string  `json:"categories"`
-		Goal        int64     `json:"goal"`
-		Collected   int64     `json:"collected"`
-		Description string    `json:"description"`
+		ID                 uuid.UUID `json:"id"`
+		Name               string    `json:"name"`
+		ImageUrl           string    `json:"image_url"`
+		City               string    `json:"city"`
+		Categories         []string  `json:"categories"`
+		Goal               int64     `json:"goal"`
+		Collected          int64     `json:"collected"`
+		Description        string    `json:"description"`
+		SupportersQuantity int64     `json:"supporters_quantity"`
 	}
 )

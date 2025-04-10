@@ -122,7 +122,7 @@ func main() {
 		}
 
 		_, err = clientUseCase.CreateFundraise(ctx, fundraise.CreateIn{
-			Goal:      3500,
+			Goal:      350000,
 			Collected: 0,
 			AccountID: cl.Account.ID,
 			TypeID:    monthlyFundraiseType,

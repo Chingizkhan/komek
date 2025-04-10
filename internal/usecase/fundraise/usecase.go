@@ -79,13 +79,14 @@ func (uc *UseCase) GetByID(ctx context.Context, id uuid.UUID) (entity.GetOut, er
 	}
 
 	return entity.GetOut{
-		ID:          fundraise.ID,
-		Name:        client.Name,
-		ImageUrl:    client.ImageURL,
-		City:        client.City,
-		Categories:  client.Categories.Names(),
-		Goal:        fundraise.Goal,
-		Collected:   fundraise.Collected,
-		Description: client.Description,
+		ID:                 fundraise.ID,
+		Name:               client.Name,
+		ImageUrl:           client.ImageURL,
+		City:               client.City,
+		Categories:         client.Categories.Names(),
+		Goal:               fundraise.Goal,
+		Collected:          fundraise.Collected,
+		Description:        client.Description,
+		SupportersQuantity: fundraise.SupportersQuantity,
 	}, nil
 }

@@ -137,14 +137,15 @@ type ClientCategoryMap struct {
 }
 
 type Fundraise struct {
-	ID        pgtype.UUID      `json:"id"`
-	Type      pgtype.UUID      `json:"type"`
-	Goal      int64            `json:"goal"`
-	Collected int64            `json:"collected"`
-	AccountID pgtype.UUID      `json:"account_id"`
-	IsActive  pgtype.Bool      `json:"is_active"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+	ID                 pgtype.UUID      `json:"id"`
+	Type               pgtype.UUID      `json:"type"`
+	Goal               int64            `json:"goal"`
+	Collected          int64            `json:"collected"`
+	AccountID          pgtype.UUID      `json:"account_id"`
+	IsActive           pgtype.Bool      `json:"is_active"`
+	SupportersQuantity int64            `json:"supporters_quantity"`
+	CreatedAt          pgtype.Timestamp `json:"created_at"`
+	UpdatedAt          pgtype.Timestamp `json:"updated_at"`
 }
 
 type FundraiseType struct {
