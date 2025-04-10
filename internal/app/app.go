@@ -28,6 +28,7 @@ import (
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/banking_uc"
 	"komek/internal/usecase/client"
+	"komek/internal/usecase/fundraise"
 	"komek/internal/usecase/user"
 	"komek/pkg/grpcserver"
 	"komek/pkg/httpserver"
@@ -131,6 +132,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	userUC := user.New(userService, accountService, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
 	clientUC := client.New(clientService, fundraiseService, accountService, transactionalRepo)
 	bankingUC := banking_uc.New(transactionalRepo, bankingService, accountService)
+	fundraiseUC := fundraise.New(fundraiseService, accountService, clientService, transactionalRepo)
 
 	// start http server
 	r := chi.NewRouter()
@@ -140,6 +142,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		User:              userUC,
 		Banking:           bankingUC,
 		Client:            clientUC,
+		Fundraise:         fundraiseUC,
 		TokenMaker:        tokenMaker,
 		CookieSecret:      []byte(cfg.Cookie.Secret),
 		OauthServerClient: oauthServerClient,

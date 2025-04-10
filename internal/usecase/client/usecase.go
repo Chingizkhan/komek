@@ -13,15 +13,15 @@ import (
 )
 
 type UseCase struct {
-	client    ClientService
-	fundraise FundraiseService
+	client    usecase.ClientService
+	fundraise usecase.FundraiseService
 	account   usecase.AccountService
 	tr        usecase.Transactional
 }
 
 func New(
-	client ClientService,
-	fundraise FundraiseService,
+	client usecase.ClientService,
+	fundraise usecase.FundraiseService,
 	account usecase.AccountService,
 	tr usecase.Transactional,
 ) *UseCase {
@@ -38,6 +38,26 @@ func (uc *UseCase) ListClients(ctx context.Context) (entity.Clients, error) {
 	if err != nil {
 		return nil, fmt.Errorf("list clients via service: %w", err)
 	}
+
+	//res := make(entity.ListClientsOut, 0, len(clients))
+	//
+	//for _, client := range clients {
+	//	acc, err := uc.account.GetByOwnerID(ctx, client.ID)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("get account (%s): %w", client.ID, err)
+	//	}
+	//
+	//	fund, err := uc.fundraise.GetByAccountID(ctx, acc.ID)
+	//	if err != nil {
+	//		return nil, fmt.Errorf("get fundriase by account_id (%s): %w", acc.ID, err)
+	//	}
+	//
+	//	res = append(res, entity.ListClientOut{
+	//		Client:    client,
+	//		Collected: fund[0].Collected,
+	//		Goal:      fund[0].Goal,
+	//	})
+	//}
 
 	return clients, nil
 }

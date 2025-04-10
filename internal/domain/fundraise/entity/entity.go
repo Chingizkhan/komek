@@ -1,6 +1,8 @@
 package entity
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+)
 
 type (
 	Fundraise struct {
@@ -23,5 +25,15 @@ type (
 		TypeID    uuid.UUID
 		AccountID uuid.UUID
 		IsActive  *bool
+	}
+
+	ListOut struct {
+		ID         uuid.UUID `json:"id"`
+		Name       string    `json:"name"`
+		ImageUrl   string    `json:"image_url"`
+		City       string    `json:"city"`
+		Categories []string  `json:"categories"`
+		Goal       int64     `json:"goal"`
+		Collected  int64     `json:"collected"`
 	}
 )

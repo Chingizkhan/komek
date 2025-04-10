@@ -4,6 +4,12 @@ from fundraises
 where id = $1
 limit 1;
 
+-- name: GetFundraiseByAccountID :one
+select *
+from fundraises
+where account_id = $1
+limit 1;
+
 -- name: ListActiveFundraises :many
 select *
 from fundraises

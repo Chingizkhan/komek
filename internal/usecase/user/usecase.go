@@ -18,7 +18,7 @@ import (
 
 type UseCase struct {
 	s                    Service
-	account              AccountService
+	account              usecase.AccountService
 	tr                   usecase.Transactional
 	hasher               Hasher
 	session              SessionRepository
@@ -30,7 +30,7 @@ type UseCase struct {
 
 func New(
 	s Service,
-	account AccountService,
+	account usecase.AccountService,
 	tr usecase.Transactional,
 	hasher Hasher,
 	session SessionRepository,

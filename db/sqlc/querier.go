@@ -50,6 +50,7 @@ type Querier interface {
 	GetAccountByOwnerID(ctx context.Context, ownerID pgtype.UUID) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error)
 	GetClientByID(ctx context.Context, id pgtype.UUID) (GetClientByIDRow, error)
+	GetFundraiseByAccountID(ctx context.Context, accountID pgtype.UUID) (Fundraise, error)
 	GetFundraiseByID(ctx context.Context, id pgtype.UUID) (Fundraise, error)
 	GetFundraisesByAccountID(ctx context.Context, accountID pgtype.UUID) ([]Fundraise, error)
 	// -- name: CreateEntry :one

@@ -62,6 +62,27 @@ func (q *Queries) CreateFundraiseType(ctx context.Context, name string) (Fundrai
 	return i, err
 }
 
+const getFundraiseByAccountID = `-- name: GetFundraiseByAccountID :one
+select id, type, goal, collected, account_id, is_active
+from fundraises
+where account_id = $1
+limit 1
+`
+
+func (q *Queries) GetFundraiseByAccountID(ctx context.Context, accountID pgtype.UUID) (Fundraise, error) {
+	row := q.db.QueryRow(ctx, getFundraiseByAccountID, accountID)
+	var i Fundraise
+	err := row.Scan(
+		&i.ID,
+		&i.Type,
+		&i.Goal,
+		&i.Collected,
+		&i.AccountID,
+		&i.IsActive,
+	)
+	return i, err
+}
+
 const getFundraiseByID = `-- name: GetFundraiseByID :one
 select id, type, goal, collected, account_id, is_active
 from fundraises

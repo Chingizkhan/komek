@@ -10,6 +10,7 @@ import (
 	"komek/internal/service/token"
 	"komek/internal/usecase/banking_uc"
 	"komek/internal/usecase/client"
+	"komek/internal/usecase/fundraise"
 	"komek/internal/usecase/user"
 	"komek/pkg/logger"
 	"net/http"
@@ -23,6 +24,7 @@ type (
 		user              *user.UseCase
 		banking           *banking_uc.UseCase
 		client            *client.UseCase
+		funds             *fundraise.UseCase
 		tokenMaker        token.Maker
 		cookieSecret      []byte
 		oauthServerClient OauthServerClient
@@ -35,6 +37,7 @@ type (
 		User              *user.UseCase
 		Banking           *banking_uc.UseCase
 		Client            *client.UseCase
+		Fundraise         *fundraise.UseCase
 		TokenMaker        token.Maker
 		CookieSecret      []byte
 		OauthServerClient OauthServerClient
@@ -53,6 +56,7 @@ func NewHandler(p *HandlerParams) *Handler {
 		user:              p.User,
 		banking:           p.Banking,
 		client:            p.Client,
+		funds:             p.Fundraise,
 		tokenMaker:        p.TokenMaker,
 		cookieSecret:      p.CookieSecret,
 		oauthServerClient: p.OauthServerClient,
@@ -78,6 +82,7 @@ func (h *Handler) Register(r *chi.Mux, timeout time.Duration) {
 	h.userRoutes(r)
 	h.bankingRoutes(r)
 	h.clientRoutes(r)
+	h.fundraiseRoutes(r)
 
 	//r.With(h.sso.AuthOauth2).Get("/test", h.test)
 	//r.With(h.sso.AuthClientCredentials).Get("/test-cc", h.test)
