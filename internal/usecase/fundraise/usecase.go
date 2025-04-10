@@ -3,6 +3,7 @@ package fundraise
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"komek/internal/domain/fundraise/entity"
 	"komek/internal/usecase"
 )
@@ -59,4 +60,32 @@ func (uc *UseCase) List(ctx context.Context) ([]entity.ListOut, error) {
 	}
 
 	return res, nil
+}
+
+func (uc *UseCase) GetByID(ctx context.Context, id uuid.UUID) (entity.GetOut, error) {
+	fundraise, err := uc.funds.GetByID(ctx, id)
+	if err != nil {
+		return entity.GetOut{}, fmt.Errorf("get fundraise: %w", err)
+	}
+
+	acc, err := uc.account.GetByID(ctx, fundraise.AccountID)
+	if err != nil {
+		return entity.GetOut{}, fmt.Errorf("get account: %w", err)
+	}
+
+	client, err := uc.client.GetByID(ctx, acc.Owner)
+	if err != nil {
+		return entity.GetOut{}, fmt.Errorf("get client: %w", err)
+	}
+
+	return entity.GetOut{
+		ID:          fundraise.ID,
+		Name:        client.Name,
+		ImageUrl:    client.ImageURL,
+		City:        client.City,
+		Categories:  client.Categories.Names(),
+		Goal:        fundraise.Goal,
+		Collected:   fundraise.Collected,
+		Description: client.Description,
+	}, nil
 }

@@ -41,6 +41,8 @@ create table if not exists "fundraises"(
     collected bigint not null default 0,
     account_id uuid not null,
     is_active bool default true,
+    created_at timestamp(6) not null default current_timestamp,
+    updated_at timestamp(6) not null default current_timestamp,
     constraint fk_type foreign key (type) references fundraise_types(id),
     constraint fk_account_id foreign key (account_id) references account(id)
 );

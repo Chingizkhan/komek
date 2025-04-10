@@ -8,23 +8,27 @@ limit 1;
 select *
 from fundraises
 where account_id = $1
+order by created_at
 limit 1;
 
 -- name: ListActiveFundraises :many
 select *
 from fundraises
-where is_active = true;
+where is_active = true
+order by created_at;
 
 -- name: GetFundraisesByAccountID :many
 select *
 from fundraises
 where account_id = $1
-and is_active;
+and is_active
+order by created_at;
 
 -- name: ListFinishedFundraises :many
 select *
 from fundraises
-where is_active = false;
+where is_active = false
+order by created_at;
 
 -- name: CreateFundraiseType :one
 insert into fundraise_types(

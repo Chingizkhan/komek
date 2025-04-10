@@ -16,7 +16,7 @@ insert into fundraises(
     goal, collected, type, account_id, is_active
 ) values (
     $1, $2, $3, $4, $5
-) returning id, type, goal, collected, account_id, is_active
+) returning id, type, goal, collected, account_id, is_active, created_at, updated_at
 `
 
 type CreateFundraiseParams struct {
@@ -43,6 +43,8 @@ func (q *Queries) CreateFundraise(ctx context.Context, arg CreateFundraiseParams
 		&i.Collected,
 		&i.AccountID,
 		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -63,9 +65,10 @@ func (q *Queries) CreateFundraiseType(ctx context.Context, name string) (Fundrai
 }
 
 const getFundraiseByAccountID = `-- name: GetFundraiseByAccountID :one
-select id, type, goal, collected, account_id, is_active
+select id, type, goal, collected, account_id, is_active, created_at, updated_at
 from fundraises
 where account_id = $1
+order by created_at
 limit 1
 `
 
@@ -79,12 +82,14 @@ func (q *Queries) GetFundraiseByAccountID(ctx context.Context, accountID pgtype.
 		&i.Collected,
 		&i.AccountID,
 		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getFundraiseByID = `-- name: GetFundraiseByID :one
-select id, type, goal, collected, account_id, is_active
+select id, type, goal, collected, account_id, is_active, created_at, updated_at
 from fundraises
 where id = $1
 limit 1
@@ -100,15 +105,18 @@ func (q *Queries) GetFundraiseByID(ctx context.Context, id pgtype.UUID) (Fundrai
 		&i.Collected,
 		&i.AccountID,
 		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const getFundraisesByAccountID = `-- name: GetFundraisesByAccountID :many
-select id, type, goal, collected, account_id, is_active
+select id, type, goal, collected, account_id, is_active, created_at, updated_at
 from fundraises
 where account_id = $1
 and is_active
+order by created_at
 `
 
 func (q *Queries) GetFundraisesByAccountID(ctx context.Context, accountID pgtype.UUID) ([]Fundraise, error) {
@@ -127,6 +135,8 @@ func (q *Queries) GetFundraisesByAccountID(ctx context.Context, accountID pgtype
 			&i.Collected,
 			&i.AccountID,
 			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -139,9 +149,10 @@ func (q *Queries) GetFundraisesByAccountID(ctx context.Context, accountID pgtype
 }
 
 const listActiveFundraises = `-- name: ListActiveFundraises :many
-select id, type, goal, collected, account_id, is_active
+select id, type, goal, collected, account_id, is_active, created_at, updated_at
 from fundraises
 where is_active = true
+order by created_at
 `
 
 func (q *Queries) ListActiveFundraises(ctx context.Context) ([]Fundraise, error) {
@@ -160,6 +171,8 @@ func (q *Queries) ListActiveFundraises(ctx context.Context) ([]Fundraise, error)
 			&i.Collected,
 			&i.AccountID,
 			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -172,9 +185,10 @@ func (q *Queries) ListActiveFundraises(ctx context.Context) ([]Fundraise, error)
 }
 
 const listFinishedFundraises = `-- name: ListFinishedFundraises :many
-select id, type, goal, collected, account_id, is_active
+select id, type, goal, collected, account_id, is_active, created_at, updated_at
 from fundraises
 where is_active = false
+order by created_at
 `
 
 func (q *Queries) ListFinishedFundraises(ctx context.Context) ([]Fundraise, error) {
@@ -193,6 +207,8 @@ func (q *Queries) ListFinishedFundraises(ctx context.Context) ([]Fundraise, erro
 			&i.Collected,
 			&i.AccountID,
 			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
