@@ -48,5 +48,6 @@ type (
 		Collected          int64     `json:"collected"`
 		Description        string    `json:"description"`
 		SupportersQuantity int64     `json:"supporters_quantity"`
+		AccountID          uuid.UUID `json:"account_id"`
 	}
 )

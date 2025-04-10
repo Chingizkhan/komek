@@ -75,6 +75,7 @@ type (
 		Collected          float64   `json:"collected"`
 		Description        string    `json:"description"`
 		SupportersQuantity int64     `json:"supporters_quantity"`
+		AccountID          uuid.UUID `json:"account_id"`
 	}
 )
 
@@ -89,6 +90,7 @@ func (r *GetOut) FromDomain(fund entity.GetOut) GetOut {
 		Collected:          money.ToFloat(fund.Collected),
 		Description:        fund.Description,
 		SupportersQuantity: fund.SupportersQuantity,
+		AccountID:          fund.AccountID,
 	}
 	return *r
 }
