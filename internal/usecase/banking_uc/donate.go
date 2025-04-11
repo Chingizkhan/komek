@@ -29,7 +29,10 @@ func (uc *UseCase) donate(ctx context.Context, in entity.DonateIn) error {
 
 	var withCache bool
 
-	transactions, err := uc.FindTransactionsByAccounts(ctx, in.FromAccountID, in.ToAccountID)
+	transactions, err := uc.FindTransactions(ctx, FindTransactionsIn{
+		FromAccountID: in.FromAccountID,
+		ToAccountID:   in.ToAccountID,
+	})
 	if err != nil {
 		return fmt.Errorf("uc.FindTransactionsByAccounts: %w", err)
 	}

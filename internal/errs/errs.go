@@ -27,10 +27,10 @@ var (
 	OperationNotFound = errors.New("operation_not_found")
 
 	// transaction
-	TransactionNotFound = errors.New("transaction_not_found")
-
-	InsufficientAmount = errors.New("insufficient_amount")
-	NotEnoughBalance   = errors.New("not_enough_balance")
+	TransactionNotFound       = errors.New("transaction_not_found")
+	FindParameterNotSpecified = errors.New("find_parameter_not_specified")
+	InsufficientAmount        = errors.New("insufficient_amount")
+	NotEnoughBalance          = errors.New("not_enough_balance")
 
 	// fundraise
 	FundraiseNotFound  = errors.New("fundraise_not_found")
