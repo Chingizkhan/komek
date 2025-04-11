@@ -9,7 +9,8 @@ import (
 	accountSrv "komek/internal/domain/account/service"
 	clientRepo "komek/internal/domain/client/repository"
 	clientSrv "komek/internal/domain/client/service"
-	fundraise_repo "komek/internal/domain/fundraise/repository"
+	fundraise_cache "komek/internal/domain/fundraise/repository/cache"
+	fundraise_repo "komek/internal/domain/fundraise/repository/db"
 	fundraise_service "komek/internal/domain/fundraise/service"
 	operation_repo "komek/internal/domain/operation/repository"
 	operation_service "komek/internal/domain/operation/service"
@@ -35,6 +36,7 @@ import (
 	"komek/pkg/logger"
 	"komek/pkg/postgres"
 	"komek/pkg/redis"
+	"komek/pkg/redis_cache/rediscache"
 	"log"
 	"log/slog"
 	"os"
@@ -64,6 +66,19 @@ func Run(cfg *config.Config, l *logger.Logger) {
 		l.Error("app - Run - redis.New:", logger.Err(err))
 		os.Exit(1)
 	}
+
+	redisCache, err := rediscache.NewWithConfig(rediscache.Config{
+		Addr:       cfg.Redis.Addr,
+		User:       cfg.Redis.User,
+		Pass:       cfg.Redis.Password,
+		TLSEnabled: cfg.Redis.EnableTLS,
+	})
+	if err != nil {
+		l.Error("app - Run - new redis-cache():", logger.Err(err))
+		os.Exit(1)
+	}
+
+	fundraiseCache := fundraise_cache.New(redisCache)
 
 	oauthServerClient := oauth_service.New(time.Second*10, cfg.Oauth2Raw.ServiceAddr)
 	userRepository := userRepo.New(pg)
@@ -126,12 +141,12 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	operationService := operation_service.New(operationRepo)
 	transactionService := transaction_service.New(transactionRepo)
 	bankingService := banking.New(operationService, transactionService, accountRepository)
-	fundraiseService := fundraise_service.New(fundraiseRepo)
+	fundraiseService := fundraise_service.New(fundraiseRepo, fundraiseCache)
 
 	// get usecases
 	userUC := user.New(userService, accountService, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
 	clientUC := client.New(clientService, fundraiseService, accountService, transactionalRepo)
-	bankingUC := banking_uc.New(transactionalRepo, bankingService, accountService, fundraiseService)
+	bankingUC := banking_uc.New(transactionalRepo, bankingService, accountService, fundraiseService, transactionService)
 	fundraiseUC := fundraise.New(fundraiseService, accountService, clientService, transactionalRepo)
 
 	// start http server

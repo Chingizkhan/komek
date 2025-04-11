@@ -9,6 +9,7 @@ import (
 type Repository interface {
 	GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]entity.Transaction, error)
 	Create(ctx context.Context, transaction entity.Transaction) (entity.Transaction, error)
+	GetTransactionsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]entity.Transaction, error)
 }
 
 type Service struct {
@@ -25,4 +26,8 @@ func (s *Service) GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]en
 
 func (s *Service) Create(ctx context.Context, transaction entity.Transaction) (entity.Transaction, error) {
 	return s.r.Create(ctx, transaction)
+}
+
+func (s *Service) FindTransactionsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]entity.Transaction, error) {
+	return s.r.GetTransactionsByAccounts(ctx, fromAccountID, toAccountID)
 }

@@ -47,6 +47,5 @@ insert into fundraises(
 -- name: DonateFundraise :exec
 update fundraises
 set
-    collected = collected +sqlc.arg(amount),
-    supporters_quantity = supporters_quantity + 1
+    collected = collected +sqlc.arg(amount)
 where id = sqlc.arg(id);

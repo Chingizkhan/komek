@@ -80,6 +80,7 @@ type Querier interface {
 	GetSession(ctx context.Context, id pgtype.UUID) (Session, error)
 	GetTransactionByAccountID(ctx context.Context, accountID pgtype.UUID) ([]Transaction, error)
 	GetTransactionByID(ctx context.Context, id pgtype.UUID) (Transaction, error)
+	GetTransactionsByAccounts(ctx context.Context, arg GetTransactionsByAccountsParams) ([]Transaction, error)
 	GetUserByAccount(ctx context.Context, id pgtype.UUID) (User, error)
 	GetUserByEmail(ctx context.Context, email pgtype.Text) (User, error)
 	GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)

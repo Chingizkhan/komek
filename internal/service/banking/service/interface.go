@@ -12,6 +12,7 @@ type (
 	TransactionService interface {
 		GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]transaction.Transaction, error)
 		Create(ctx context.Context, transaction transaction.Transaction) (transaction.Transaction, error)
+		FindTransactionsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]transaction.Transaction, error)
 	}
 
 	OperationService interface {

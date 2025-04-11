@@ -6,10 +6,11 @@ import (
 
 type (
 	UseCase struct {
-		tr      usecase.Transactional
-		account usecase.AccountService
-		banking usecase.BankingService
-		funds   usecase.FundraiseService
+		tr          usecase.Transactional
+		account     usecase.AccountService
+		banking     usecase.BankingService
+		funds       usecase.FundraiseService
+		transaction usecase.TransactionService
 	}
 )
 
@@ -20,11 +21,13 @@ func New(
 	banking usecase.BankingService,
 	account usecase.AccountService,
 	funds usecase.FundraiseService,
+	transaction usecase.TransactionService,
 ) *UseCase {
 	return &UseCase{
-		tr:      tr,
-		account: account,
-		banking: banking,
-		funds:   funds,
+		tr:          tr,
+		account:     account,
+		banking:     banking,
+		funds:       funds,
+		transaction: transaction,
 	}
 }

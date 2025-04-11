@@ -116,3 +116,41 @@ func (q *Queries) GetTransactionByID(ctx context.Context, id pgtype.UUID) (Trans
 	)
 	return i, err
 }
+
+const getTransactionsByAccounts = `-- name: GetTransactionsByAccounts :many
+SELECT id, from_account_id, to_account_id, amount, created_at
+FROM transaction
+WHERE from_account_id = $1 AND
+      to_account_id = $2
+`
+
+type GetTransactionsByAccountsParams struct {
+	FromAccountID pgtype.UUID `json:"from_account_id"`
+	ToAccountID   pgtype.UUID `json:"to_account_id"`
+}
+
+func (q *Queries) GetTransactionsByAccounts(ctx context.Context, arg GetTransactionsByAccountsParams) ([]Transaction, error) {
+	rows, err := q.db.Query(ctx, getTransactionsByAccounts, arg.FromAccountID, arg.ToAccountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Transaction{}
+	for rows.Next() {
+		var i Transaction
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromAccountID,
+			&i.ToAccountID,
+			&i.Amount,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

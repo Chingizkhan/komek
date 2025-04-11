@@ -8,6 +8,7 @@ import (
 	client "komek/internal/domain/client/entity"
 	fundraise "komek/internal/domain/fundraise/entity"
 	operation "komek/internal/domain/operation/entity"
+	transaction "komek/internal/domain/transaction/entity"
 	banking "komek/internal/service/banking/entity"
 )
 
@@ -39,12 +40,18 @@ type (
 		Create(ctx context.Context, in fundraise.CreateIn) (fundraise.Fundraise, error)
 		CreateType(ctx context.Context, name string) error
 		ListActive(ctx context.Context) ([]fundraise.Fundraise, error)
-		Donate(ctx context.Context, id uuid.UUID, amount int64) error
+		Donate(ctx context.Context, id uuid.UUID, amount int64, withCache bool) error
 	}
 
 	ClientService interface {
 		GetByID(ctx context.Context, id uuid.UUID) (client.Client, error)
 		List(ctx context.Context) (client.Clients, error)
 		Create(ctx context.Context, in client.CreateIn) (client client.Client, err error)
+	}
+
+	TransactionService interface {
+		GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]transaction.Transaction, error)
+		Create(ctx context.Context, transaction transaction.Transaction) (transaction.Transaction, error)
+		FindTransactionsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]transaction.Transaction, error)
 	}
 )

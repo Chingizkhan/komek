@@ -10,7 +10,7 @@ import (
 	clientRepo "komek/internal/domain/client/repository"
 	clientSrv "komek/internal/domain/client/service"
 	fundraise "komek/internal/domain/fundraise/entity"
-	fundraise_repo "komek/internal/domain/fundraise/repository"
+	fundraise_repo "komek/internal/domain/fundraise/repository/db"
 	fundraise_service "komek/internal/domain/fundraise/service"
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/client"

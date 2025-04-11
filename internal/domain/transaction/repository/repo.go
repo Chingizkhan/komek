@@ -51,6 +51,20 @@ func (r *Repository) Create(ctx context.Context, transaction entity.Transaction)
 	return r.transactionToDomain(tr), nil
 }
 
+func (r *Repository) GetTransactionsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]entity.Transaction, error) {
+	qtx := r.queries(ctx)
+
+	tr, err := qtx.GetTransactionsByAccounts(ctx, sqlc.GetTransactionsByAccountsParams{
+		FromAccountID: null_value.UUID(fromAccountID),
+		ToAccountID:   null_value.UUID(toAccountID),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("qtx.GetTransactionsByAccounts: %w", err)
+	}
+
+	return r.transactionsToDomain(tr), nil
+}
+
 func (r *Repository) queries(ctx context.Context) *sqlc.Queries {
 	tx, ok := ctx.Value(transactional.TxKey).(pgx.Tx)
 	if ok {

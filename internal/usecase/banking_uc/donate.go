@@ -17,6 +17,16 @@ func (uc *UseCase) Donate(ctx context.Context, in entity.DonateIn) error {
 }
 
 func (uc *UseCase) donate(ctx context.Context, in entity.DonateIn) error {
+	var withCache bool
+
+	transactions, err := uc.FindTransactionsByAccounts(ctx, in.FromAccountID, in.ToAccountID)
+	if err != nil {
+		return fmt.Errorf("uc.FindTransactionsByAccounts: %w", err)
+	}
+	if len(transactions) == 0 {
+		withCache = true
+	}
+
 	tr, err := uc.banking.Transfer(ctx, entity.TransferIn{
 		ToAccountID:   in.ToAccountID,
 		FromAccountID: in.FromAccountID,
@@ -26,7 +36,7 @@ func (uc *UseCase) donate(ctx context.Context, in entity.DonateIn) error {
 		return fmt.Errorf("banking.Transfer: %w", err)
 	}
 
-	if err = uc.funds.Donate(ctx, in.FundraiseID, in.Amount); err != nil {
+	if err = uc.funds.Donate(ctx, in.FundraiseID, in.Amount, withCache); err != nil {
 		return fmt.Errorf("funds.Donate: %w", err)
 	}
 

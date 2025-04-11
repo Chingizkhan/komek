@@ -1,4 +1,4 @@
-package repository
+package db
 
 import (
 	"context"
@@ -13,7 +13,6 @@ import (
 	"komek/internal/service/transactional"
 	"komek/pkg/null_value"
 	"komek/pkg/postgres"
-	"log"
 )
 
 type Repository struct {
@@ -87,8 +86,6 @@ func (r *Repository) ListActive(ctx context.Context) ([]entity.Fundraise, error)
 
 func (r *Repository) Donate(ctx context.Context, id uuid.UUID, amount int64) (err error) {
 	qtx := r.queries(ctx)
-
-	log.Printf("id: %s, amount: %d", id, amount)
 
 	if err = qtx.DonateFundraise(ctx, sqlc.DonateFundraiseParams{
 		Amount: amount,

@@ -57,8 +57,10 @@ type (
 	}
 
 	Redis struct {
-		Addr     string `env-required:"true" yaml:"addr" env:"REDIS_ADDR"`
-		Password string `env-required:"true" yaml:"password" env:"REDIS_PASSWORD"`
+		Addr      string `env-required:"true" yaml:"addr" env:"REDIS_ADDR"`
+		Password  string `env-required:"true" yaml:"password" env:"REDIS_PASSWORD"`
+		User      string `yaml:"user" env:"REDIS_USER"`
+		EnableTLS bool   `yaml:"enable_tls" env:"REDIS_ENABLE_TLS"`
 	}
 
 	Locker struct {

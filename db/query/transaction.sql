@@ -38,3 +38,9 @@ SELECT *
 FROM transaction
 WHERE from_account_id = @account_id OR
       to_account_id = @account_id;
+
+-- name: GetTransactionsByAccounts :many
+SELECT *
+FROM transaction
+WHERE from_account_id = $1 AND
+      to_account_id = $2;
