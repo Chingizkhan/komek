@@ -14,6 +14,7 @@ type (
 		CreateType(ctx context.Context, name string) error
 		ListActive(ctx context.Context) ([]entity.Fundraise, error)
 		Donate(ctx context.Context, id uuid.UUID, amount int64) error
+		SetStatus(ctx context.Context, id uuid.UUID, isActive bool) error
 	}
 
 	Cache interface {

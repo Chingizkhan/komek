@@ -97,6 +97,7 @@ type Querier interface {
 	SaveClientCategories(ctx context.Context, names []string) ([]ClientCategory, error)
 	SaveOrganisation(ctx context.Context, arg SaveOrganisationParams) error
 	SaveUser(ctx context.Context, arg SaveUserParams) (User, error)
+	SetFundraiseStatus(ctx context.Context, arg SetFundraiseStatusParams) error
 	UpdateAccount(ctx context.Context, arg UpdateAccountParams) (Account, error)
 	UpdateOrganisationBin(ctx context.Context, arg UpdateOrganisationBinParams) error
 	UpdateOrganisationName(ctx context.Context, arg UpdateOrganisationNameParams) error

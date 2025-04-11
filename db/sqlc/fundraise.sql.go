@@ -236,3 +236,20 @@ func (q *Queries) ListFinishedFundraises(ctx context.Context) ([]Fundraise, erro
 	}
 	return items, nil
 }
+
+const setFundraiseStatus = `-- name: SetFundraiseStatus :exec
+update fundraises
+set
+    is_active = $2
+where id = $1
+`
+
+type SetFundraiseStatusParams struct {
+	ID       pgtype.UUID `json:"id"`
+	IsActive pgtype.Bool `json:"is_active"`
+}
+
+func (q *Queries) SetFundraiseStatus(ctx context.Context, arg SetFundraiseStatusParams) error {
+	_, err := q.db.Exec(ctx, setFundraiseStatus, arg.ID, arg.IsActive)
+	return err
+}

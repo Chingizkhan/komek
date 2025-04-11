@@ -27,7 +27,7 @@ func (uc *UseCase) donate(ctx context.Context, in entity.DonateIn) error {
 		withCache = true
 	}
 
-	tr, err := uc.banking.Transfer(ctx, entity.TransferIn{
+	_, err = uc.banking.Transfer(ctx, entity.TransferIn{
 		ToAccountID:   in.ToAccountID,
 		FromAccountID: in.FromAccountID,
 		Amount:        in.Amount,
@@ -40,6 +40,18 @@ func (uc *UseCase) donate(ctx context.Context, in entity.DonateIn) error {
 		return fmt.Errorf("funds.Donate: %w", err)
 	}
 
-	_ = tr
+	achieved, err := uc.funds.IsGoalAchieved(ctx, in.FundraiseID)
+	if err != nil {
+		return fmt.Errorf("funds.IsGoalAchieved: %w", err)
+	}
+
+	if !achieved {
+		return nil
+	}
+
+	if err = uc.funds.Close(ctx, in.FundraiseID); err != nil {
+		return fmt.Errorf("funds.Close: %w", err)
+	}
+
 	return nil
 }

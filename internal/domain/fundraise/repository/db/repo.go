@@ -97,6 +97,19 @@ func (r *Repository) Donate(ctx context.Context, id uuid.UUID, amount int64) (er
 	return nil
 }
 
+func (r *Repository) SetStatus(ctx context.Context, id uuid.UUID, isActive bool) error {
+	qtx := r.queries(ctx)
+
+	if err := qtx.SetFundraiseStatus(ctx, sqlc.SetFundraiseStatusParams{
+		ID:       null_value.UUID(id),
+		IsActive: null_value.Bool(&isActive),
+	}); err != nil {
+		return fmt.Errorf("qtx.SetFundraiseStatus: %w", err)
+	}
+
+	return nil
+}
+
 func (r *Repository) queries(ctx context.Context) *sqlc.Queries {
 	tx, ok := ctx.Value(transactional.TxKey).(pgx.Tx)
 	if ok {

@@ -61,3 +61,18 @@ func (s *Service) Donate(ctx context.Context, id uuid.UUID, amount int64, withCa
 
 	return nil
 }
+
+func (s *Service) Close(ctx context.Context, id uuid.UUID) error {
+	return s.r.SetStatus(ctx, id, false)
+}
+
+func (s *Service) IsGoalAchieved(ctx context.Context, id uuid.UUID) (bool, error) {
+	fundraise, err := s.GetByID(ctx, id)
+	if err != nil {
+		return false, fmt.Errorf("error getting fundraise via repo: %w", err)
+	}
+	if fundraise.Collected < fundraise.Goal {
+		return false, nil
+	}
+	return true, nil
+}

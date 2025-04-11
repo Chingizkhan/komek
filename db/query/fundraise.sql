@@ -49,3 +49,9 @@ update fundraises
 set
     collected = collected +sqlc.arg(amount)
 where id = sqlc.arg(id);
+
+-- name: SetFundraiseStatus :exec
+update fundraises
+set
+    is_active = $2
+where id = $1;
