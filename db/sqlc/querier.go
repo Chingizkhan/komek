@@ -43,6 +43,7 @@ type Querier interface {
 	CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error)
 	DeleteAccount(ctx context.Context, id pgtype.UUID) error
 	DeleteOrganisation(ctx context.Context, id pgtype.UUID) error
+	DonateFundraise(ctx context.Context, arg DonateFundraiseParams) error
 	// AND email_verified = $4
 	// AND phone = $5
 	FindUsers(ctx context.Context, arg FindUsersParams) ([]User, error)

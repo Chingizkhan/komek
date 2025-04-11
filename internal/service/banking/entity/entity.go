@@ -40,6 +40,14 @@ type (
 		AccountID     uuid.UUID
 		Amount        int64
 	}
+
+	DonateIn struct {
+		FromAccountID uuid.UUID `json:"from_account_id"`
+		ToAccountID   uuid.UUID `json:"to_account_id"`
+		FundraiseID   uuid.UUID `json:"fundraise_id"`
+		AmountFloat   float64   `json:"amount"`
+		Amount        int64
+	}
 )
 
 func NewTransaction(tr transaction.Transaction, ops ...operation.Operation) Transaction {
@@ -54,6 +62,15 @@ func NewTransaction(tr transaction.Transaction, ops ...operation.Operation) Tran
 }
 
 func (req *TransferIn) ParseHttpBody(r *http.Request) error {
+	err := json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		return fmt.Errorf("can not decode body: %w", err)
+	}
+	defer r.Body.Close()
+	return nil
+}
+
+func (req *DonateIn) ParseHttpBody(r *http.Request) error {
 	err := json.NewDecoder(r.Body).Decode(req)
 	if err != nil {
 		return fmt.Errorf("can not decode body: %w", err)

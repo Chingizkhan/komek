@@ -33,3 +33,7 @@ func (s *Service) CreateType(ctx context.Context, name string) error {
 func (s *Service) ListActive(ctx context.Context) ([]entity.Fundraise, error) {
 	return s.r.ListActive(ctx)
 }
+
+func (s *Service) Donate(ctx context.Context, id uuid.UUID, amount int64) error {
+	return s.r.Donate(ctx, id, amount)
+}

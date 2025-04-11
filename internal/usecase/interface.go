@@ -39,6 +39,7 @@ type (
 		Create(ctx context.Context, in fundraise.CreateIn) (fundraise.Fundraise, error)
 		CreateType(ctx context.Context, name string) error
 		ListActive(ctx context.Context) ([]fundraise.Fundraise, error)
+		Donate(ctx context.Context, id uuid.UUID, amount int64) error
 	}
 
 	ClientService interface {

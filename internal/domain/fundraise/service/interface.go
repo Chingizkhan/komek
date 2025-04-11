@@ -12,4 +12,5 @@ type Repository interface {
 	Create(ctx context.Context, in entity.CreateIn) (entity.Fundraise, error)
 	CreateType(ctx context.Context, name string) error
 	ListActive(ctx context.Context) ([]entity.Fundraise, error)
+	Donate(ctx context.Context, id uuid.UUID, amount int64) error
 }

@@ -43,3 +43,10 @@ insert into fundraises(
 ) values (
     $1, $2, $3, $4, sqlc.narg('is_active')
 ) returning *;
+
+-- name: DonateFundraise :exec
+update fundraises
+set
+    collected = collected +sqlc.arg(amount),
+    supporters_quantity = supporters_quantity + 1
+where id = sqlc.arg(id);

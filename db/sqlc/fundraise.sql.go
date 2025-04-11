@@ -65,6 +65,24 @@ func (q *Queries) CreateFundraiseType(ctx context.Context, name string) (Fundrai
 	return i, err
 }
 
+const donateFundraise = `-- name: DonateFundraise :exec
+update fundraises
+set
+    collected = collected +$1,
+    supporters_quantity = supporters_quantity + 1
+where id = $2
+`
+
+type DonateFundraiseParams struct {
+	Amount int64       `json:"amount"`
+	ID     pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) DonateFundraise(ctx context.Context, arg DonateFundraiseParams) error {
+	_, err := q.db.Exec(ctx, donateFundraise, arg.Amount, arg.ID)
+	return err
+}
+
 const getFundraiseByAccountID = `-- name: GetFundraiseByAccountID :one
 select id, type, goal, collected, account_id, is_active, supporters_quantity, created_at, updated_at
 from fundraises

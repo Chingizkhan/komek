@@ -4,8 +4,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	customMiddleware "komek/internal/controller/http/middleware"
-	"komek/internal/domain/account/entity"
+	accEntity "komek/internal/domain/account/entity"
 	operation "komek/internal/domain/operation/entity"
+	usrEntity "komek/internal/domain/user/entity"
+	"komek/internal/service/banking/entity"
 	banking "komek/internal/service/banking/entity"
 	"komek/pkg/money"
 	"net/http"
@@ -19,7 +21,40 @@ func (h *Handler) bankingRoutes(r *chi.Mux) {
 		r.Post("/account/create", h.accountCreate)
 		r.Get("/account/{:id}", h.accountGet)
 		r.Post("/operation/transfer", h.operationTransfer)
+		r.Post("/operation/donate", h.operationDonate)
 	})
+}
+
+func (h *Handler) operationDonate(w http.ResponseWriter, r *http.Request) {
+	var (
+		in  entity.DonateIn
+		err error
+	)
+
+	if err = in.ParseHttpBody(r); err != nil {
+		h.Error(w, err, http.StatusBadRequest, "donateFundraise - ParseHttpBody")
+		return
+	}
+
+	in.Amount = money.ToInt(in.AmountFloat)
+
+	payload := h.payload(r)
+
+	resp, err := h.user.Get(r.Context(), usrEntity.GetIn{ID: payload.UserID})
+	if err != nil {
+		h.Error(w, err, http.StatusBadRequest, "donateFundraise - user.Get")
+		return
+	}
+	in.FromAccountID = resp.Account.ID
+
+	if err = h.banking.Donate(r.Context(), in); err != nil {
+		h.Error(w, err, http.StatusInternalServerError, "donateFundraise - h.banking.Donate")
+		return
+	}
+
+	h.Resp(w, map[string]string{
+		"status": "ok",
+	}, http.StatusOK)
 }
 
 // Account returned in the response
@@ -48,7 +83,7 @@ type accountCreateResponseWrapper struct {
 
 // accountCreate - creates and returns account connected with User
 func (h *Handler) accountCreate(w http.ResponseWriter, r *http.Request) {
-	req := entity.CreateIn{}
+	req := accEntity.CreateIn{}
 	if err := req.ParseHttpBody(r); err != nil {
 		h.Error(w, err, http.StatusBadRequest, "accountCreate - Parse")
 		return

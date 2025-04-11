@@ -131,7 +131,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	// get usecases
 	userUC := user.New(userService, accountService, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
 	clientUC := client.New(clientService, fundraiseService, accountService, transactionalRepo)
-	bankingUC := banking_uc.New(transactionalRepo, bankingService, accountService)
+	bankingUC := banking_uc.New(transactionalRepo, bankingService, accountService, fundraiseService)
 	fundraiseUC := fundraise.New(fundraiseService, accountService, clientService, transactionalRepo)
 
 	// start http server
