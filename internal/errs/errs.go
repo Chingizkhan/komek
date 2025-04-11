@@ -33,5 +33,6 @@ var (
 	NotEnoughBalance   = errors.New("not_enough_balance")
 
 	// fundraise
-	FundraiseNotFound = errors.New("fundraise_not_found")
+	FundraiseNotFound  = errors.New("fundraise_not_found")
+	ErrFundIsNotActive = errors.New("fund_is_not_active")
 )

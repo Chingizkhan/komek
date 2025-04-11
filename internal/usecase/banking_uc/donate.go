@@ -3,6 +3,7 @@ package banking_uc
 import (
 	"context"
 	"fmt"
+	"komek/internal/errs"
 	"komek/internal/service/banking/entity"
 )
 
@@ -17,6 +18,15 @@ func (uc *UseCase) Donate(ctx context.Context, in entity.DonateIn) error {
 }
 
 func (uc *UseCase) donate(ctx context.Context, in entity.DonateIn) error {
+	fund, err := uc.funds.GetByID(ctx, in.FundraiseID)
+	if err != nil {
+		return fmt.Errorf("get fund: %w", err)
+	}
+
+	if !fund.IsActive {
+		return errs.ErrFundIsNotActive
+	}
+
 	var withCache bool
 
 	transactions, err := uc.FindTransactionsByAccounts(ctx, in.FromAccountID, in.ToAccountID)
