@@ -65,6 +65,19 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	return i, err
 }
 
+const getDonationsTotalAmountByAccountID = `-- name: GetDonationsTotalAmountByAccountID :one
+SELECT sum(amount)
+FROM transaction
+where from_account_id = $1
+`
+
+func (q *Queries) GetDonationsTotalAmountByAccountID(ctx context.Context, fromAccountID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, getDonationsTotalAmountByAccountID, fromAccountID)
+	var sum int64
+	err := row.Scan(&sum)
+	return sum, err
+}
+
 const getTransactionByAccountID = `-- name: GetTransactionByAccountID :many
 SELECT id, from_account_id, to_account_id, amount, created_at
 FROM transaction

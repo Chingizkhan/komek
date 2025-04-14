@@ -10,6 +10,7 @@ type Repository interface {
 	GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]entity.Transaction, error)
 	Create(ctx context.Context, transaction entity.Transaction) (entity.Transaction, error)
 	GetTransactionsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]entity.Transaction, error)
+	GetTotalDonationsAmount(ctx context.Context, accountID uuid.UUID) (int64, error)
 }
 
 type Service struct {
@@ -30,4 +31,8 @@ func (s *Service) Create(ctx context.Context, transaction entity.Transaction) (e
 
 func (s *Service) FindTransactionsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]entity.Transaction, error) {
 	return s.r.GetTransactionsByAccounts(ctx, fromAccountID, toAccountID)
+}
+
+func (s *Service) GetTotalDonationsAmount(ctx context.Context, accountID uuid.UUID) (int64, error) {
+	return s.r.GetTotalDonationsAmount(ctx, accountID)
 }

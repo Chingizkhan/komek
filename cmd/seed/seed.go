@@ -10,12 +10,14 @@ import (
 	clientRepo "komek/internal/domain/client/repository"
 	clientSrv "komek/internal/domain/client/service"
 	fundraise "komek/internal/domain/fundraise/entity"
+	fundraise_cache "komek/internal/domain/fundraise/repository/cache"
 	fundraise_repo "komek/internal/domain/fundraise/repository/db"
 	fundraise_service "komek/internal/domain/fundraise/service"
 	"komek/internal/service/transactional"
 	"komek/internal/usecase/client"
 	"komek/pkg/logger"
 	"komek/pkg/postgres"
+	"komek/pkg/redis_cache/rediscache"
 	"log"
 	"os"
 )
@@ -38,6 +40,19 @@ func main() {
 	}
 	defer pg.Close()
 
+	redisCache, err := rediscache.NewWithConfig(rediscache.Config{
+		Addr:       cfg.Redis.Addr,
+		User:       cfg.Redis.User,
+		Pass:       cfg.Redis.Password,
+		TLSEnabled: cfg.Redis.EnableTLS,
+	})
+	if err != nil {
+		l.Error("app - Run - new redis-cache():", logger.Err(err))
+		os.Exit(1)
+	}
+
+	fundraiseCache := fundraise_cache.New(redisCache)
+
 	clientsRepository := clientRepo.New(pg)
 	accountRepository := accountRepo.New(pg)
 	fundraiseRepository := fundraise_repo.New(pg)
@@ -45,7 +60,7 @@ func main() {
 
 	accountService := accountSrv.New(accountRepository)
 	clientService := clientSrv.New(clientsRepository)
-	fundraiseService := fundraise_service.New(fundraiseRepository)
+	fundraiseService := fundraise_service.New(fundraiseRepository, fundraiseCache)
 
 	clientUseCase := client.New(clientService, fundraiseService, accountService, transactionService)
 

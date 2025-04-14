@@ -9,6 +9,7 @@ import (
 	usrEntity "komek/internal/domain/user/entity"
 	"komek/internal/service/banking/entity"
 	banking "komek/internal/service/banking/entity"
+	"komek/internal/usecase/banking_uc"
 	"komek/pkg/money"
 	"net/http"
 )
@@ -20,6 +21,8 @@ func (h *Handler) bankingRoutes(r *chi.Mux) {
 
 		r.Post("/account/create", h.accountCreate)
 		r.Get("/account/{:id}", h.accountGet)
+		r.Get("/account/{:id}/donations", h.accountGetTransactions)
+		r.Get("/account/{:id}/donations/total", h.accountGetTotalMoneyDonation)
 		r.Post("/operation/transfer", h.operationTransfer)
 		r.Post("/operation/donate", h.operationDonate)
 	})
@@ -124,6 +127,44 @@ func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Resp(w, account, http.StatusOK)
+}
+
+func (h *Handler) accountGetTransactions(w http.ResponseWriter, r *http.Request) {
+	payload := h.payload(r)
+
+	account, err := h.banking.GetAccountByUserID(r.Context(), payload.UserID)
+	if err != nil {
+		h.Error(w, err, http.StatusNotFound, "accountGetTransactions - banking_uc.GetAccountByUserID")
+		return
+	}
+
+	transactions, err := h.banking.FindTransactions(r.Context(), banking_uc.FindTransactionsIn{
+		FromAccountID: account.ID,
+	})
+	if err != nil {
+		h.Error(w, err, http.StatusInternalServerError, "accountGetTransactions - banking_uc.FindTransactions")
+		return
+	}
+
+	h.Resp(w, transactions, http.StatusOK)
+}
+
+func (h *Handler) accountGetTotalMoneyDonation(w http.ResponseWriter, r *http.Request) {
+	payload := h.payload(r)
+
+	account, err := h.banking.GetAccountByUserID(r.Context(), payload.UserID)
+	if err != nil {
+		h.Error(w, err, http.StatusNotFound, "accountGetTotalMoneyDonation - banking_uc.GetAccountByUserID")
+		return
+	}
+
+	transactions, err := h.banking.GetTotalMoneyDonation(r.Context(), account.ID)
+	if err != nil {
+		h.Error(w, err, http.StatusInternalServerError, "accountGetTotalMoneyDonation - banking_uc.GetTotalMoneyDonation")
+		return
+	}
+
+	h.Resp(w, transactions, http.StatusOK)
 }
 
 // accountGet - Returns account info connected with User

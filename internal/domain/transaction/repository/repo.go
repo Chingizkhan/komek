@@ -65,6 +65,17 @@ func (r *Repository) GetTransactionsByAccounts(ctx context.Context, fromAccountI
 	return r.transactionsToDomain(tr), nil
 }
 
+func (r *Repository) GetTotalDonationsAmount(ctx context.Context, accountID uuid.UUID) (int64, error) {
+	qtx := r.queries(ctx)
+
+	amount, err := qtx.GetDonationsTotalAmountByAccountID(ctx, null_value.UUID(accountID))
+	if err != nil {
+		return 0, fmt.Errorf("qtx.GetDonationsTotalAmountByAccountID: %w", err)
+	}
+
+	return amount, nil
+}
+
 func (r *Repository) queries(ctx context.Context) *sqlc.Queries {
 	tx, ok := ctx.Value(transactional.TxKey).(pgx.Tx)
 	if ok {

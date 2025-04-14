@@ -51,6 +51,7 @@ type Querier interface {
 	GetAccountByOwnerID(ctx context.Context, ownerID pgtype.UUID) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error)
 	GetClientByID(ctx context.Context, id pgtype.UUID) (GetClientByIDRow, error)
+	GetDonationsTotalAmountByAccountID(ctx context.Context, fromAccountID pgtype.UUID) (int64, error)
 	GetFundraiseByAccountID(ctx context.Context, accountID pgtype.UUID) (Fundraise, error)
 	GetFundraiseByID(ctx context.Context, id pgtype.UUID) (Fundraise, error)
 	GetFundraisesByAccountID(ctx context.Context, accountID pgtype.UUID) ([]Fundraise, error)

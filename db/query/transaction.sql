@@ -44,3 +44,8 @@ SELECT *
 FROM transaction
 WHERE from_account_id = $1 AND
       to_account_id = $2;
+
+-- name: GetDonationsTotalAmountByAccountID :one
+SELECT sum(amount)
+FROM transaction
+where from_account_id = $1;
