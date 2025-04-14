@@ -158,13 +158,13 @@ func (h *Handler) accountGetTotalMoneyDonation(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	transactions, err := h.banking.GetTotalMoneyDonation(r.Context(), account.ID)
+	amount, err := h.banking.GetTotalMoneyDonation(r.Context(), account.ID)
 	if err != nil {
 		h.Error(w, err, http.StatusInternalServerError, "accountGetTotalMoneyDonation - banking_uc.GetTotalMoneyDonation")
 		return
 	}
 
-	h.Resp(w, transactions, http.StatusOK)
+	h.Resp(w, money.ToFloat(amount), http.StatusOK)
 }
 
 // accountGet - Returns account info connected with User
