@@ -6,12 +6,14 @@ import (
 	customMiddleware "komek/internal/controller/http/middleware"
 	accEntity "komek/internal/domain/account/entity"
 	operation "komek/internal/domain/operation/entity"
+	transaction "komek/internal/domain/transaction/entity"
 	usrEntity "komek/internal/domain/user/entity"
 	"komek/internal/service/banking/entity"
 	banking "komek/internal/service/banking/entity"
 	"komek/internal/usecase/banking_uc"
 	"komek/pkg/money"
 	"net/http"
+	"time"
 )
 
 func (h *Handler) bankingRoutes(r *chi.Mux) {
@@ -21,7 +23,7 @@ func (h *Handler) bankingRoutes(r *chi.Mux) {
 
 		r.Post("/account/create", h.accountCreate)
 		r.Get("/account/{:id}", h.accountGet)
-		r.Get("/account/{:id}/donations", h.accountGetTransactions)
+		r.Get("/account/donations", h.accountGetTransactions)
 		r.Get("/account/{:id}/donations/total", h.accountGetTotalMoneyDonation)
 		r.Post("/operation/transfer", h.operationTransfer)
 		r.Post("/operation/donate", h.operationDonate)
@@ -129,6 +131,28 @@ func (h *Handler) accountGet(w http.ResponseWriter, r *http.Request) {
 	h.Resp(w, account, http.StatusOK)
 }
 
+type TransactionResponse struct {
+	ID            uuid.UUID `json:"id"`
+	FromAccountID uuid.UUID `json:"from_account_id"`
+	ToAccountID   uuid.UUID `json:"to_account_id"`
+	Amount        float64   `json:"amount"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
+func (h *Handler) transactionToResponse(transactions []transaction.Transaction) []TransactionResponse {
+	res := make([]TransactionResponse, 0, len(transactions))
+	for _, trans := range transactions {
+		res = append(res, TransactionResponse{
+			ID:            trans.ID,
+			FromAccountID: trans.FromAccountID,
+			ToAccountID:   trans.ToAccountID,
+			Amount:        money.ToFloat(trans.Amount),
+			CreatedAt:     trans.CreatedAt,
+		})
+	}
+	return res
+}
+
 func (h *Handler) accountGetTransactions(w http.ResponseWriter, r *http.Request) {
 	payload := h.payload(r)
 
@@ -146,7 +170,7 @@ func (h *Handler) accountGetTransactions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	h.Resp(w, transactions, http.StatusOK)
+	h.Resp(w, h.transactionToResponse(transactions), http.StatusOK)
 }
 
 func (h *Handler) accountGetTotalMoneyDonation(w http.ResponseWriter, r *http.Request) {

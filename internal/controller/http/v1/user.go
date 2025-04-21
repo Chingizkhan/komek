@@ -8,10 +8,6 @@ import (
 	"net/http"
 )
 
-// todo: get accounts that belong to user with pagination
-// todo: make transfer money
-// todo: checking on transfer if currency the same on 2 accounts
-
 func (h *Handler) userRoutes(r *chi.Mux) {
 	r.Route("/user", func(r chi.Router) {
 		// protected

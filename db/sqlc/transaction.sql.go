@@ -83,6 +83,7 @@ SELECT id, from_account_id, to_account_id, amount, created_at
 FROM transaction
 WHERE from_account_id = $1 OR
       to_account_id = $1
+ORDER BY created_at DESC
 `
 
 func (q *Queries) GetTransactionByAccountID(ctx context.Context, accountID pgtype.UUID) ([]Transaction, error) {

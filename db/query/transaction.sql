@@ -37,7 +37,8 @@ WHERE id = $1;
 SELECT *
 FROM transaction
 WHERE from_account_id = @account_id OR
-      to_account_id = @account_id;
+      to_account_id = @account_id
+ORDER BY created_at DESC;
 
 -- name: GetTransactionsByAccounts :many
 SELECT *

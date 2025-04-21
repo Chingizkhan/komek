@@ -13,6 +13,7 @@ import (
 	"komek/internal/service/token"
 	"komek/internal/usecase"
 	"komek/pkg/money"
+	"log"
 	"time"
 )
 
@@ -193,9 +194,9 @@ func (u *UseCase) Login(ctx context.Context, in entity.LoginIn) (*entity.LoginOu
 	return &entity.LoginOut{
 		SessionID:             createdSession.ID,
 		AccessToken:           accessToken,
-		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
+		AccessTokenExpiresAt:  accessPayload.ExpiredAt.UTC(),
 		RefreshToken:          refreshToken,
-		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
+		RefreshTokenExpiresAt: refreshPayload.ExpiredAt.UTC(),
 		User:                  u.userResponse(user, acc),
 	}, nil
 }
@@ -273,6 +274,7 @@ func (u *UseCase) RefreshTokens(ctx context.Context, in entity.RefreshTokensIn) 
 	if err != nil {
 		return nil, fmt.Errorf("verify token: %w", err)
 	}
+	log.Printf("payload: %+v", payload)
 
 	session, err := u.session.Get(ctx, nil, payload.ID)
 	if err != nil {
@@ -299,16 +301,22 @@ func (u *UseCase) RefreshTokens(ctx context.Context, in entity.RefreshTokensIn) 
 		payload.UserID,
 		u.accessTokenLifetime,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("create access token: %w", err)
+	}
 
 	refreshToken, refreshPayload, err := u.tokenMaker.CreateToken(
 		payload.UserID,
 		u.refreshTokenLifetime,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("create refresh token: %w", err)
+	}
 
 	return &entity.RefreshTokensOut{
 		AccessToken:           accessToken,
-		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
+		AccessTokenExpiresAt:  accessPayload.ExpiredAt.UTC(),
 		RefreshToken:          refreshToken,
-		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
+		RefreshTokenExpiresAt: refreshPayload.ExpiredAt.UTC(),
 	}, nil
 }

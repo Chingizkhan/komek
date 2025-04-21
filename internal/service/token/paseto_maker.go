@@ -39,13 +39,11 @@ func (maker PasetoMaker) CreateToken(userID uuid.UUID, duration time.Duration) (
 }
 
 func (maker PasetoMaker) VerifyToken(token string) (payload *Payload, err error) {
-	payload = &Payload{}
-	err = maker.paseto.Decrypt(token, maker.symmetricKey, payload, nil)
-	if err != nil {
+	payload = new(Payload)
+	if err = maker.paseto.Decrypt(token, maker.symmetricKey, payload, nil); err != nil {
 		return nil, ErrInvalidToken
 	}
-	err = payload.Valid()
-	if err != nil {
+	if err = payload.Valid(); err != nil {
 		return nil, err
 	}
 	return payload, nil
