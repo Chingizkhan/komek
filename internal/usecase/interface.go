@@ -56,5 +56,7 @@ type (
 		Create(ctx context.Context, transaction transaction.Transaction) (transaction.Transaction, error)
 		FindTransactionsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]transaction.Transaction, error)
 		GetTotalDonationsAmount(ctx context.Context, accountID uuid.UUID) (int64, error)
+		FindDonationsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]transaction.Donation, error)
+		GetDonationsByAccountID(ctx context.Context, accountID uuid.UUID) ([]transaction.Donation, error)
 	}
 )

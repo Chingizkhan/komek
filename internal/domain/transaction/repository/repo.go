@@ -54,7 +54,7 @@ func (r *Repository) Create(ctx context.Context, transaction entity.Transaction)
 func (r *Repository) GetTransactionsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]entity.Transaction, error) {
 	qtx := r.queries(ctx)
 
-	tr, err := qtx.GetTransactionsByAccounts(ctx, sqlc.GetTransactionsByAccountsParams{
+	donations, err := qtx.GetTransactionsByAccounts(ctx, sqlc.GetTransactionsByAccountsParams{
 		FromAccountID: null_value.UUID(fromAccountID),
 		ToAccountID:   null_value.UUID(toAccountID),
 	})
@@ -62,7 +62,45 @@ func (r *Repository) GetTransactionsByAccounts(ctx context.Context, fromAccountI
 		return nil, fmt.Errorf("qtx.GetTransactionsByAccounts: %w", err)
 	}
 
-	return r.transactionsToDomain(tr), nil
+	return r.transactionsToDomain(donations), nil
+}
+
+func (r *Repository) GetDonationsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]entity.Donation, error) {
+	qtx := r.queries(ctx)
+
+	donations, err := qtx.GetDonationsByAccounts(ctx, sqlc.GetDonationsByAccountsParams{
+		FromAccountID: null_value.UUID(fromAccountID),
+		ToAccountID:   null_value.UUID(toAccountID),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("qtx.GetDonationsByAccounts: %w", err)
+	}
+
+	return r.donationsToDomain(donations), nil
+}
+
+func (r *Repository) GetDonationsByAccount(ctx context.Context, accountID uuid.UUID) ([]entity.Donation, error) {
+	qtx := r.queries(ctx)
+
+	donations, err := qtx.GetDonationsByAccountID(ctx, null_value.UUID(accountID))
+	if err != nil {
+		return nil, fmt.Errorf("get donation by account id: %w", err)
+	}
+
+	res := make([]sqlc.GetDonationsByAccountsRow, 0, len(donations))
+	for _, donation := range donations {
+		res = append(res, sqlc.GetDonationsByAccountsRow{
+			ID:            donation.ID,
+			FromAccountID: donation.FromAccountID,
+			ToAccountID:   donation.ToAccountID,
+			Amount:        donation.Amount,
+			CreatedAt:     donation.CreatedAt,
+			ClientName:    donation.ClientName,
+			ClientPhoto:   donation.ClientPhoto,
+		})
+	}
+
+	return r.donationsToDomain(res), nil
 }
 
 func (r *Repository) GetTotalDonationsAmount(ctx context.Context, accountID uuid.UUID) (int64, error) {

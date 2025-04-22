@@ -65,6 +65,116 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	return i, err
 }
 
+const getDonationsByAccountID = `-- name: GetDonationsByAccountID :many
+SELECT
+    transaction.id, transaction.from_account_id, transaction.to_account_id, transaction.amount, transaction.created_at,
+    clients.name as client_name,
+    clients.image_url as client_photo
+FROM
+    transaction
+        join account on transaction.to_account_id = account.id
+        join clients on clients.id = account.owner
+WHERE from_account_id = $1 OR
+    to_account_id = $1
+ORDER BY transaction.created_at DESC
+`
+
+type GetDonationsByAccountIDRow struct {
+	ID            pgtype.UUID      `json:"id"`
+	FromAccountID pgtype.UUID      `json:"from_account_id"`
+	ToAccountID   pgtype.UUID      `json:"to_account_id"`
+	Amount        int64            `json:"amount"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	ClientName    pgtype.Text      `json:"client_name"`
+	ClientPhoto   pgtype.Text      `json:"client_photo"`
+}
+
+func (q *Queries) GetDonationsByAccountID(ctx context.Context, accountID pgtype.UUID) ([]GetDonationsByAccountIDRow, error) {
+	rows, err := q.db.Query(ctx, getDonationsByAccountID, accountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetDonationsByAccountIDRow{}
+	for rows.Next() {
+		var i GetDonationsByAccountIDRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromAccountID,
+			&i.ToAccountID,
+			&i.Amount,
+			&i.CreatedAt,
+			&i.ClientName,
+			&i.ClientPhoto,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getDonationsByAccounts = `-- name: GetDonationsByAccounts :many
+select
+    transaction.id, transaction.from_account_id, transaction.to_account_id, transaction.amount, transaction.created_at,
+    clients.name as client_name,
+    clients.image_url as client_photo
+from
+    transaction
+        join account on transaction.to_account_id = account.id
+        join clients on clients.id = account.owner
+where
+    transaction.from_account_id = $1 or
+    transaction.to_account_id = $2
+ORDER BY transaction.created_at DESC
+`
+
+type GetDonationsByAccountsParams struct {
+	FromAccountID pgtype.UUID `json:"from_account_id"`
+	ToAccountID   pgtype.UUID `json:"to_account_id"`
+}
+
+type GetDonationsByAccountsRow struct {
+	ID            pgtype.UUID      `json:"id"`
+	FromAccountID pgtype.UUID      `json:"from_account_id"`
+	ToAccountID   pgtype.UUID      `json:"to_account_id"`
+	Amount        int64            `json:"amount"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	ClientName    pgtype.Text      `json:"client_name"`
+	ClientPhoto   pgtype.Text      `json:"client_photo"`
+}
+
+func (q *Queries) GetDonationsByAccounts(ctx context.Context, arg GetDonationsByAccountsParams) ([]GetDonationsByAccountsRow, error) {
+	rows, err := q.db.Query(ctx, getDonationsByAccounts, arg.FromAccountID, arg.ToAccountID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetDonationsByAccountsRow{}
+	for rows.Next() {
+		var i GetDonationsByAccountsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FromAccountID,
+			&i.ToAccountID,
+			&i.Amount,
+			&i.CreatedAt,
+			&i.ClientName,
+			&i.ClientPhoto,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDonationsTotalAmountByAccountID = `-- name: GetDonationsTotalAmountByAccountID :one
 SELECT sum(amount)
 FROM transaction

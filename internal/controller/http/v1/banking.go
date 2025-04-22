@@ -23,7 +23,7 @@ func (h *Handler) bankingRoutes(r *chi.Mux) {
 
 		r.Post("/account/create", h.accountCreate)
 		r.Get("/account/{:id}", h.accountGet)
-		r.Get("/account/donations", h.accountGetTransactions)
+		r.Get("/account/donations", h.accountGetDonations)
 		r.Get("/account/{:id}/donations/total", h.accountGetTotalMoneyDonation)
 		r.Post("/operation/transfer", h.operationTransfer)
 		r.Post("/operation/donate", h.operationDonate)
@@ -153,7 +153,33 @@ func (h *Handler) transactionToResponse(transactions []transaction.Transaction) 
 	return res
 }
 
-func (h *Handler) accountGetTransactions(w http.ResponseWriter, r *http.Request) {
+type DonationResponse struct {
+	ID            uuid.UUID `json:"id"`
+	FromAccountID uuid.UUID `json:"from_account_id"`
+	ToAccountID   uuid.UUID `json:"to_account_id"`
+	Amount        float64   `json:"amount"`
+	CreatedAt     time.Time `json:"created_at"`
+	ClientName    string    `json:"client_name"`
+	ClientPhoto   string    `json:"client_photo"`
+}
+
+func (h *Handler) donationsToResponse(transactions []transaction.Donation) []DonationResponse {
+	res := make([]DonationResponse, 0, len(transactions))
+	for _, trans := range transactions {
+		res = append(res, DonationResponse{
+			ID:            trans.ID,
+			FromAccountID: trans.FromAccountID,
+			ToAccountID:   trans.ToAccountID,
+			Amount:        money.ToFloat(trans.Amount),
+			CreatedAt:     trans.CreatedAt,
+			ClientName:    trans.ClientName,
+			ClientPhoto:   trans.ClientPhoto,
+		})
+	}
+	return res
+}
+
+func (h *Handler) accountGetDonations(w http.ResponseWriter, r *http.Request) {
 	payload := h.payload(r)
 
 	account, err := h.banking.GetAccountByUserID(r.Context(), payload.UserID)
@@ -162,15 +188,15 @@ func (h *Handler) accountGetTransactions(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	transactions, err := h.banking.FindTransactions(r.Context(), banking_uc.FindTransactionsIn{
+	donations, err := h.banking.FindDonations(r.Context(), banking_uc.FindDonationsIn{
 		FromAccountID: account.ID,
 	})
 	if err != nil {
-		h.Error(w, err, http.StatusInternalServerError, "accountGetTransactions - banking_uc.FindTransactions")
+		h.Error(w, err, http.StatusInternalServerError, "accountGetTransactions - banking_uc.FindDonations")
 		return
 	}
 
-	h.Resp(w, h.transactionToResponse(transactions), http.StatusOK)
+	h.Resp(w, h.donationsToResponse(donations), http.StatusOK)
 }
 
 func (h *Handler) accountGetTotalMoneyDonation(w http.ResponseWriter, r *http.Request) {
