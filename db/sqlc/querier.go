@@ -14,6 +14,7 @@ type Querier interface {
 	AddAccountBalance(ctx context.Context, arg AddAccountBalanceParams) (Account, error)
 	BindClientCategories(ctx context.Context, arg BindClientCategoriesParams) error
 	CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error)
+	CreateDonation(ctx context.Context, arg CreateDonationParams) error
 	CreateFundraise(ctx context.Context, arg CreateFundraiseParams) (Fundraise, error)
 	CreateFundraiseType(ctx context.Context, name string) (FundraiseType, error)
 	CreateOperation(ctx context.Context, arg CreateOperationParams) (Operation, error)
@@ -51,6 +52,7 @@ type Querier interface {
 	GetAccountByOwnerID(ctx context.Context, ownerID pgtype.UUID) (Account, error)
 	GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error)
 	GetClientByID(ctx context.Context, id pgtype.UUID) (GetClientByIDRow, error)
+	GetDonationByID(ctx context.Context, id pgtype.UUID) (GetDonationByIDRow, error)
 	GetDonationsByAccountID(ctx context.Context, accountID pgtype.UUID) ([]GetDonationsByAccountIDRow, error)
 	GetDonationsByAccounts(ctx context.Context, arg GetDonationsByAccountsParams) ([]GetDonationsByAccountsRow, error)
 	GetDonationsTotalAmountByAccountID(ctx context.Context, fromAccountID pgtype.UUID) (int64, error)

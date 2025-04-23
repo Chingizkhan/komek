@@ -9,6 +9,8 @@ import (
 	accountSrv "komek/internal/domain/account/service"
 	clientRepo "komek/internal/domain/client/repository"
 	clientSrv "komek/internal/domain/client/service"
+	donation_repo "komek/internal/domain/donation/repository"
+	donation_service "komek/internal/domain/donation/service"
 	fundraise_cache "komek/internal/domain/fundraise/repository/cache"
 	fundraise_repo "komek/internal/domain/fundraise/repository/db"
 	fundraise_service "komek/internal/domain/fundraise/service"
@@ -90,6 +92,7 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	operationRepo := operation_repo.New(pg)
 	transactionRepo := transaction_repo.New(pg)
 	fundraiseRepo := fundraise_repo.New(pg)
+	donationRepo := donation_repo.New(pg)
 
 	bankingOldService, err := banking_old.New(cfg.BankingService.Addr, cfg.BankingService.EnableTLS)
 	if err != nil {
@@ -142,11 +145,12 @@ func Run(cfg *config.Config, l *logger.Logger) {
 	transactionService := transaction_service.New(transactionRepo)
 	bankingService := banking.New(operationService, transactionService, accountRepository)
 	fundraiseService := fundraise_service.New(fundraiseRepo, fundraiseCache)
+	donationService := donation_service.New(donationRepo)
 
 	// get usecases
 	userUC := user.New(userService, accountService, transactionalRepo, hash, sessionRepo, im, tokenMaker, cfg.AccessTokenLifetime, cfg.RefreshTokenLifetime)
 	clientUC := client.New(clientService, fundraiseService, accountService, transactionalRepo)
-	bankingUC := banking_uc.New(transactionalRepo, bankingService, accountService, fundraiseService, transactionService)
+	bankingUC := banking_uc.New(transactionalRepo, bankingService, accountService, fundraiseService, transactionService, donationService)
 	fundraiseUC := fundraise.New(fundraiseService, accountService, clientService, transactionalRepo)
 
 	// start http server

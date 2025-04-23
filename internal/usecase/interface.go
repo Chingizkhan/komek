@@ -6,6 +6,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"komek/internal/domain/account/entity"
 	client "komek/internal/domain/client/entity"
+	donation "komek/internal/domain/donation/entity"
 	fundraise "komek/internal/domain/fundraise/entity"
 	operation "komek/internal/domain/operation/entity"
 	transaction "komek/internal/domain/transaction/entity"
@@ -58,5 +59,10 @@ type (
 		GetTotalDonationsAmount(ctx context.Context, accountID uuid.UUID) (int64, error)
 		FindDonationsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]transaction.Donation, error)
 		GetDonationsByAccountID(ctx context.Context, accountID uuid.UUID) ([]transaction.Donation, error)
+	}
+
+	DonationService interface {
+		Create(ctx context.Context, in donation.CreateDonationIn) error
+		GetByID(ctx context.Context, id uuid.UUID) (donation.Donation, error)
 	}
 )

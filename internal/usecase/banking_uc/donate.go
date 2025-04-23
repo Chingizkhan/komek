@@ -3,6 +3,7 @@ package banking_uc
 import (
 	"context"
 	"fmt"
+	donation "komek/internal/domain/donation/entity"
 	"komek/internal/errs"
 	"komek/internal/service/banking/entity"
 )
@@ -40,13 +41,26 @@ func (uc *UseCase) donate(ctx context.Context, in entity.DonateIn) error {
 		withCache = true
 	}
 
-	_, err = uc.banking.Transfer(ctx, entity.TransferIn{
+	trans, err := uc.banking.Transfer(ctx, entity.TransferIn{
 		ToAccountID:   in.ToAccountID,
 		FromAccountID: in.FromAccountID,
 		Amount:        in.Amount,
 	})
 	if err != nil {
 		return fmt.Errorf("banking.Transfer: %w", err)
+	}
+
+	toAccount, err := uc.account.GetByID(ctx, in.ToAccountID)
+	if err != nil {
+		return fmt.Errorf("uc.account.GetByID: %w", err)
+	}
+
+	if err = uc.donation.Create(ctx, donation.CreateDonationIn{
+		FundraiseID:   fund.ID,
+		TransactionID: trans.ID,
+		ClientID:      toAccount.Owner,
+	}); err != nil {
+		return fmt.Errorf("donation.Create: %w", err)
 	}
 
 	if err = uc.funds.Donate(ctx, in.FundraiseID, in.Amount, withCache); err != nil {

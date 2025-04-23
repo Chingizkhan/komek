@@ -11,6 +11,7 @@ type (
 		banking     usecase.BankingService
 		funds       usecase.FundraiseService
 		transaction usecase.TransactionService
+		donation    usecase.DonationService
 	}
 )
 
@@ -22,6 +23,7 @@ func New(
 	account usecase.AccountService,
 	funds usecase.FundraiseService,
 	transaction usecase.TransactionService,
+	donation usecase.DonationService,
 ) *UseCase {
 	return &UseCase{
 		tr:          tr,
@@ -29,5 +31,6 @@ func New(
 		banking:     banking,
 		funds:       funds,
 		transaction: transaction,
+		donation:    donation,
 	}
 }

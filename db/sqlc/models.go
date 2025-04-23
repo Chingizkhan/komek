@@ -136,6 +136,14 @@ type ClientCategoryMap struct {
 	CategoryID pgtype.UUID `json:"category_id"`
 }
 
+type Donation struct {
+	ID            pgtype.UUID      `json:"id"`
+	FundraiseID   pgtype.UUID      `json:"fundraise_id"`
+	TransactionID pgtype.UUID      `json:"transaction_id"`
+	ClientID      pgtype.UUID      `json:"client_id"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+}
+
 type Fundraise struct {
 	ID        pgtype.UUID      `json:"id"`
 	Type      pgtype.UUID      `json:"type"`
