@@ -21,3 +21,7 @@ func (s *Service) GetByID(ctx context.Context, id uuid.UUID) (entity.Donation, e
 func (s *Service) Create(ctx context.Context, in entity.CreateDonationIn) error {
 	return s.r.Create(ctx, in)
 }
+
+func (s *Service) GetByTransactionID(ctx context.Context, id uuid.UUID) (entity.Donation, error) {
+	return s.r.GetByTransactionID(ctx, id)
+}

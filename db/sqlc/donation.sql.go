@@ -74,3 +74,51 @@ func (q *Queries) GetDonationByID(ctx context.Context, id pgtype.UUID) (GetDonat
 	)
 	return i, err
 }
+
+const getDonationByTransactionID = `-- name: GetDonationByTransactionID :one
+SELECT
+    d.id, d.fundraise_id, d.transaction_id, d.client_id, d.created_at,
+    tr.from_account_id,
+    tr.to_account_id,
+    tr.amount,
+    cl.name as client_name,
+    cl.image_url as client_image
+FROM
+    donation d
+        JOIN
+    transaction tr on tr.id = d.transaction_id
+        JOIN
+    clients cl on cl.id = d.client_id
+WHERE d.transaction_id = $1
+`
+
+type GetDonationByTransactionIDRow struct {
+	ID            pgtype.UUID      `json:"id"`
+	FundraiseID   pgtype.UUID      `json:"fundraise_id"`
+	TransactionID pgtype.UUID      `json:"transaction_id"`
+	ClientID      pgtype.UUID      `json:"client_id"`
+	CreatedAt     pgtype.Timestamp `json:"created_at"`
+	FromAccountID pgtype.UUID      `json:"from_account_id"`
+	ToAccountID   pgtype.UUID      `json:"to_account_id"`
+	Amount        int64            `json:"amount"`
+	ClientName    pgtype.Text      `json:"client_name"`
+	ClientImage   pgtype.Text      `json:"client_image"`
+}
+
+func (q *Queries) GetDonationByTransactionID(ctx context.Context, transactionID pgtype.UUID) (GetDonationByTransactionIDRow, error) {
+	row := q.db.QueryRow(ctx, getDonationByTransactionID, transactionID)
+	var i GetDonationByTransactionIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.FundraiseID,
+		&i.TransactionID,
+		&i.ClientID,
+		&i.CreatedAt,
+		&i.FromAccountID,
+		&i.ToAccountID,
+		&i.Amount,
+		&i.ClientName,
+		&i.ClientImage,
+	)
+	return i, err
+}

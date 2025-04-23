@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	customMiddleware "komek/internal/controller/http/middleware"
 	accEntity "komek/internal/domain/account/entity"
+	donation "komek/internal/domain/donation/entity"
 	operation "komek/internal/domain/operation/entity"
 	transaction "komek/internal/domain/transaction/entity"
 	usrEntity "komek/internal/domain/user/entity"
@@ -163,7 +164,7 @@ type DonationResponse struct {
 	ClientPhoto   string    `json:"client_photo"`
 }
 
-func (h *Handler) donationsToResponse(transactions []transaction.Donation) []DonationResponse {
+func (h *Handler) donationsToResponse(transactions []donation.Donation) []DonationResponse {
 	res := make([]DonationResponse, 0, len(transactions))
 	for _, trans := range transactions {
 		res = append(res, DonationResponse{

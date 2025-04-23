@@ -56,13 +56,12 @@ type (
 		GetByAccountID(ctx context.Context, accountID uuid.UUID) ([]transaction.Transaction, error)
 		Create(ctx context.Context, transaction transaction.Transaction) (transaction.Transaction, error)
 		FindTransactionsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]transaction.Transaction, error)
-		GetTotalDonationsAmount(ctx context.Context, accountID uuid.UUID) (int64, error)
-		FindDonationsByAccounts(ctx context.Context, fromAccountID, toAccountID uuid.UUID) ([]transaction.Donation, error)
-		GetDonationsByAccountID(ctx context.Context, accountID uuid.UUID) ([]transaction.Donation, error)
+		GetTotalDonationsAmount(ctx context.Context, accountID uuid.UUID) (int64, error) // todo: move to donaion service
 	}
 
 	DonationService interface {
 		Create(ctx context.Context, in donation.CreateDonationIn) error
 		GetByID(ctx context.Context, id uuid.UUID) (donation.Donation, error)
+		GetByTransactionID(ctx context.Context, id uuid.UUID) (donation.Donation, error)
 	}
 )

@@ -22,23 +22,3 @@ func (r *Repository) transactionToDomain(transaction sqlc.Transaction) entity.Tr
 		CreatedAt:     transaction.CreatedAt.Time,
 	}
 }
-
-func (r *Repository) donationsToDomain(donations []sqlc.GetDonationsByAccountsRow) []entity.Donation {
-	result := make([]entity.Donation, 0, len(donations))
-	for _, donation := range donations {
-		result = append(result, r.donationToDomain(donation))
-	}
-	return result
-}
-
-func (r *Repository) donationToDomain(donation sqlc.GetDonationsByAccountsRow) entity.Donation {
-	return entity.Donation{
-		ID:            donation.ID.Bytes,
-		FromAccountID: donation.FromAccountID.Bytes,
-		ToAccountID:   donation.ToAccountID.Bytes,
-		Amount:        donation.Amount,
-		CreatedAt:     donation.CreatedAt.Time,
-		ClientName:    donation.ClientName.String,
-		ClientPhoto:   donation.ClientPhoto.String,
-	}
-}
