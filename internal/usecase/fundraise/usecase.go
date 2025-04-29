@@ -89,5 +89,6 @@ func (uc *UseCase) GetByID(ctx context.Context, id uuid.UUID) (entity.GetOut, er
 		Description:        client.Description,
 		SupportersQuantity: fundraise.SupportersQuantity,
 		AccountID:          acc.ID,
+		IsActive:           fundraise.IsActive,
 	}, nil
 }

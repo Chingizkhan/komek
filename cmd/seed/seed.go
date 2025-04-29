@@ -110,7 +110,7 @@ func main() {
 			Age:           60,
 			City:          "Kostanay",
 			Address:       "Москва, ул. Ленина, д. 10",
-			Description:   "Потерял работу из-за болезни, нуждается в поддержке.",
+			Description:   "Устал жить в Костанае, хочет переехать в Америку...",
 			Circumstances: "Татьяна Георгиевна живет в однокомнатной квартире и нуждается в помощи.",
 			ImageURL:      "/talas.png",
 			CategoryIDs:   []uuid.UUID{oldCategoryID},

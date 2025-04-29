@@ -156,6 +156,9 @@ func (h *Handler) transactionToResponse(transactions []transaction.Transaction) 
 
 type DonationResponse struct {
 	ID            uuid.UUID `json:"id"`
+	FundraiseID   uuid.UUID `json:"fundraise_id"`
+	TransactionID uuid.UUID `json:"transaction_id"`
+	ClientID      uuid.UUID `json:"client_id"`
 	FromAccountID uuid.UUID `json:"from_account_id"`
 	ToAccountID   uuid.UUID `json:"to_account_id"`
 	Amount        float64   `json:"amount"`
@@ -164,17 +167,20 @@ type DonationResponse struct {
 	ClientPhoto   string    `json:"client_photo"`
 }
 
-func (h *Handler) donationsToResponse(transactions []donation.Donation) []DonationResponse {
-	res := make([]DonationResponse, 0, len(transactions))
-	for _, trans := range transactions {
+func (h *Handler) donationsToResponse(donations []donation.Donation) []DonationResponse {
+	res := make([]DonationResponse, 0, len(donations))
+	for _, donate := range donations {
 		res = append(res, DonationResponse{
-			ID:            trans.ID,
-			FromAccountID: trans.FromAccountID,
-			ToAccountID:   trans.ToAccountID,
-			Amount:        money.ToFloat(trans.Amount),
-			CreatedAt:     trans.CreatedAt,
-			ClientName:    trans.ClientName,
-			ClientPhoto:   trans.ClientPhoto,
+			ID:            donate.ID,
+			FundraiseID:   donate.FundraiseID,
+			TransactionID: donate.TransactionID,
+			ClientID:      donate.ClientID,
+			FromAccountID: donate.FromAccountID,
+			ToAccountID:   donate.ToAccountID,
+			Amount:        money.ToFloat(donate.Amount),
+			CreatedAt:     donate.CreatedAt,
+			ClientName:    donate.ClientName,
+			ClientPhoto:   donate.ClientPhoto,
 		})
 	}
 	return res

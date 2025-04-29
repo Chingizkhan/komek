@@ -49,5 +49,6 @@ type (
 		Description        string    `json:"description"`
 		SupportersQuantity int64     `json:"supporters_quantity"`
 		AccountID          uuid.UUID `json:"account_id"`
+		IsActive           bool      `json:"is_active"`
 	}
 )
